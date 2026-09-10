@@ -1,0 +1,538 @@
+// RepairFlow — Laptop & Computer Service Center Operating System
+// Prisma schema. SQLite for zero-config local/dev persistence; every
+// model uses Postgres-compatible types so switching `provider` to
+// "postgresql" (e.g. Supabase) plus a new DATABASE_URL is a drop-in
+// migration — see README.md "Moving to production Postgres".
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// IDENTITY & ACCESS
+// ---------------------------------------------------------------------------
+
+// Role is a plain string constrained in app code (see src/lib/roles.ts)
+// because SQLite has no native enum type in Prisma.
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         String // ADMIN | SERVICE_MANAGER | TECHNICIAN | FRONT_DESK
+  phone        String?
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  createdJobs        ServiceJob[]              @relation("JobCreatedBy")
+  assignedJobs       ServiceJob[]              @relation("JobAssignedTechnician")
+  statusChanges      ServiceJobStatusHistory[]
+  repairNotes        RepairNote[]
+  diagnoses          Diagnosis[]
+  uploadedPhotos     DevicePhoto[]
+  inventoryMovements InventoryMovement[]
+  jobParts           JobPart[]
+  purchaseOrders     PurchaseOrder[]
+  paymentsReceived   Payment[]
+  whatsappMessages   WhatsAppMessage[]
+  auditLogs          AuditLog[]
+
+  @@index([role])
+}
+
+// ---------------------------------------------------------------------------
+// CUSTOMER & DEVICE
+// ---------------------------------------------------------------------------
+
+model Customer {
+  id           String   @id @default(cuid())
+  customerCode String   @unique // e.g. CUST-00001
+  name         String
+  mobile       String
+  whatsapp     String?
+  email        String?
+  address      String?
+  customerType String   @default("INDIVIDUAL") // INDIVIDUAL | BUSINESS
+  notes        String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  devices          Device[]
+  jobs             ServiceJob[]
+  whatsappMessages WhatsAppMessage[]
+
+  @@index([mobile])
+  @@index([name])
+}
+
+model Device {
+  id              String   @id @default(cuid())
+  customerId      String
+  deviceType      String   @default("LAPTOP") // LAPTOP | DESKTOP | ALL_IN_ONE | OTHER
+  brand           String
+  model           String
+  serialNumber    String?
+  serviceTag      String?
+  operatingSystem String?
+  processor       String?
+  ram             String?
+  storage         String?
+  color           String?
+  deviceAgeYears  Float?
+  createdAt       DateTime @default(now())
+
+  customer Customer     @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  jobs     ServiceJob[]
+
+  @@index([customerId])
+  @@index([serialNumber])
+}
+
+// ---------------------------------------------------------------------------
+// SERVICE JOB — the core workflow object
+// ---------------------------------------------------------------------------
+
+model ServiceJob {
+  id                   String  @id @default(cuid())
+  jobNumber            String  @unique // JOB-2026-00001
+  publicToken          String  @unique // opaque token for /status/[publicToken]
+  customerId           String
+  deviceId             String
+  status               String  @default("NEW")
+  priority             String  @default("NORMAL") // LOW | NORMAL | HIGH | URGENT
+  createdByUserId      String
+  assignedTechnicianId String?
+
+  conditionChecklist  String? // JSON: { screen: "GOOD", keyboard: "DAMAGED", ... }
+  accessoriesReceived String? // JSON string[]
+  quickIssues         String? // JSON string[]
+  complaintText       String?
+  additionalNotes     String?
+
+  estimatedCost Float?
+  approvedCost  Float?
+  advancePaid   Float  @default(0)
+
+  expectedCompletionDate DateTime?
+  actualCompletionDate   DateTime?
+
+  previousJobId String? // links a warranty-return job to the original job
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  customer           Customer     @relation(fields: [customerId], references: [id])
+  device             Device       @relation(fields: [deviceId], references: [id])
+  createdBy          User         @relation("JobCreatedBy", fields: [createdByUserId], references: [id])
+  assignedTechnician User?        @relation("JobAssignedTechnician", fields: [assignedTechnicianId], references: [id])
+  previousJob        ServiceJob?  @relation("JobWarrantyChain", fields: [previousJobId], references: [id])
+  followUpJobs       ServiceJob[] @relation("JobWarrantyChain")
+
+  statusHistory    ServiceJobStatusHistory[]
+  diagnosis        Diagnosis?
+  estimate         Estimate?
+  repairNotes      RepairNote[]
+  photos           DevicePhoto[]
+  jobParts         JobPart[]
+  payments         Payment[]
+  invoice          Invoice?
+  warranty         Warranty?
+  whatsappMessages WhatsAppMessage[]
+  notifications    Notification[]
+  inventoryMoves   InventoryMovement[]
+
+  @@index([status])
+  @@index([customerId])
+  @@index([assignedTechnicianId])
+  @@index([createdAt])
+}
+
+model ServiceJobStatusHistory {
+  id          String   @id @default(cuid())
+  jobId       String
+  status      String
+  note        String?
+  changedById String
+  createdAt   DateTime @default(now())
+
+  job       ServiceJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  changedBy User       @relation(fields: [changedById], references: [id])
+
+  @@index([jobId])
+}
+
+model Diagnosis {
+  id                 String   @id @default(cuid())
+  jobId              String   @unique
+  diagnosisText      String?
+  rootCause          String?
+  recommendedRepair  String?
+  partsRequired      String? // JSON string[]
+  labourRequired     String?
+  estimatedTimeHours Float?
+  estimatedCost      Float?
+  diagnosedById      String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  job         ServiceJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  diagnosedBy User?      @relation(fields: [diagnosedById], references: [id])
+}
+
+model RepairNote {
+  id           String   @id @default(cuid())
+  jobId        String
+  technicianId String
+  note         String
+  createdAt    DateTime @default(now())
+
+  job        ServiceJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  technician User       @relation(fields: [technicianId], references: [id])
+
+  @@index([jobId])
+}
+
+model DevicePhoto {
+  id           String   @id @default(cuid())
+  jobId        String
+  angle        String // FRONT | BACK | LEFT | RIGHT | SCREEN | DAMAGE | ACCESSORIES | OTHER
+  filePath     String
+  uploadedById String
+  createdAt    DateTime @default(now())
+
+  job        ServiceJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  uploadedBy User       @relation(fields: [uploadedById], references: [id])
+
+  @@index([jobId])
+}
+
+// ---------------------------------------------------------------------------
+// ESTIMATE & APPROVAL
+// ---------------------------------------------------------------------------
+
+model Estimate {
+  id           String    @id @default(cuid())
+  jobId        String    @unique
+  status       String    @default("DRAFT") // DRAFT | SENT | APPROVED | REJECTED | NEED_MORE_TIME
+  subtotal     Float     @default(0)
+  discount     Float     @default(0)
+  taxPercent   Float     @default(0)
+  taxAmount    Float     @default(0)
+  total        Float     @default(0)
+  sentAt       DateTime?
+  respondedAt  DateTime?
+  customerNote String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  job   ServiceJob     @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  items EstimateItem[]
+}
+
+model EstimateItem {
+  id          String  @id @default(cuid())
+  estimateId  String
+  type        String // PART | LABOUR | SERVICE
+  description String
+  quantity    Float   @default(1)
+  unitPrice   Float
+  total       Float
+  partId      String?
+
+  estimate Estimate @relation(fields: [estimateId], references: [id], onDelete: Cascade)
+  part     Part?    @relation(fields: [partId], references: [id])
+
+  @@index([estimateId])
+}
+
+// ---------------------------------------------------------------------------
+// INVENTORY / PARTS
+// ---------------------------------------------------------------------------
+
+model Part {
+  id            String    @id @default(cuid())
+  name          String
+  category      String // RAM | SSD | HDD | KEYBOARD | DISPLAY | BATTERY | CHARGER | ADAPTER | FAN | THERMAL_PASTE | IC | MOTHERBOARD_PART | CABLE | CONNECTOR | SOFTWARE | ACCESSORY | OTHER
+  brand         String?
+  model         String?
+  sku           String?   @unique
+  serialNumber  String?
+  quantity      Int       @default(0)
+  minStock      Int       @default(2)
+  purchasePrice Float     @default(0)
+  sellingPrice  Float     @default(0)
+  warrantyDays  Int?
+  location      String?
+  rack          String?
+  purchaseDate  DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  supplierOptions    SupplierProduct[]
+  purchaseOrderItems PurchaseOrderItem[]
+  inventoryMovements InventoryMovement[]
+  jobParts           JobPart[]
+  estimateItems      EstimateItem[]
+
+  @@index([category])
+  @@index([name])
+}
+
+model InventoryMovement {
+  id          String   @id @default(cuid())
+  partId      String
+  type        String // PURCHASE | SERVICE_USE | RETURN | DAMAGED | ADJUSTMENT
+  quantity    Int // signed: + increases stock, - decreases stock
+  jobId       String?
+  note        String?
+  createdById String
+  createdAt   DateTime @default(now())
+
+  part      Part        @relation(fields: [partId], references: [id])
+  job       ServiceJob? @relation(fields: [jobId], references: [id])
+  createdBy User        @relation(fields: [createdById], references: [id])
+
+  @@index([partId])
+  @@index([jobId])
+}
+
+model JobPart {
+  id           String   @id @default(cuid())
+  jobId        String
+  partId       String
+  technicianId String
+  quantity     Int      @default(1)
+  unitCost     Float
+  unitPrice    Float
+  createdAt    DateTime @default(now())
+
+  job        ServiceJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  part       Part       @relation(fields: [partId], references: [id])
+  technician User       @relation(fields: [technicianId], references: [id])
+
+  @@index([jobId])
+  @@index([partId])
+}
+
+// ---------------------------------------------------------------------------
+// SUPPLIERS & PROCUREMENT
+// ---------------------------------------------------------------------------
+
+model Supplier {
+  id            String   @id @default(cuid())
+  name          String
+  company       String
+  contactPerson String?
+  mobile        String?
+  whatsapp      String?
+  email         String?
+  address       String?
+  city          String?
+  gst           String?
+  paymentTerms  String?
+  notes         String?
+  createdAt     DateTime @default(now())
+
+  supplierProducts SupplierProduct[]
+  purchaseOrders   PurchaseOrder[]
+
+  @@index([city])
+}
+
+model SupplierProduct {
+  id               String   @id @default(cuid())
+  supplierId       String
+  partId           String
+  price            Float
+  availability     String   @default("AVAILABLE") // AVAILABLE | OUT_OF_STOCK | ON_ORDER
+  location         String?
+  deliveryEstimate String?
+  updatedAt        DateTime @updatedAt
+
+  supplier Supplier @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+  part     Part     @relation(fields: [partId], references: [id], onDelete: Cascade)
+
+  @@unique([supplierId, partId])
+  @@index([partId])
+}
+
+model PurchaseOrder {
+  id             String    @id @default(cuid())
+  poNumber       String    @unique
+  supplierId     String
+  orderDate      DateTime  @default(now())
+  invoiceNumber  String?
+  status         String    @default("ORDERED") // ORDERED | RECEIVED | CANCELLED
+  taxAmount      Float     @default(0)
+  shippingAmount Float     @default(0)
+  totalAmount    Float     @default(0)
+  paymentStatus  String    @default("UNPAID") // UNPAID | PARTIAL | PAID
+  receivedDate   DateTime?
+  createdById    String
+  createdAt      DateTime  @default(now())
+
+  supplier  Supplier            @relation(fields: [supplierId], references: [id])
+  createdBy User                @relation(fields: [createdById], references: [id])
+  items     PurchaseOrderItem[]
+
+  @@index([supplierId])
+  @@index([status])
+}
+
+model PurchaseOrderItem {
+  id              String @id @default(cuid())
+  purchaseOrderId String
+  partId          String
+  quantity        Int
+  unitCost        Float
+  total           Float
+
+  purchaseOrder PurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
+  part          Part          @relation(fields: [partId], references: [id])
+
+  @@index([purchaseOrderId])
+}
+
+// ---------------------------------------------------------------------------
+// PAYMENTS, INVOICING, WARRANTY
+// ---------------------------------------------------------------------------
+
+model Payment {
+  id           String   @id @default(cuid())
+  jobId        String
+  amount       Float
+  method       String // CASH | UPI | CARD | BANK_TRANSFER | OTHER
+  type         String // ADVANCE | PARTIAL | FINAL
+  receivedById String
+  note         String?
+  createdAt    DateTime @default(now())
+
+  job        ServiceJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  receivedBy User       @relation(fields: [receivedById], references: [id])
+
+  @@index([jobId])
+}
+
+model Invoice {
+  id            String   @id @default(cuid())
+  jobId         String   @unique
+  invoiceNumber String   @unique
+  subtotal      Float
+  discount      Float    @default(0)
+  taxAmount     Float    @default(0)
+  total         Float
+  paidAmount    Float    @default(0)
+  pendingAmount Float    @default(0)
+  status        String   @default("DRAFT") // DRAFT | ISSUED | PARTIALLY_PAID | PAID
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  job ServiceJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
+}
+
+model Warranty {
+  id         String   @id @default(cuid())
+  jobId      String   @unique
+  periodDays Int
+  startDate  DateTime
+  endDate    DateTime
+  terms      String?
+  createdAt  DateTime @default(now())
+
+  job ServiceJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
+}
+
+// ---------------------------------------------------------------------------
+// COMMUNICATION, NOTIFICATIONS, AUDIT
+// ---------------------------------------------------------------------------
+
+model WhatsAppTemplate {
+  id        String   @id @default(cuid())
+  key       String   @unique // JOB_RECEIVED | DIAGNOSIS_COMPLETE | ESTIMATE_SENT | REPAIR_STARTED | READY_FOR_PICKUP | DELIVERED | PAYMENT_REMINDER | STATUS_LINK | CUSTOM
+  name      String
+  body      String
+  isActive  Boolean  @default(true)
+  updatedAt DateTime @updatedAt
+}
+
+model WhatsAppMessage {
+  id          String   @id @default(cuid())
+  jobId       String?
+  customerId  String
+  templateKey String?
+  messageText String
+  method      String // LINK | TWILIO | SIMULATED
+  status      String // SENT | FAILED | LINK_OPENED | QUEUED
+  sentById    String
+  createdAt   DateTime @default(now())
+
+  job      ServiceJob? @relation(fields: [jobId], references: [id])
+  customer Customer    @relation(fields: [customerId], references: [id])
+  sentBy   User        @relation(fields: [sentById], references: [id])
+
+  @@index([jobId])
+  @@index([customerId])
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  type      String // NEW_JOB | APPROVAL_NEEDED | PAYMENT_PENDING | PARTS_REQUIRED | LOW_STOCK | JOB_DELAYED | READY_FOR_DELIVERY | WARRANTY_EXPIRING | SUPPLIER_PURCHASE
+  title     String
+  message   String
+  jobId     String?
+  isRead    Boolean  @default(false)
+  forRole   String? // restrict visibility to a role; null = everyone
+  createdAt DateTime @default(now())
+
+  job ServiceJob? @relation(fields: [jobId], references: [id])
+
+  @@index([isRead])
+  @@index([type])
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  actorId    String
+  action     String
+  entityType String
+  entityId   String
+  beforeJson String?
+  afterJson  String?
+  createdAt  DateTime @default(now())
+
+  actor User @relation(fields: [actorId], references: [id])
+
+  @@index([entityType, entityId])
+  @@index([createdAt])
+}
+
+// ---------------------------------------------------------------------------
+// SETTINGS (singleton)
+// ---------------------------------------------------------------------------
+
+model Settings {
+  id                       Int      @id @default(1)
+  companyName              String   @default("RepairFlow Service Center")
+  logoPath                 String?
+  address                  String?
+  phone                    String?
+  whatsappNumber           String?
+  email                    String?
+  gstNumber                String?
+  invoicePrefix            String   @default("INV")
+  jobPrefix                String   @default("JOB")
+  currency                 String   @default("INR")
+  defaultTaxPercent        Float    @default(0)
+  defaultWarrantyDays      Int      @default(90)
+  autoSendWhatsAppOnStatus Boolean  @default(false)
+  twilioAccountSid         String?
+  twilioAuthToken          String?
+  twilioWhatsAppFrom       String?
+  updatedAt                DateTime @updatedAt
+}

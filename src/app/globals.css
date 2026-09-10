@@ -1,0 +1,96 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
+
+  /* Primary — deep royal / technology blue */
+  --color-primary-50: #eef4ff;
+  --color-primary-100: #dbe7fe;
+  --color-primary-200: #bfd6fe;
+  --color-primary-300: #93b9fd;
+  --color-primary-400: #6096fa;
+  --color-primary-500: #3b74f5;
+  --color-primary-600: #2554ea;
+  --color-primary-700: #1d40d6;
+  --color-primary-800: #1e36ad;
+  --color-primary-900: #1c3189;
+  --color-primary-950: #141d4f;
+
+  /* Secondary — electric blue accent */
+  --color-accent-400: #38bdf8;
+  --color-accent-500: #0ea5e9;
+  --color-accent-600: #0284c7;
+
+  /* Neutrals — cool gray */
+  --color-ink-900: #0f172a;
+  --color-ink-700: #334155;
+  --color-ink-500: #64748b;
+  --color-ink-400: #94a3b8;
+  --color-ink-300: #cbd5e1;
+  --color-ink-200: #e2e8f0;
+  --color-ink-100: #eef2f6;
+  --color-ink-50: #f8fafc;
+
+  --color-surface: #ffffff;
+  --color-bg: #f6f8fb;
+  --color-border: #e4e9f1;
+
+  /* Semantic */
+  --color-success-50: #ecfdf3;
+  --color-success-600: #17a557;
+  --color-success-700: #0f8a47;
+
+  --color-warning-50: #fffaeb;
+  --color-warning-600: #d78d0f;
+  --color-warning-700: #b3720a;
+
+  --color-danger-50: #fef2f2;
+  --color-danger-600: #dc2626;
+  --color-danger-700: #b91c1c;
+
+  --color-info-50: #eff6ff;
+  --color-info-600: #2563eb;
+  --color-info-700: #1d4ed8;
+
+  --shadow-card: 0 1px 2px 0 rgb(15 23 42 / 0.04), 0 1px 8px -2px rgb(15 23 42 / 0.06);
+  --shadow-popover: 0 12px 32px -8px rgb(15 23 42 / 0.18), 0 4px 12px -4px rgb(15 23 42 / 0.1);
+}
+
+html {
+  color-scheme: light;
+}
+
+body {
+  background: var(--color-bg);
+  color: var(--color-ink-900);
+}
+
+* {
+  border-color: var(--color-border);
+}
+
+::selection {
+  background: var(--color-primary-200);
+}
+
+/* Slim, unobtrusive scrollbars for the app shell */
+.scroll-thin::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.scroll-thin::-webkit-scrollbar-thumb {
+  background: var(--color-ink-300);
+  border-radius: 999px;
+}
+.scroll-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  body {
+    background: #fff;
+  }
+}
