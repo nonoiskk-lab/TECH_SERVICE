@@ -9,8 +9,8 @@ a WhatsApp thread and someone's memory.
 ## Stack
 
 - **Next.js 16** (App Router) + **TypeScript**, Tailwind CSS v4
-- **Prisma** ORM on **SQLite** for zero-config local persistence (see
-  [Moving to production Postgres](#moving-to-production-postgres) to switch)
+- **Prisma** ORM on **PostgreSQL** (a free Supabase project in the live demo;
+  any Postgres instance works locally — see [Database](#database))
 - Cookie-based session auth (JWT via `jose`, bcrypt password hashing) with
   four roles: Admin, Service Manager, Technician, Front Desk
 - WhatsApp via free `wa.me` deep links by default, with an optional Twilio
@@ -22,12 +22,22 @@ a WhatsApp thread and someone's memory.
 
 ```bash
 npm install
-npx prisma migrate dev   # creates prisma/dev.db and applies the schema
+# Point DATABASE_URL (in .env) at a Postgres database you control, then:
+npx prisma migrate dev   # applies the schema
 npm run db:seed          # realistic demo data across every module
 npm run dev
 ```
 
 Open http://localhost:3000 — you'll land on the login page.
+
+## Database
+
+The schema (`prisma/schema.prisma`) targets Postgres. The live deployment
+uses a small, dedicated Supabase project created for this preview; for your
+own environment, point `DATABASE_URL` at any Postgres instance (Supabase,
+RDS, a local `postgres` container, etc.) and run `npx prisma migrate dev`.
+No table uses a Postgres-only feature beyond what every managed Postgres
+offers, so nothing else needs to change.
 
 ### Demo logins (development only)
 
@@ -48,7 +58,7 @@ Copy `.env.example` to `.env` and adjust:
 
 | Variable | Purpose |
 |---|---|
-| `DATABASE_URL` | SQLite file path (`file:./dev.db` by default) |
+| `DATABASE_URL` | Postgres connection string |
 | `AUTH_SECRET` | Signs session JWTs — set a long random value in production |
 | `TWILIO_ACCOUNT_SID` / `TWILIO_AUTH_TOKEN` / `TWILIO_WHATSAPP_FROM` | Optional — enables fully automatic WhatsApp sending (see below). Also settable from the app at **Settings → Integrations**, which takes precedence. |
 | `NEXT_PUBLIC_APP_URL` | Base URL used to build the customer status link and its QR code |
@@ -119,26 +129,21 @@ Being upfront about what's simplified rather than pretending otherwise:
   Prisma upgrade should clear it.
 - **Single-tenant**: built for one service center. Multi-branch/multi-tenant
   would need a `Location`/`Branch` model and scoping throughout.
-- **SQLite**: great for a single-writer deployment; move to Postgres (see
-  below) before running with concurrent writers at real traffic.
-
-## Moving to production Postgres
-
-The schema was written to be Postgres-compatible from day one:
-
-1. In `prisma/schema.prisma`, change `provider = "sqlite"` to
-   `provider = "postgresql"` under `datasource db`.
-2. Point `DATABASE_URL` at your Postgres instance (Supabase, RDS, etc).
-3. `npx prisma migrate dev` to generate a fresh Postgres-native migration
-   (SQLite and Postgres migrations aren't binary compatible, so this
-   regenerates them — it does not affect your schema definitions above).
-4. Re-run `npm run db:seed` if you want the demo data there too.
+- **Live demo credentials committed**: `.env.production` in this repo holds
+  the connection string for the dedicated demo Supabase project and a demo
+  `AUTH_SECRET`, committed only because the deployment tooling available in
+  this session had no way to set Vercel environment variables directly.
+  Rotate both (or delete the file and set real env vars in the Vercel
+  dashboard instead) before this goes anywhere near real customer data.
 
 ## Production readiness checklist
 
-- [ ] Replace `AUTH_SECRET` with a long random value; never commit `.env`
+- [ ] Replace `DATABASE_URL` and `AUTH_SECRET` with your own values set as
+      real environment variables (Vercel dashboard, etc.) rather than the
+      committed `.env.production` demo values; delete that file once done
 - [ ] Remove or disable the demo accounts seeded above
-- [ ] Move off SQLite to Postgres for concurrent-write safety (see above)
+- [ ] Move to your own Postgres project (a new Supabase project, RDS, etc.)
+      rather than the shared demo one
 - [ ] Configure real Twilio credentials if automatic WhatsApp sending is
       wanted, or confirm the `wa.me` flow is acceptable
 - [ ] Wire device photo upload to durable storage (S3/Supabase Storage)

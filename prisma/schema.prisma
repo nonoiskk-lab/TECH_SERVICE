@@ -1,15 +1,13 @@
 // RepairFlow — Laptop & Computer Service Center Operating System
-// Prisma schema. SQLite for zero-config local/dev persistence; every
-// model uses Postgres-compatible types so switching `provider` to
-// "postgresql" (e.g. Supabase) plus a new DATABASE_URL is a drop-in
-// migration — see README.md "Moving to production Postgres".
+// Prisma schema, backed by Postgres (Supabase in production; any Postgres
+// instance locally — see README.md "Database").
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
