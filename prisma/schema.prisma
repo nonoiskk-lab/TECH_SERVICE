@@ -36,7 +36,8 @@ model User {
   uploadedPhotos     DevicePhoto[]
   inventoryMovements InventoryMovement[]
   jobParts           JobPart[]
-  purchaseOrders     PurchaseOrder[]
+  purchaseOrders     PurchaseOrder[]          @relation("PurchaseOrderCreatedBy")
+  purchaseBillsUploaded PurchaseOrder[]       @relation("PurchaseOrderBillUploadedBy")
   paymentsReceived   Payment[]
   whatsappMessages   WhatsAppMessage[]
   auditLogs          AuditLog[]
@@ -377,9 +378,18 @@ model PurchaseOrder {
   createdById    String
   createdAt      DateTime  @default(now())
 
-  supplier  Supplier            @relation(fields: [supplierId], references: [id])
-  createdBy User                @relation(fields: [createdById], references: [id])
-  items     PurchaseOrderItem[]
+  // Distributor bill photo/scan — stored as a data URL (base64), so no
+  // separate file-storage service is needed. Nullable: most POs won't have
+  // one until an authorized purchase user uploads it.
+  billFileUrl      String?
+  billFileName     String?
+  billUploadedById String?
+  billUploadedAt   DateTime?
+
+  supplier       Supplier            @relation(fields: [supplierId], references: [id])
+  createdBy      User                @relation("PurchaseOrderCreatedBy", fields: [createdById], references: [id])
+  billUploadedBy User?               @relation("PurchaseOrderBillUploadedBy", fields: [billUploadedById], references: [id])
+  items          PurchaseOrderItem[]
 
   @@index([supplierId])
   @@index([status])
