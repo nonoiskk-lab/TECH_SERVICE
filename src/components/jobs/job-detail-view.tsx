@@ -377,7 +377,7 @@ function ChangeStatusCard({
           <p className="text-sm text-ink-500">This job has reached a final status.</p>
         )}
 
-        {canEdit && <SendStatusLinkButton jobId={job.id} label="Send Status on WhatsApp" />}
+        {canEdit && <SendStatusLinkButton jobId={job.id} status={job.status as JobStatus} />}
 
         <div className="border-t border-[var(--color-border)] pt-3">
           <FormRow>
@@ -976,6 +976,7 @@ const TEMPLATE_OPTIONS: { key: string; label: string }[] = [
   { key: "REPAIR_STARTED", label: "Repair Started" },
   { key: "READY_FOR_PICKUP", label: "Ready for Pickup" },
   { key: "DELIVERED", label: "Delivered" },
+  { key: "COMPLETED", label: "Completed" },
   { key: "PAYMENT_REMINDER", label: "Payment Reminder" },
   { key: "STATUS_LINK", label: "Send Status Check Link" },
   { key: "CUSTOM", label: "Custom Message" },
