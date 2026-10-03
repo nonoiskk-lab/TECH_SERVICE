@@ -56,7 +56,7 @@ async function main() {
       key: "JOB_RECEIVED",
       name: "Job Received",
       body:
-        "Hello {{customerName}} 👋\n\nYour {{deviceBrand}} {{deviceModel}} has been received by {{companyName}}.\n\n🔧 Job No: {{jobNumber}}\n📌 Status: Received\n\nExpected Completion:\n{{expectedDate}}\n\nYou can track your service status here:\n{{statusLink}}\n\nThank you for choosing us.",
+        "Hello {{customerName}},\n\nYour {{deviceBrand}} {{deviceModel}} has been received by {{companyName}}.\n\nJob No: {{jobNumber}}\nStatus: Received\n\nExpected Completion:\n{{expectedDate}}\n\nYou can track your service status here:\n{{statusLink}}\n\nThank you for choosing us.",
     },
     {
       key: "DIAGNOSIS_COMPLETE",
@@ -74,7 +74,7 @@ async function main() {
       key: "REPAIR_STARTED",
       name: "Repair Started",
       body:
-        "Hello {{customerName}} 👋\n\nGood news! Work on your {{deviceBrand}} {{deviceModel}} has started.\n\n🔧 Job No: {{jobNumber}}\n📌 Status: Repair In Progress\n\nExpected Completion:\n{{expectedDate}}\n\nTrack your repair here:\n{{statusLink}}\n\nWe'll keep you updated as your service progresses.",
+        "Hello {{customerName}},\n\nGood news! Work on your {{deviceBrand}} {{deviceModel}} has started.\n\nJob No: {{jobNumber}}\nStatus: Repair In Progress\n\nExpected Completion:\n{{expectedDate}}\n\nTrack your repair here:\n{{statusLink}}\n\nWe'll keep you updated as your service progresses.",
     },
     {
       key: "READY_FOR_PICKUP",
@@ -86,13 +86,13 @@ async function main() {
       key: "DELIVERED",
       name: "Delivered",
       body:
-        "Hello {{customerName}} 👋\n\nYour {{deviceBrand}} {{deviceModel}} has been delivered successfully.\n\n🔧 Job No: {{jobNumber}}\n📌 Status: Delivered\n\nYou can view your complete service details here:\n{{statusLink}}\n\nThank you for choosing {{companyName}}. 🙏",
+        "Hello {{customerName}},\n\nYour {{deviceBrand}} {{deviceModel}} has been delivered successfully.\n\nJob No: {{jobNumber}}\nStatus: Delivered\n\nYou can view your complete service details here:\n{{statusLink}}\n\nThank you for choosing {{companyName}}.",
     },
     {
       key: "COMPLETED",
       name: "Completed",
       body:
-        "Hello {{customerName}} 👋\n\nYour service job for {{deviceBrand}} {{deviceModel}} is now completed. ✅\n\n🔧 Job No: {{jobNumber}}\n📌 Status: Completed\n\nView your service details and warranty information here:\n{{statusLink}}\n\nThank you for choosing {{companyName}}. 🙏",
+        "Hello {{customerName}},\n\nYour service job for {{deviceBrand}} {{deviceModel}} is now completed.\n\nJob No: {{jobNumber}}\nStatus: Completed\n\nView your service details and warranty information here:\n{{statusLink}}\n\nThank you for choosing {{companyName}}.",
     },
     {
       key: "PAYMENT_REMINDER",
@@ -104,7 +104,7 @@ async function main() {
       key: "STATUS_LINK",
       name: "Status Check Link",
       body:
-        "Hi {{customerName}} 👋\n\nYou can check your laptop's service status anytime here:\n{{statusLink}}\n\nService ID: {{jobNumber}}",
+        "Hi {{customerName}},\n\nYou can check your laptop's service status anytime here:\n{{statusLink}}\n\nService ID: {{jobNumber}}",
     },
     {
       key: "CUSTOM",
