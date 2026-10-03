@@ -56,7 +56,7 @@ async function main() {
       key: "JOB_RECEIVED",
       name: "Job Received",
       body:
-        "Hello {{customerName}}, your {{deviceBrand}} {{deviceModel}} has been received for service.\n\nService ID: {{jobNumber}}\nCurrent Status: Received\n\nWe will update you once diagnosis is completed.\n— {{companyName}}",
+        "Hello {{customerName}} 👋\n\nYour {{deviceBrand}} {{deviceModel}} has been received by {{companyName}}.\n\n🔧 Job No: {{jobNumber}}\n📌 Status: Received\n\nExpected Completion:\n{{expectedDate}}\n\nYou can track your service status here:\n{{statusLink}}\n\nThank you for choosing us.",
     },
     {
       key: "DIAGNOSIS_COMPLETE",
@@ -74,7 +74,7 @@ async function main() {
       key: "REPAIR_STARTED",
       name: "Repair Started",
       body:
-        "Your laptop repair has started.\n\nService ID: {{jobNumber}}\nExpected completion: {{expectedDate}}\n— {{companyName}}",
+        "Hello {{customerName}} 👋\n\nGood news! Work on your {{deviceBrand}} {{deviceModel}} has started.\n\n🔧 Job No: {{jobNumber}}\n📌 Status: Repair In Progress\n\nExpected Completion:\n{{expectedDate}}\n\nTrack your repair here:\n{{statusLink}}\n\nWe'll keep you updated as your service progresses.",
     },
     {
       key: "READY_FOR_PICKUP",
@@ -86,7 +86,13 @@ async function main() {
       key: "DELIVERED",
       name: "Delivered",
       body:
-        "Thank you for choosing us. Your laptop has been successfully delivered.\n\nService ID: {{jobNumber}}\n— {{companyName}}",
+        "Hello {{customerName}} 👋\n\nYour {{deviceBrand}} {{deviceModel}} has been delivered successfully.\n\n🔧 Job No: {{jobNumber}}\n📌 Status: Delivered\n\nYou can view your complete service details here:\n{{statusLink}}\n\nThank you for choosing {{companyName}}. 🙏",
+    },
+    {
+      key: "COMPLETED",
+      name: "Completed",
+      body:
+        "Hello {{customerName}} 👋\n\nYour service job for {{deviceBrand}} {{deviceModel}} is now completed. ✅\n\n🔧 Job No: {{jobNumber}}\n📌 Status: Completed\n\nView your service details and warranty information here:\n{{statusLink}}\n\nThank you for choosing {{companyName}}. 🙏",
     },
     {
       key: "PAYMENT_REMINDER",

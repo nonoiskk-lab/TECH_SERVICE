@@ -231,6 +231,7 @@ export const WHATSAPP_TEMPLATE_KEYS = [
   "REPAIR_STARTED",
   "READY_FOR_PICKUP",
   "DELIVERED",
+  "COMPLETED",
   "PAYMENT_REMINDER",
   "STATUS_LINK",
   "CUSTOM",
@@ -244,16 +245,28 @@ export const WHATSAPP_TEMPLATE_LABELS: Record<WhatsAppTemplateKey, string> = {
   REPAIR_STARTED: "Repair Started",
   READY_FOR_PICKUP: "Ready for Pickup",
   DELIVERED: "Delivered",
+  COMPLETED: "Completed",
   PAYMENT_REMINDER: "Payment Reminder",
   STATUS_LINK: "Status Check Link",
   CUSTOM: "Custom Message",
 };
 
-// Maps a job status change to the WhatsApp template that should fire.
-export const STATUS_TO_TEMPLATE: Partial<Record<JobStatus, WhatsAppTemplateKey>> = {
+// Maps a job status to the WhatsApp template its "Send Update on WhatsApp"
+// button should use — every one of the 4 active statuses has its own
+// customer-friendly message (see prisma/seed.ts for the template bodies).
+export const STATUS_TO_TEMPLATE: Record<JobStatus, WhatsAppTemplateKey> = {
   RECEIVED: "JOB_RECEIVED",
   REPAIR_IN_PROGRESS: "REPAIR_STARTED",
   DELIVERED: "DELIVERED",
+  CLOSED: "COMPLETED",
+};
+
+// Button copy shown on the Job Detail page, keyed by the job's current status.
+export const STATUS_WHATSAPP_BUTTON_LABEL: Record<JobStatus, string> = {
+  RECEIVED: "Send Received Update on WhatsApp",
+  REPAIR_IN_PROGRESS: "Send Progress Update on WhatsApp",
+  DELIVERED: "Send Delivery Update on WhatsApp",
+  CLOSED: "Send Completion Update on WhatsApp",
 };
 
 export const NOTIFICATION_TYPES = [
