@@ -49,7 +49,13 @@ export function randomToken(length = 24) {
   return out;
 }
 
-export async function nextCustomerCode(): Promise<string> {
-  const count = await prisma.customer.count();
+// Accepts an optional transaction client so callers running inside
+// prisma.$transaction(...) reuse that same connection instead of requesting
+// a second one from the pool — under Supabase's pooled connection (pgbouncer
+// mode, few connections per serverless instance), requesting a second
+// connection while the first is held open by an in-progress transaction can
+// hang until it times out.
+export async function nextCustomerCode(client: Prisma.TransactionClient | typeof prisma = prisma): Promise<string> {
+  const count = await client.customer.count();
   return `CUST-${String(count + 1).padStart(5, "0")}`;
 }
