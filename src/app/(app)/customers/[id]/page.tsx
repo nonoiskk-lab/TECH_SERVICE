@@ -2,6 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, Phone, Mail, MapPin, MessageCircle, Plus, Laptop2 } from "lucide-react";
 import { prisma } from "@/lib/prisma";
+import { getSession } from "@/lib/auth";
+import { canDeleteRecords } from "@/lib/permissions";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -9,6 +11,7 @@ import { JobsTable } from "@/components/jobs/jobs-table";
 import { Avatar } from "@/components/ui/misc";
 import { formatCurrency, formatDate, toWhatsAppNumber } from "@/lib/utils";
 import { SendStatusLinkButton } from "@/components/jobs/send-status-link-button";
+import { CustomerActions } from "@/components/customers/customer-actions";
 
 export default async function CustomerDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -26,6 +29,11 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
 
   if (!customer) notFound();
 
+  const session = await getSession();
+  const role = session?.role ?? "FRONT_DESK";
+  const canEdit = role === "ADMIN" || role === "SERVICE_MANAGER" || role === "FRONT_DESK";
+  const canDelete = canDeleteRecords(role);
+
   const totalSpending = customer.jobs.reduce((s, j) => s + j.payments.reduce((s2, p) => s2 + p.amount, 0), 0);
   const lastService = customer.jobs[0]?.createdAt;
   const waLink = customer.whatsapp
@@ -34,9 +42,28 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
 
   return (
     <div className="space-y-6">
-      <Link href="/customers" className="inline-flex items-center gap-1.5 text-sm font-medium text-ink-500 hover:text-ink-800">
-        <ArrowLeft className="size-4" /> Back to customers
-      </Link>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <Link href="/customers" className="inline-flex items-center gap-1.5 text-sm font-medium text-ink-500 hover:text-ink-800">
+          <ArrowLeft className="size-4" /> Back to customers
+        </Link>
+        {(canEdit || canDelete) && (
+          <CustomerActions
+            customer={{
+              id: customer.id,
+              name: customer.name,
+              mobile: customer.mobile,
+              whatsapp: customer.whatsapp,
+              email: customer.email,
+              address: customer.address,
+              customerType: customer.customerType,
+              notes: customer.notes,
+              isArchived: customer.isArchived,
+            }}
+            canEdit={canEdit}
+            canDelete={canDelete}
+          />
+        )}
+      </div>
 
       <div className="flex flex-col gap-5 lg:flex-row">
         <Card className="lg:w-80 lg:shrink-0">
@@ -48,7 +75,10 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
                 <p className="text-xs text-ink-500">{customer.customerCode}</p>
               </div>
             </div>
-            <Badge tone={customer.customerType === "BUSINESS" ? "info" : "neutral"}>{customer.customerType}</Badge>
+            <div className="flex flex-wrap gap-2">
+              <Badge tone={customer.customerType === "BUSINESS" ? "info" : "neutral"}>{customer.customerType}</Badge>
+              {customer.isArchived && <Badge tone="danger">Deleted</Badge>}
+            </div>
             <div className="space-y-2 text-sm text-ink-700">
               <p className="flex items-center gap-2">
                 <Phone className="size-4 text-ink-400" /> {customer.mobile}

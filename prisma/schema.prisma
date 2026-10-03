@@ -58,6 +58,7 @@ model Customer {
   address      String?
   customerType String   @default("INDIVIDUAL") // INDIVIDUAL | BUSINESS
   notes        String?
+  isArchived   Boolean  @default(false)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
