@@ -72,7 +72,7 @@ export async function POST(request: NextRequest) {
         } else {
           const created = await tx.customer.create({
             data: {
-              customerCode: await nextCustomerCode(),
+              customerCode: await nextCustomerCode(tx),
               name: parsed.customer.name,
               mobile: parsed.customer.mobile,
               whatsapp: parsed.customer.whatsapp || parsed.customer.mobile,
