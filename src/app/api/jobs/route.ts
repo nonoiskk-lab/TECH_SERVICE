@@ -16,8 +16,10 @@ export async function GET(request: NextRequest) {
     const page = Math.max(1, Number(sp.get("page") ?? 1));
     const pageSize = Math.min(50, Number(sp.get("pageSize") ?? 20));
     const mine = sp.get("mine") === "true";
+    const includeArchived = sp.get("includeArchived") === "true";
 
     const where: Prisma.ServiceJobWhereInput = {};
+    if (!includeArchived) where.isArchived = false;
     if (status) where.status = status;
     if (priority) where.priority = priority;
     if (technicianId) where.assignedTechnicianId = technicianId;

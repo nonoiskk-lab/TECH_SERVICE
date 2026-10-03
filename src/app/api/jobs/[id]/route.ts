@@ -38,10 +38,17 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
 
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    await requireSession(["ADMIN", "SERVICE_MANAGER", "FRONT_DESK", "TECHNICIAN"]);
+    const session = await requireSession(["ADMIN", "SERVICE_MANAGER", "FRONT_DESK", "TECHNICIAN"]);
     const { id } = await params;
     const body = await request.json();
-    const parsed = jobUpdateSchema.parse(body);
+    const { isArchived, ...rest } = body as { isArchived?: boolean; [key: string]: unknown };
+    const parsed = jobUpdateSchema.parse(rest);
+
+    // Archiving/restoring a job is a delete-equivalent action — only Admin,
+    // even though the other roles can edit the regular fields above.
+    if (isArchived !== undefined && session.role !== "ADMIN") {
+      throw new ApiError(403, "Only an Admin can delete or restore a job.");
+    }
 
     const job = await prisma.serviceJob.update({
       where: { id },
@@ -52,6 +59,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
         ...(parsed.complaintText !== undefined && { complaintText: parsed.complaintText }),
         ...(parsed.additionalNotes !== undefined && { additionalNotes: parsed.additionalNotes }),
         ...(parsed.estimatedCost !== undefined && { estimatedCost: parsed.estimatedCost }),
+        ...(typeof isArchived === "boolean" && { isArchived }),
       },
     });
 
