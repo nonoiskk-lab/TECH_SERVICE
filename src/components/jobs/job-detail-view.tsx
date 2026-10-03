@@ -29,6 +29,7 @@ import { StatusBadge } from "@/components/status-badge";
 import { Input, Label, Textarea, Select, FormRow } from "@/components/ui/field";
 import { Tabs, Avatar, EmptyState } from "@/components/ui/misc";
 import { StatusTimeline } from "@/components/jobs/timeline";
+import { SendStatusLinkButton } from "@/components/jobs/send-status-link-button";
 import { formatCurrency, formatDate, formatDateTime, safeJsonParse, cn } from "@/lib/utils";
 import {
   CONDITION_ITEM_LABELS,
@@ -365,6 +366,8 @@ function ChangeStatusCard({
         ) : (
           <p className="text-sm text-ink-500">This job has reached a final status.</p>
         )}
+
+        {canEdit && <SendStatusLinkButton jobId={job.id} label="Send Status on WhatsApp" />}
 
         <div className="border-t border-[var(--color-border)] pt-3">
           <FormRow>

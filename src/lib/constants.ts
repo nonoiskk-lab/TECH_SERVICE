@@ -282,6 +282,11 @@ export const PO_STATUSES = ["ORDERED", "RECEIVED", "CANCELLED"] as const;
 export const PAYMENT_STATUSES_PO = ["UNPAID", "PARTIAL", "PAID"] as const;
 export const SUPPLIER_AVAILABILITY = ["AVAILABLE", "OUT_OF_STOCK", "ON_ORDER"] as const;
 
+// Distributor purchase-bill upload: kept well under Vercel's serverless
+// request body limit (4.5MB) even after base64 inflates the payload ~33%.
+export const MAX_BILL_FILE_BYTES = 3 * 1024 * 1024;
+export const ALLOWED_BILL_FILE_TYPES = ["image/jpeg", "image/png", "image/webp", "application/pdf"] as const;
+
 export const STOCK_LEVEL = ["NORMAL", "LOW", "OUT_OF_STOCK", "CRITICAL"] as const;
 export type StockLevel = (typeof STOCK_LEVEL)[number];
 

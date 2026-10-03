@@ -6,13 +6,14 @@ import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { PurchaseOrderActions } from "@/components/inventory/purchase-order-actions";
+import { PurchaseBillUpload } from "@/components/inventory/purchase-bill-upload";
 
 export default async function PurchaseOrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
 
   const po = await prisma.purchaseOrder.findUnique({
     where: { id },
-    include: { supplier: true, items: { include: { part: true } }, createdBy: true },
+    include: { supplier: true, items: { include: { part: true } }, createdBy: true, billUploadedBy: true },
   });
   if (!po) notFound();
 
@@ -33,7 +34,7 @@ export default async function PurchaseOrderDetailPage({ params }: { params: Prom
         <PurchaseOrderActions id={po.id} status={po.status} paymentStatus={po.paymentStatus} />
       </div>
 
-      <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader title="Supplier" />
           <CardBody className="space-y-1 text-sm">
@@ -60,6 +61,20 @@ export default async function PurchaseOrderDetailPage({ params }: { params: Prom
             <Row label="Tax" value={formatCurrency(po.taxAmount)} />
             <Row label="Shipping" value={formatCurrency(po.shippingAmount)} />
             <Row label="Total" value={<span className="text-base font-bold">{formatCurrency(po.totalAmount)}</span>} />
+          </CardBody>
+        </Card>
+        <Card>
+          <CardHeader title="Purchase Bill" description="Distributor's bill photo or scan" />
+          <CardBody>
+            <PurchaseBillUpload
+              purchaseOrderId={po.id}
+              bill={{
+                billFileUrl: po.billFileUrl,
+                billFileName: po.billFileName,
+                billUploadedAt: po.billUploadedAt,
+                billUploadedByName: po.billUploadedBy?.name,
+              }}
+            />
           </CardBody>
         </Card>
       </div>
