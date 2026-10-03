@@ -21,7 +21,7 @@ export async function getLiveAlerts(): Promise<LiveAlert[]> {
   const soon = new Date(now.getTime() + 7 * 86400000);
 
   const [parts, activeJobs, warranties] = await Promise.all([
-    prisma.part.findMany(),
+    prisma.part.findMany({ where: { isArchived: false } }),
     prisma.serviceJob.findMany({
       where: { status: { notIn: TERMINAL_EXCLUDE } },
       include: { customer: true, payments: true },

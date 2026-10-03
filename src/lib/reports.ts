@@ -69,6 +69,7 @@ export async function getFinancialReport() {
 
 export async function getInventoryReport() {
   const parts = await prisma.part.findMany({
+    where: { isArchived: false },
     include: { inventoryMovements: { where: { type: "SERVICE_USE" }, select: { quantity: true, createdAt: true } } },
   });
 

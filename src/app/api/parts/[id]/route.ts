@@ -34,13 +34,20 @@ const updateSchema = z.object({
   warrantyDays: z.coerce.number().int().min(0).optional().nullable(),
   location: z.string().trim().max(60).optional().or(z.literal("")),
   rack: z.string().trim().max(30).optional().or(z.literal("")),
+  isArchived: z.boolean().optional(),
 });
 
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    await requireSession(["ADMIN", "SERVICE_MANAGER"]);
+    const session = await requireSession(["ADMIN", "SERVICE_MANAGER"]);
     const { id } = await params;
     const parsed = updateSchema.parse(await request.json());
+
+    // Archiving/restoring a part is a delete-equivalent action — only Admin,
+    // even though Service Manager can edit the other fields on this route.
+    if (parsed.isArchived !== undefined && session.role !== "ADMIN") {
+      throw new ApiError(403, "Only an Admin can delete or restore a part.");
+    }
 
     const part = await prisma.part.update({
       where: { id },
@@ -56,6 +63,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
         ...(parsed.warrantyDays !== undefined && { warrantyDays: parsed.warrantyDays }),
         ...(parsed.location !== undefined && { location: parsed.location || null }),
         ...(parsed.rack !== undefined && { rack: parsed.rack || null }),
+        ...(parsed.isArchived !== undefined && { isArchived: parsed.isArchived }),
       },
     });
 

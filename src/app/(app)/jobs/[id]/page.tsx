@@ -15,7 +15,7 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
       include: jobDetailInclude,
     }),
     prisma.user.findMany({ where: { role: "TECHNICIAN", isActive: true }, select: { id: true, name: true } }),
-    prisma.part.findMany({ orderBy: { name: "asc" }, select: { id: true, name: true, quantity: true, sellingPrice: true, purchasePrice: true } }),
+    prisma.part.findMany({ where: { isArchived: false }, orderBy: { name: "asc" }, select: { id: true, name: true, quantity: true, sellingPrice: true, purchasePrice: true } }),
   ]);
 
   if (!job) notFound();

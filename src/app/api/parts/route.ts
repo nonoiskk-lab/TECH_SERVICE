@@ -27,9 +27,11 @@ export async function GET(request: NextRequest) {
     const q = sp.get("q")?.trim();
     const category = sp.get("category");
     const lowStockOnly = sp.get("lowStock") === "true";
+    const includeArchived = sp.get("includeArchived") === "true";
 
     const parts = await prisma.part.findMany({
       where: {
+        ...(!includeArchived && { isArchived: false }),
         ...(category && { category }),
         ...(q && {
           OR: [{ name: { contains: q } }, { sku: { contains: q } }, { brand: { contains: q } }],

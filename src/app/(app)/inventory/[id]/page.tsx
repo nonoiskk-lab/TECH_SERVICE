@@ -2,11 +2,14 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { prisma } from "@/lib/prisma";
+import { getSession } from "@/lib/auth";
+import { canDeleteRecords } from "@/lib/permissions";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatCurrency, formatDateTime } from "@/lib/utils";
 import { stockLevelFor } from "@/lib/constants";
 import { AdjustStockPanel } from "@/components/inventory/adjust-stock-panel";
+import { PartActions } from "@/components/inventory/part-actions";
 
 const LEVEL_TONE = { NORMAL: "success", LOW: "warning", CRITICAL: "danger", OUT_OF_STOCK: "danger" } as const;
 
@@ -26,6 +29,8 @@ export default async function PartDetailPage({ params }: { params: Promise<{ id:
   });
   if (!part) notFound();
 
+  const session = await getSession();
+  const canDelete = canDeleteRecords(session?.role ?? "FRONT_DESK");
   const level = stockLevelFor(part.quantity, part.minStock);
 
   return (
@@ -36,7 +41,16 @@ export default async function PartDetailPage({ params }: { params: Promise<{ id:
 
       <div className="flex flex-wrap items-center gap-3">
         <h1 className="text-xl font-bold text-ink-900 sm:text-2xl">{part.name}</h1>
-        <Badge tone={LEVEL_TONE[level]}>{level.replaceAll("_", " ")}</Badge>
+        {part.isArchived ? (
+          <Badge tone="neutral">Deleted</Badge>
+        ) : (
+          <Badge tone={LEVEL_TONE[level]}>{level.replaceAll("_", " ")}</Badge>
+        )}
+        {canDelete && (
+          <div className="ml-auto">
+            <PartActions partId={part.id} partName={part.name} isArchived={part.isArchived} />
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
