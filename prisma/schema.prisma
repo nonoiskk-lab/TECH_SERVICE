@@ -123,6 +123,7 @@ model ServiceJob {
   actualCompletionDate   DateTime?
 
   previousJobId String? // links a warranty-return job to the original job
+  isArchived    Boolean @default(false)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

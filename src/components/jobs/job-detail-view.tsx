@@ -30,6 +30,7 @@ import { Input, Label, Textarea, Select, FormRow } from "@/components/ui/field";
 import { Tabs, Avatar, EmptyState } from "@/components/ui/misc";
 import { StatusTimeline } from "@/components/jobs/timeline";
 import { SendStatusLinkButton } from "@/components/jobs/send-status-link-button";
+import { JobActions } from "@/components/jobs/job-actions";
 import { formatCurrency, formatDate, formatDateTime, safeJsonParse, cn } from "@/lib/utils";
 import {
   CONDITION_ITEM_LABELS,
@@ -83,16 +84,25 @@ export function JobDetailView({
             <h1 className="text-xl font-bold text-ink-900 sm:text-2xl">{job.jobNumber}</h1>
             <StatusBadge status={job.status} />
             <Badge tone={job.priority === "URGENT" || job.priority === "HIGH" ? "danger" : "neutral"}>{job.priority}</Badge>
+            {job.isArchived && <Badge tone="danger">Deleted</Badge>}
           </div>
           <p className="mt-1 text-sm text-ink-500">
             {job.customer.name} · {job.device.brand} {job.device.model} · Created {formatDate(job.createdAt)}
           </p>
         </div>
-        <Link href={`/status/${job.publicToken}`} target="_blank">
-          <Button variant="outline">
-            <ExternalLink className="size-4" /> Customer Status Page
-          </Button>
-        </Link>
+        <div className="flex flex-wrap items-center gap-2">
+          <Link href={`/status/${job.publicToken}`} target="_blank">
+            <Button variant="outline">
+              <ExternalLink className="size-4" /> Customer Status Page
+            </Button>
+          </Link>
+          <JobActions
+            job={job}
+            technicians={technicians}
+            canEdit={canEditTechnical || canEditFinancial}
+            canDelete={currentUser.role === "ADMIN"}
+          />
+        </div>
       </div>
 
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
