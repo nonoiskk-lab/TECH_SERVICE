@@ -7,8 +7,6 @@ import {
   FileSearch,
   PackagePlus,
   Inbox,
-  Stethoscope,
-  ThumbsUp,
   Wrench,
   PackageSearch,
   CheckCircle2,
@@ -50,12 +48,10 @@ export default async function DashboardPage() {
 
       {/* Today's overview */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <StatCard label="New" value={s.new} icon={Inbox} tone="neutral" href="/jobs?status=NEW" />
-        <StatCard label="Diagnosis" value={s.diagnosis} icon={Stethoscope} tone="info" href="/jobs?status=DIAGNOSIS" />
-        <StatCard label="Approval" value={s.approval} icon={ThumbsUp} tone="warning" href="/jobs?status=WAITING_APPROVAL" />
-        <StatCard label="Repair" value={s.repair} icon={Wrench} tone="info" href="/jobs?status=REPAIR_IN_PROGRESS" />
-        <StatCard label="Waiting Parts" value={s.waitingParts} icon={PackageSearch} tone="warning" href="/jobs?status=WAITING_FOR_PARTS" />
-        <StatCard label="Ready" value={s.ready} icon={CheckCircle2} tone="success" href="/jobs?status=READY_FOR_DELIVERY" />
+        <StatCard label="Received" value={s.received} icon={Inbox} tone="info" href="/jobs?status=RECEIVED" />
+        <StatCard label="Repair In Progress" value={s.repair} icon={Wrench} tone="info" href="/jobs?status=REPAIR_IN_PROGRESS" />
+        <StatCard label="Delivered" value={s.delivered} icon={CheckCircle2} tone="success" href="/jobs?status=DELIVERED" />
+        <StatCard label="Completed" value={s.closed} icon={PackageSearch} tone="success" href="/jobs?status=CLOSED" />
         <StatCard label="Delivered Today" value={s.deliveredToday} icon={Clock3} tone="success" />
         {showFinancials && (
           <StatCard label="Pending ₹" value={formatCurrency(s.pendingAmount)} icon={IndianRupee} tone="danger" href="/payments" />

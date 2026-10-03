@@ -120,7 +120,7 @@ export async function POST(request: NextRequest) {
           publicToken: randomToken(),
           customerId,
           deviceId,
-          status: "NEW",
+          status: "RECEIVED",
           priority: parsed.priority,
           createdByUserId: session.sub,
           assignedTechnicianId: parsed.assignedTechnicianId || null,
@@ -137,7 +137,7 @@ export async function POST(request: NextRequest) {
       });
 
       await tx.serviceJobStatusHistory.create({
-        data: { jobId: created.id, status: "NEW", changedById: session.sub, note: "Job created." },
+        data: { jobId: created.id, status: "RECEIVED", changedById: session.sub, note: "Job created." },
       });
 
       await tx.notification.create({

@@ -53,27 +53,6 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         },
       });
 
-      if (nextStatus === "WAITING_APPROVAL") {
-        await tx.notification.create({
-          data: {
-            type: "APPROVAL_NEEDED",
-            title: "Estimate awaiting approval",
-            message: `${jobUpdate.customer.name}'s estimate for ${jobUpdate.jobNumber} needs approval.`,
-            jobId: id,
-          },
-        });
-      }
-      if (nextStatus === "READY_FOR_DELIVERY") {
-        await tx.notification.create({
-          data: {
-            type: "READY_FOR_DELIVERY",
-            title: "Job ready for pickup",
-            message: `${jobUpdate.customer.name}'s ${jobUpdate.device.brand} ${jobUpdate.device.model} (${jobUpdate.jobNumber}) is ready.`,
-            jobId: id,
-          },
-        });
-      }
-
       if (isDelivered) {
         await syncInvoiceForJob(tx, id);
 

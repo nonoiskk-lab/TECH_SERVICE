@@ -366,7 +366,7 @@ async function main() {
       publicToken: token(),
       customerId: rahul.id,
       deviceId: devices.rahul.id,
-      status: "NEW",
+      status: "RECEIVED",
       priority: "NORMAL",
       createdByUserId: frontdesk.id,
       conditionChecklist: condition(),
@@ -377,7 +377,7 @@ async function main() {
       createdAt: daysAgo(0),
     },
   });
-  await addStatusHistory(job1.id, "NEW", frontdesk.id, "Job created at front desk.", daysAgo(0));
+  await addStatusHistory(job1.id, "RECEIVED", frontdesk.id, "Job created at front desk.", daysAgo(0));
 
   // Job 2 — in diagnosis
   const job2 = await prisma.serviceJob.create({
@@ -386,7 +386,7 @@ async function main() {
       publicToken: token(),
       customerId: anjali.id,
       deviceId: devices.anjali.id,
-      status: "DIAGNOSIS",
+      status: "REPAIR_IN_PROGRESS",
       priority: "NORMAL",
       createdByUserId: frontdesk.id,
       assignedTechnicianId: tech1.id,
@@ -423,7 +423,7 @@ async function main() {
       publicToken: token(),
       customerId: vikas.id,
       deviceId: devices.vikas.id,
-      status: "WAITING_APPROVAL",
+      status: "REPAIR_IN_PROGRESS",
       priority: "HIGH",
       createdByUserId: manager.id,
       assignedTechnicianId: tech2.id,
@@ -518,7 +518,7 @@ async function main() {
       publicToken: token(),
       customerId: manoj.id,
       deviceId: devices.manoj.id,
-      status: "READY_FOR_DELIVERY",
+      status: "REPAIR_IN_PROGRESS",
       priority: "NORMAL",
       createdByUserId: manager.id,
       assignedTechnicianId: tech2.id,

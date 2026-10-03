@@ -1,6 +1,6 @@
 import { prisma } from "./prisma";
 
-const TERMINAL_EXCLUDE = ["CLOSED", "CANCELLED", "UNREPAIRABLE", "CUSTOMER_DECLINED", "DELIVERED"];
+const TERMINAL_EXCLUDE = ["CLOSED", "DELIVERED"];
 
 function startOfToday() {
   const d = new Date();
@@ -18,20 +18,18 @@ export async function getServiceReport() {
   const month = startOfMonth();
   const now = new Date();
 
-  const [dailyJobs, monthlyJobs, completedAll, completedThisMonth, pendingJobs, cancelledJobs, delayedJobs] =
-    await Promise.all([
-      prisma.serviceJob.count({ where: { createdAt: { gte: today } } }),
-      prisma.serviceJob.count({ where: { createdAt: { gte: month } } }),
-      prisma.serviceJob.count({ where: { status: "CLOSED" } }),
-      prisma.serviceJob.count({ where: { status: "CLOSED", actualCompletionDate: { gte: month } } }),
-      prisma.serviceJob.count({ where: { status: { notIn: TERMINAL_EXCLUDE } } }),
-      prisma.serviceJob.count({ where: { status: "CANCELLED" } }),
-      prisma.serviceJob.count({
-        where: { status: { notIn: [...TERMINAL_EXCLUDE] }, expectedCompletionDate: { lt: now } },
-      }),
-    ]);
+  const [dailyJobs, monthlyJobs, completedAll, completedThisMonth, pendingJobs, delayedJobs] = await Promise.all([
+    prisma.serviceJob.count({ where: { createdAt: { gte: today } } }),
+    prisma.serviceJob.count({ where: { createdAt: { gte: month } } }),
+    prisma.serviceJob.count({ where: { status: "CLOSED" } }),
+    prisma.serviceJob.count({ where: { status: "CLOSED", actualCompletionDate: { gte: month } } }),
+    prisma.serviceJob.count({ where: { status: { notIn: TERMINAL_EXCLUDE } } }),
+    prisma.serviceJob.count({
+      where: { status: { notIn: TERMINAL_EXCLUDE }, expectedCompletionDate: { lt: now } },
+    }),
+  ]);
 
-  return { dailyJobs, monthlyJobs, completedAll, completedThisMonth, pendingJobs, cancelledJobs, delayedJobs };
+  return { dailyJobs, monthlyJobs, completedAll, completedThisMonth, pendingJobs, delayedJobs };
 }
 
 export async function getFinancialReport() {

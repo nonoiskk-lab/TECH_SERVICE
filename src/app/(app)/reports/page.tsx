@@ -51,7 +51,6 @@ async function ServiceReportSection() {
     { label: "Completed (This Month)", value: r.completedThisMonth },
     { label: "Completed (All Time)", value: r.completedAll },
     { label: "Pending Jobs", value: r.pendingJobs },
-    { label: "Cancelled Jobs", value: r.cancelledJobs },
     { label: "Delayed Jobs", value: r.delayedJobs, danger: r.delayedJobs > 0 },
   ];
   return (
