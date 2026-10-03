@@ -58,7 +58,7 @@ export async function getDashboardData() {
     prisma.payment.aggregate({ _sum: { amount: true }, where: { createdAt: { gte: today } } }),
     prisma.payment.aggregate({ _sum: { amount: true }, where: { createdAt: { gte: week } } }),
     prisma.payment.aggregate({ _sum: { amount: true }, where: { createdAt: { gte: month } } }),
-    prisma.part.findMany({ orderBy: { quantity: "asc" } }),
+    prisma.part.findMany({ where: { isArchived: false }, orderBy: { quantity: "asc" } }),
     prisma.serviceJob.findMany({
       orderBy: { createdAt: "desc" },
       take: 8,

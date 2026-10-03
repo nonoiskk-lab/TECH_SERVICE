@@ -19,7 +19,7 @@ export default async function SupplierDetailPage({ params }: { params: Promise<{
         purchaseOrders: { orderBy: { orderDate: "desc" }, include: { items: true } },
       },
     }),
-    prisma.part.findMany({ orderBy: { name: "asc" }, select: { id: true, name: true } }),
+    prisma.part.findMany({ where: { isArchived: false }, orderBy: { name: "asc" }, select: { id: true, name: true } }),
   ]);
   if (!supplier) notFound();
 
