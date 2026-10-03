@@ -10,18 +10,20 @@ export async function GET(request: NextRequest) {
     const q = request.nextUrl.searchParams.get("q")?.trim();
     const page = Math.max(1, Number(request.nextUrl.searchParams.get("page") ?? 1));
     const pageSize = Math.min(50, Number(request.nextUrl.searchParams.get("pageSize") ?? 20));
+    const includeArchived = request.nextUrl.searchParams.get("includeArchived") === "true";
 
-    const where = q
-      ? {
-          OR: [
-            { name: { contains: q } },
-            { mobile: { contains: q } },
-            { customerCode: { contains: q } },
-            { whatsapp: { contains: q } },
-            { email: { contains: q } },
-          ],
-        }
-      : {};
+    const where = {
+      ...(!includeArchived && { isArchived: false }),
+      ...(q && {
+        OR: [
+          { name: { contains: q } },
+          { mobile: { contains: q } },
+          { customerCode: { contains: q } },
+          { whatsapp: { contains: q } },
+          { email: { contains: q } },
+        ],
+      }),
+    };
 
     const [customers, total] = await Promise.all([
       prisma.customer.findMany({

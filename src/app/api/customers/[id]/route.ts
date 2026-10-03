@@ -33,10 +33,17 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
 
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    await requireSession(["ADMIN", "SERVICE_MANAGER", "FRONT_DESK"]);
+    const session = await requireSession(["ADMIN", "SERVICE_MANAGER", "FRONT_DESK"]);
     const { id } = await params;
     const body = await request.json();
-    const parsed = customerInputSchema.partial().parse(body);
+    const { isArchived, ...rest } = body as { isArchived?: boolean; [key: string]: unknown };
+    const parsed = customerInputSchema.partial().parse(rest);
+
+    // Archiving/restoring a customer is a delete-equivalent action — only
+    // Admin, even though Service Manager/Front Desk can edit the other fields.
+    if (isArchived !== undefined && session.role !== "ADMIN") {
+      throw new ApiError(403, "Only an Admin can delete or restore a customer.");
+    }
 
     const customer = await prisma.customer.update({
       where: { id },
@@ -48,6 +55,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
         ...(parsed.address !== undefined && { address: parsed.address || null }),
         ...(parsed.customerType !== undefined && { customerType: parsed.customerType }),
         ...(parsed.notes !== undefined && { notes: parsed.notes || null }),
+        ...(typeof isArchived === "boolean" && { isArchived }),
       },
     });
 

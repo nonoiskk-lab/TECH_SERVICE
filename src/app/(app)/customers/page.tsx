@@ -1,29 +1,37 @@
 import Link from "next/link";
 import { UserPlus, Users } from "lucide-react";
 import { prisma } from "@/lib/prisma";
+import { getSession } from "@/lib/auth";
+import { canDeleteRecords } from "@/lib/permissions";
 import { SectionHeading, EmptyState, Avatar } from "@/components/ui/misc";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/field";
+import { CustomerActions } from "@/components/customers/customer-actions";
 import { formatCurrency, formatDate } from "@/lib/utils";
 
 export default async function CustomersPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string }>;
+  searchParams: Promise<{ q?: string; archived?: string }>;
 }) {
-  const { q } = await searchParams;
+  const { q, archived } = await searchParams;
+  const session = await getSession();
+  const canDelete = canDeleteRecords(session?.role ?? "FRONT_DESK");
+  const showArchived = archived === "true";
 
   const customers = await prisma.customer.findMany({
-    where: q
-      ? {
-          OR: [
-            { name: { contains: q } },
-            { mobile: { contains: q } },
-            { customerCode: { contains: q } },
-          ],
-        }
-      : {},
+    where: {
+      isArchived: showArchived,
+      ...(q && {
+        OR: [
+          { name: { contains: q } },
+          { mobile: { contains: q } },
+          { customerCode: { contains: q } },
+        ],
+      }),
+    },
     orderBy: { createdAt: "desc" },
     include: {
       jobs: { select: { createdAt: true, approvedCost: true, estimatedCost: true, payments: { select: { amount: true } } } },
@@ -41,7 +49,7 @@ export default async function CustomersPage({
     <div>
       <SectionHeading
         title="Customers"
-        description="Every customer who has ever visited, searchable by name, mobile or ID."
+        description={showArchived ? "Deleted customers — restore any of these to bring them back." : "Every customer who has ever visited, searchable by name, mobile or ID."}
         action={
           <Link href="/customers/new">
             <Button>
@@ -51,8 +59,18 @@ export default async function CustomersPage({
         }
       />
 
-      <form className="mb-4 max-w-sm" action="/customers">
-        <Input name="q" defaultValue={q ?? ""} placeholder="Search by name, mobile or customer ID…" />
+      <form className="mb-4 flex flex-wrap gap-2" action="/customers">
+        <Input name="q" defaultValue={q ?? ""} placeholder="Search by name, mobile or customer ID…" className="max-w-sm" />
+        <Button type="submit" variant="outline">
+          Filter
+        </Button>
+        {canDelete && (
+          <Link href={showArchived ? "/customers" : "/customers?archived=true"} className="ml-auto">
+            <Button type="button" variant="ghost">
+              {showArchived ? "Back to active customers" : "Deleted customers"}
+            </Button>
+          </Link>
+        )}
       </form>
 
       <Card>
@@ -60,14 +78,16 @@ export default async function CustomersPage({
           <div className="p-6">
             <EmptyState
               icon={Users}
-              title="No customers found"
-              description={q ? `No customers match "${q}".` : "Add your first customer to get started."}
+              title={showArchived ? "No deleted customers" : "No customers found"}
+              description={showArchived ? "Nothing has been deleted yet." : q ? `No customers match "${q}".` : "Add your first customer to get started."}
               action={
-                <Link href="/customers/new">
-                  <Button variant="outline">
-                    <UserPlus className="size-4" /> New Customer
-                  </Button>
-                </Link>
+                showArchived ? undefined : (
+                  <Link href="/customers/new">
+                    <Button variant="outline">
+                      <UserPlus className="size-4" /> New Customer
+                    </Button>
+                  </Link>
+                )
               }
             />
           </div>
@@ -75,8 +95,8 @@ export default async function CustomersPage({
           <>
             <div className="divide-y divide-[var(--color-border)] sm:hidden">
               {rows.map((c) => (
-                <Link key={c.id} href={`/customers/${c.id}`} className="block p-4 active:bg-ink-50">
-                  <div className="flex items-center gap-2.5">
+                <div key={c.id} className="flex items-center justify-between gap-3 p-4">
+                  <Link href={`/customers/${c.id}`} className="flex min-w-0 flex-1 items-center gap-2.5">
                     <Avatar name={c.name} />
                     <div className="min-w-0 flex-1">
                       <p className="truncate font-medium text-ink-900">{c.name}</p>
@@ -84,12 +104,25 @@ export default async function CustomersPage({
                         {c.customerCode} · {c.mobile}
                       </p>
                     </div>
-                    <div className="text-right">
-                      <p className="text-sm font-semibold text-ink-900">{formatCurrency(c.totalSpending)}</p>
+                  </Link>
+                  <div className="shrink-0 text-right">
+                    <p className="text-sm font-semibold text-ink-900">{formatCurrency(c.totalSpending)}</p>
+                    {showArchived ? (
+                      <Badge tone="danger">Deleted</Badge>
+                    ) : (
                       <p className="text-xs text-ink-400">{c.jobs.length} job(s)</p>
-                    </div>
+                    )}
+                    {canDelete && (
+                      <div className="mt-2">
+                        <CustomerActions
+                          customer={{ ...c, whatsapp: c.whatsapp, email: c.email, address: c.address, notes: c.notes }}
+                          canEdit={false}
+                          canDelete
+                        />
+                      </div>
+                    )}
                   </div>
-                </Link>
+                </div>
               ))}
             </div>
 
@@ -102,6 +135,7 @@ export default async function CustomersPage({
                     <th className="px-4 py-3">Total Services</th>
                     <th className="px-4 py-3">Total Spending</th>
                     <th className="px-4 py-3">Last Service</th>
+                    {canDelete && <th className="px-4 py-3" />}
                   </tr>
                 </thead>
                 <tbody>
@@ -120,6 +154,15 @@ export default async function CustomersPage({
                       <td className="px-4 py-3 text-ink-700">{c.jobs.length}</td>
                       <td className="px-4 py-3 font-medium text-ink-900">{formatCurrency(c.totalSpending)}</td>
                       <td className="px-4 py-3 text-ink-500">{c.lastService ? formatDate(c.lastService) : "—"}</td>
+                      {canDelete && (
+                        <td className="px-4 py-3 text-right">
+                          <CustomerActions
+                            customer={{ ...c, whatsapp: c.whatsapp, email: c.email, address: c.address, notes: c.notes }}
+                            canEdit={false}
+                            canDelete
+                          />
+                        </td>
+                      )}
                     </tr>
                   ))}
                 </tbody>
