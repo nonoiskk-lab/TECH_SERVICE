@@ -19,7 +19,7 @@ function startOfMonth() {
   return d;
 }
 
-const ACTIVE_STATUSES_EXCLUDE = ["CLOSED", "CANCELLED", "UNREPAIRABLE", "CUSTOMER_DECLINED"];
+const ACTIVE_STATUSES_EXCLUDE = ["CLOSED"];
 
 export async function getDashboardData() {
   const today = startOfToday();
@@ -28,12 +28,10 @@ export async function getDashboardData() {
   const now = new Date();
 
   const [
-    newCount,
-    diagnosisCount,
-    approvalCount,
+    receivedCount,
     repairCount,
-    waitingPartsCount,
-    readyCount,
+    deliveredCount,
+    closedCount,
     deliveredTodayCount,
     activeJobs,
     revenueToday,
@@ -44,12 +42,10 @@ export async function getDashboardData() {
     completedThisMonth,
     technicians,
   ] = await Promise.all([
-    prisma.serviceJob.count({ where: { status: "NEW" } }),
-    prisma.serviceJob.count({ where: { status: "DIAGNOSIS" } }),
-    prisma.serviceJob.count({ where: { status: "WAITING_APPROVAL" } }),
+    prisma.serviceJob.count({ where: { status: "RECEIVED" } }),
     prisma.serviceJob.count({ where: { status: "REPAIR_IN_PROGRESS" } }),
-    prisma.serviceJob.count({ where: { status: { in: ["WAITING_FOR_PARTS", "PARTS_REQUIRED"] } } }),
-    prisma.serviceJob.count({ where: { status: "READY_FOR_DELIVERY" } }),
+    prisma.serviceJob.count({ where: { status: "DELIVERED" } }),
+    prisma.serviceJob.count({ where: { status: "CLOSED" } }),
     prisma.serviceJob.count({ where: { actualCompletionDate: { gte: today }, status: { in: ["DELIVERED", "CLOSED"] } } }),
     prisma.serviceJob.findMany({
       where: { status: { notIn: ACTIVE_STATUSES_EXCLUDE } },
@@ -138,12 +134,10 @@ export async function getDashboardData() {
   return {
     revenueTrend,
     statusCounts: {
-      new: newCount,
-      diagnosis: diagnosisCount,
-      approval: approvalCount,
+      received: receivedCount,
       repair: repairCount,
-      waitingParts: waitingPartsCount,
-      ready: readyCount,
+      delivered: deliveredCount,
+      closed: closedCount,
       deliveredToday: deliveredTodayCount,
       pendingAmount,
     },

@@ -90,7 +90,8 @@ Status Check Link, etc.) are editable at **Settings → WhatsApp Templates**.
 - **Customers & devices** — CRM with service history, duplicate prevention
   by mobile number, multi-device customers
 - **Service jobs** — full intake wizard (customer → device → condition
-  checklist & accessories → complaint), a 17-status engine with validated
+  checklist & accessories → complaint), a simple 4-status pipeline
+  (Received → Repair In Progress → Delivered → Completed) with validated
   transitions, human-readable `JOB-YYYY-#####` IDs, and a full audit trail
 - **Diagnosis & estimates** — line-item estimates (parts/labour/service),
   send/approve/reject/need-more-time flow, customer-facing status timeline

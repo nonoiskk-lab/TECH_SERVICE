@@ -9,7 +9,7 @@ export type LiveAlert = {
   href?: string;
 };
 
-const TERMINAL_EXCLUDE = ["CLOSED", "CANCELLED", "UNREPAIRABLE", "CUSTOMER_DECLINED"];
+const TERMINAL_EXCLUDE = ["CLOSED"];
 
 /**
  * Computes live, always-current alerts rather than persisting them — stock
@@ -50,7 +50,7 @@ export async function getLiveAlerts(): Promise<LiveAlert[]> {
   for (const job of activeJobs) {
     const paid = job.payments.reduce((s, p) => s + p.amount, 0);
     const total = job.approvedCost ?? job.estimatedCost ?? 0;
-    if (total - paid > 0 && (job.status === "READY_FOR_DELIVERY" || job.status === "DELIVERED")) {
+    if (total - paid > 0 && job.status === "DELIVERED") {
       alerts.push({
         id: `payment-${job.id}`,
         type: "PAYMENT_PENDING",

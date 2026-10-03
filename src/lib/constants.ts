@@ -21,135 +21,50 @@ export const ROLE_LABELS: Record<Role, string> = {
 // Service job status engine
 // ---------------------------------------------------------------------------
 
-export const JOB_STATUSES = [
-  "NEW",
-  "RECEIVED",
-  "DIAGNOSIS",
-  "ESTIMATE_SENT",
-  "WAITING_APPROVAL",
-  "APPROVED",
-  "PARTS_REQUIRED",
-  "WAITING_FOR_PARTS",
-  "REPAIR_IN_PROGRESS",
-  "QUALITY_CHECK",
-  "READY_FOR_DELIVERY",
-  "DELIVERED",
-  "CLOSED",
-  "CANCELLED",
-  "ON_HOLD",
-  "UNREPAIRABLE",
-  "CUSTOMER_DECLINED",
-] as const;
+// Simplified 4-stage repair pipeline: Received -> Repair In Progress ->
+// Delivered -> Completed. Diagnosis/Estimate/Approval/Parts are still real
+// features (their own tabs, their own data) — they just no longer drive a
+// separate job status; only these 4 stages do.
+export const JOB_STATUSES = ["RECEIVED", "REPAIR_IN_PROGRESS", "DELIVERED", "CLOSED"] as const;
 export type JobStatus = (typeof JOB_STATUSES)[number];
 
-// The "happy path" order, used to render progress bars / stepper UIs.
-export const JOB_STATUS_FLOW: JobStatus[] = [
-  "NEW",
-  "RECEIVED",
-  "DIAGNOSIS",
-  "ESTIMATE_SENT",
-  "WAITING_APPROVAL",
-  "APPROVED",
-  "WAITING_FOR_PARTS",
-  "REPAIR_IN_PROGRESS",
-  "QUALITY_CHECK",
-  "READY_FOR_DELIVERY",
-  "DELIVERED",
-  "CLOSED",
-];
+// The order, used to render progress bars / stepper UIs.
+export const JOB_STATUS_FLOW: JobStatus[] = ["RECEIVED", "REPAIR_IN_PROGRESS", "DELIVERED", "CLOSED"];
 
-// Terminal / exception statuses shown separately from the happy-path stepper.
-export const JOB_STATUS_EXCEPTIONS: JobStatus[] = [
-  "CANCELLED",
-  "ON_HOLD",
-  "UNREPAIRABLE",
-  "CUSTOMER_DECLINED",
-];
+// No exception/terminal-side statuses in the simplified pipeline.
+export const JOB_STATUS_EXCEPTIONS: JobStatus[] = [];
 
 export const JOB_STATUS_LABELS: Record<JobStatus, string> = {
-  NEW: "New",
   RECEIVED: "Received",
-  DIAGNOSIS: "Diagnosis",
-  ESTIMATE_SENT: "Estimate Sent",
-  WAITING_APPROVAL: "Waiting Approval",
-  APPROVED: "Approved",
-  PARTS_REQUIRED: "Parts Required",
-  WAITING_FOR_PARTS: "Waiting for Parts",
   REPAIR_IN_PROGRESS: "Repair In Progress",
-  QUALITY_CHECK: "Quality Check",
-  READY_FOR_DELIVERY: "Ready for Delivery",
   DELIVERED: "Delivered",
-  CLOSED: "Closed",
-  CANCELLED: "Cancelled",
-  ON_HOLD: "On Hold",
-  UNREPAIRABLE: "Unrepairable",
-  CUSTOMER_DECLINED: "Customer Declined",
+  CLOSED: "Completed",
 };
 
 // Customer-facing labels are friendlier / hide internal jargon.
 export const JOB_STATUS_CUSTOMER_LABELS: Record<JobStatus, string> = {
-  NEW: "Received",
   RECEIVED: "Device Received",
-  DIAGNOSIS: "Diagnosis In Progress",
-  ESTIMATE_SENT: "Estimate Ready",
-  WAITING_APPROVAL: "Awaiting Your Approval",
-  APPROVED: "Approved — Starting Repair",
-  PARTS_REQUIRED: "Ordering Parts",
-  WAITING_FOR_PARTS: "Waiting for Parts",
   REPAIR_IN_PROGRESS: "Repair In Progress",
-  QUALITY_CHECK: "Quality Check",
-  READY_FOR_DELIVERY: "Ready for Pickup",
   DELIVERED: "Delivered",
   CLOSED: "Completed",
-  CANCELLED: "Cancelled",
-  ON_HOLD: "On Hold",
-  UNREPAIRABLE: "Unrepairable",
-  CUSTOMER_DECLINED: "Declined by Customer",
 };
 
 type StatusTone = "neutral" | "info" | "warning" | "success" | "danger" | "progress";
 
 export const JOB_STATUS_TONE: Record<JobStatus, StatusTone> = {
-  NEW: "neutral",
   RECEIVED: "info",
-  DIAGNOSIS: "progress",
-  ESTIMATE_SENT: "info",
-  WAITING_APPROVAL: "warning",
-  APPROVED: "info",
-  PARTS_REQUIRED: "warning",
-  WAITING_FOR_PARTS: "warning",
   REPAIR_IN_PROGRESS: "progress",
-  QUALITY_CHECK: "progress",
-  READY_FOR_DELIVERY: "success",
   DELIVERED: "success",
   CLOSED: "success",
-  CANCELLED: "danger",
-  ON_HOLD: "warning",
-  UNREPAIRABLE: "danger",
-  CUSTOMER_DECLINED: "danger",
 };
 
-// Which statuses a job may move to from its current status. Kept intentionally
-// permissive for exceptions (any active job can be cancelled / put on hold)
-// while the happy path is enforced in order.
+// Which statuses a job may move to from its current status — a straight
+// line through the 4 stages, each one final once reached in order.
 export const JOB_STATUS_TRANSITIONS: Record<JobStatus, JobStatus[]> = {
-  NEW: ["RECEIVED", "CANCELLED"],
-  RECEIVED: ["DIAGNOSIS", "ON_HOLD", "CANCELLED"],
-  DIAGNOSIS: ["ESTIMATE_SENT", "UNREPAIRABLE", "ON_HOLD", "CANCELLED"],
-  ESTIMATE_SENT: ["WAITING_APPROVAL", "ON_HOLD"],
-  WAITING_APPROVAL: ["APPROVED", "CUSTOMER_DECLINED", "ON_HOLD"],
-  APPROVED: ["WAITING_FOR_PARTS", "REPAIR_IN_PROGRESS", "ON_HOLD"],
-  PARTS_REQUIRED: ["WAITING_FOR_PARTS", "REPAIR_IN_PROGRESS"],
-  WAITING_FOR_PARTS: ["REPAIR_IN_PROGRESS", "ON_HOLD"],
-  REPAIR_IN_PROGRESS: ["QUALITY_CHECK", "WAITING_FOR_PARTS", "ON_HOLD", "UNREPAIRABLE"],
-  QUALITY_CHECK: ["READY_FOR_DELIVERY", "REPAIR_IN_PROGRESS"],
-  READY_FOR_DELIVERY: ["DELIVERED"],
+  RECEIVED: ["REPAIR_IN_PROGRESS"],
+  REPAIR_IN_PROGRESS: ["DELIVERED"],
   DELIVERED: ["CLOSED"],
   CLOSED: [],
-  CANCELLED: [],
-  ON_HOLD: ["RECEIVED", "DIAGNOSIS", "WAITING_APPROVAL", "REPAIR_IN_PROGRESS", "CANCELLED"],
-  UNREPAIRABLE: ["CLOSED", "CANCELLED"],
-  CUSTOMER_DECLINED: ["CLOSED", "CANCELLED"],
 };
 
 export const JOB_PRIORITIES = ["LOW", "NORMAL", "HIGH", "URGENT"] as const;
@@ -337,9 +252,7 @@ export const WHATSAPP_TEMPLATE_LABELS: Record<WhatsAppTemplateKey, string> = {
 // Maps a job status change to the WhatsApp template that should fire.
 export const STATUS_TO_TEMPLATE: Partial<Record<JobStatus, WhatsAppTemplateKey>> = {
   RECEIVED: "JOB_RECEIVED",
-  ESTIMATE_SENT: "ESTIMATE_SENT",
   REPAIR_IN_PROGRESS: "REPAIR_STARTED",
-  READY_FOR_DELIVERY: "READY_FOR_PICKUP",
   DELIVERED: "DELIVERED",
 };
 

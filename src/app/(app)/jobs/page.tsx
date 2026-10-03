@@ -12,17 +12,13 @@ import type { Prisma } from "@prisma/client";
 
 const TAB_GROUPS: { key: string; label: string; statuses?: JobStatus[] }[] = [
   { key: "ALL", label: "All Active" },
-  { key: "NEW", label: JOB_STATUS_LABELS.NEW, statuses: ["NEW"] },
-  { key: "DIAGNOSIS", label: JOB_STATUS_LABELS.DIAGNOSIS, statuses: ["DIAGNOSIS"] },
-  { key: "WAITING_APPROVAL", label: "Approval", statuses: ["WAITING_APPROVAL"] },
-  { key: "REPAIR_IN_PROGRESS", label: "In Repair", statuses: ["REPAIR_IN_PROGRESS"] },
-  { key: "WAITING_FOR_PARTS", label: "Waiting Parts", statuses: ["WAITING_FOR_PARTS", "PARTS_REQUIRED"] },
-  { key: "READY_FOR_DELIVERY", label: "Ready", statuses: ["READY_FOR_DELIVERY"] },
-  { key: "DELIVERED", label: "Delivered", statuses: ["DELIVERED", "CLOSED"] },
-  { key: "EXCEPTIONS", label: "Exceptions", statuses: ["ON_HOLD", "CANCELLED", "UNREPAIRABLE", "CUSTOMER_DECLINED"] },
+  { key: "RECEIVED", label: JOB_STATUS_LABELS.RECEIVED, statuses: ["RECEIVED"] },
+  { key: "REPAIR_IN_PROGRESS", label: JOB_STATUS_LABELS.REPAIR_IN_PROGRESS, statuses: ["REPAIR_IN_PROGRESS"] },
+  { key: "DELIVERED", label: JOB_STATUS_LABELS.DELIVERED, statuses: ["DELIVERED"] },
+  { key: "CLOSED", label: JOB_STATUS_LABELS.CLOSED, statuses: ["CLOSED"] },
 ];
 
-const TERMINAL_EXCLUDE: JobStatus[] = ["CLOSED", "CANCELLED", "UNREPAIRABLE", "CUSTOMER_DECLINED", "DELIVERED"];
+const TERMINAL_EXCLUDE: JobStatus[] = ["CLOSED"];
 
 export default async function JobsPage({
   searchParams,
