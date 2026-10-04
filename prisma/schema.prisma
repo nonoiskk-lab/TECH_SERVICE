@@ -529,7 +529,7 @@ model AuditLog {
 
 model Settings {
   id                       Int      @id @default(1)
-  companyName              String   @default("RepairFlow Service Center")
+  companyName              String   @default("TECH CARE")
   logoPath                 String?
   address                  String?
   phone                    String?

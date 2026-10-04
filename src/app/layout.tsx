@@ -10,7 +10,7 @@ const jakarta = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "RepairFlow — Service Center Operating System",
+  title: "TECH CARE (By QBE INDIA)",
   description:
     "The operating system for a laptop & computer service center: intake, diagnosis, estimates, inventory, WhatsApp updates and reporting in one place.",
 };

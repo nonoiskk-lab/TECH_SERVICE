@@ -57,7 +57,10 @@ export function Sidebar({
         <div className="flex size-9 items-center justify-center rounded-xl bg-primary-600 text-white">
           <Laptop2 className="size-5" />
         </div>
-        <span className="text-lg font-bold text-ink-900">RepairFlow</span>
+        <div className="flex flex-col leading-tight">
+          <span className="text-base font-bold text-ink-900">TECH CARE</span>
+          <span className="text-[11px] font-medium text-ink-400">(By QBE INDIA)</span>
+        </div>
         <button onClick={onCloseMobile} className="ml-auto rounded-lg p-1.5 text-ink-400 hover:bg-ink-100 lg:hidden">
           <X className="size-5" />
         </button>
@@ -109,7 +112,7 @@ export function Sidebar({
       </nav>
 
       <div className="border-t border-[var(--color-border)] p-4 text-xs text-ink-400">
-        RepairFlow v1.0 · Service Center OS
+        TECH CARE (By QBE INDIA) · v1.0
       </div>
     </div>
   );
