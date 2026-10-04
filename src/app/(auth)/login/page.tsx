@@ -58,11 +58,14 @@ function LoginForm() {
     <div className="grid min-h-screen grid-cols-1 lg:grid-cols-2">
       <div className="relative hidden flex-col justify-between overflow-hidden bg-gradient-to-br from-primary-800 via-primary-700 to-primary-950 p-12 text-white lg:flex">
         <div className="absolute inset-0 opacity-20 [background-image:radial-gradient(circle_at_1px_1px,white_1px,transparent_0)] [background-size:24px_24px]" />
-        <div className="relative flex items-center gap-2 text-lg font-bold">
+        <div className="relative flex items-center gap-2">
           <div className="flex size-9 items-center justify-center rounded-xl bg-white/15">
             <Laptop2 className="size-5" />
           </div>
-          RepairFlow
+          <div className="flex flex-col leading-tight">
+            <span className="text-lg font-bold">TECH CARE</span>
+            <span className="text-xs font-medium text-primary-200">(By QBE INDIA)</span>
+          </div>
         </div>
         <div className="relative max-w-md space-y-8">
           <h1 className="text-3xl font-bold leading-tight tracking-tight">
@@ -88,17 +91,20 @@ function LoginForm() {
           </div>
         </div>
         <p className="relative text-xs text-primary-200">
-          © {new Date().getFullYear()} RepairFlow. Built for laptop &amp; computer service centers.
+          © {new Date().getFullYear()} TECH CARE (By QBE INDIA). Built for laptop &amp; computer service centers.
         </p>
       </div>
 
       <div className="flex items-center justify-center bg-[var(--color-bg)] p-6 sm:p-10">
         <div className="w-full max-w-sm">
-          <div className="mb-8 flex items-center gap-2 text-lg font-bold text-ink-900 lg:hidden">
+          <div className="mb-8 flex items-center gap-2 lg:hidden">
             <div className="flex size-9 items-center justify-center rounded-xl bg-primary-600 text-white">
               <Laptop2 className="size-5" />
             </div>
-            RepairFlow
+            <div className="flex flex-col leading-tight">
+              <span className="text-lg font-bold text-ink-900">TECH CARE</span>
+              <span className="text-xs font-medium text-ink-400">(By QBE INDIA)</span>
+            </div>
           </div>
           <h2 className="text-2xl font-bold tracking-tight text-ink-900">Sign in</h2>
           <p className="mt-1 text-sm text-ink-500">Access your service center dashboard.</p>

@@ -36,7 +36,10 @@ export default async function PublicStatusPage({ params }: { params: Promise<{ t
           <div className="flex size-9 items-center justify-center rounded-xl bg-primary-600 text-white">
             <Laptop2 className="size-5" />
           </div>
-          <span className="text-lg font-bold text-ink-900">{settings?.companyName ?? "RepairFlow Service Center"}</span>
+          <div className="flex flex-col leading-tight">
+            <span className="text-lg font-bold text-ink-900">{settings?.companyName ?? "TECH CARE"}</span>
+            <span className="text-[11px] font-medium text-ink-400">(By QBE INDIA)</span>
+          </div>
         </div>
 
         <div className="rounded-2xl border border-[var(--color-border)] bg-white p-5 shadow-[var(--shadow-card)]">

@@ -52,7 +52,8 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
               <Laptop2 className="size-6" />
             </div>
             <div>
-              <p className="text-lg font-bold text-ink-900">{settings?.companyName ?? "RepairFlow Service Center"}</p>
+              <p className="text-lg font-bold text-ink-900">{settings?.companyName ?? "TECH CARE"}</p>
+              <p className="text-[11px] font-medium text-ink-400">(By QBE INDIA)</p>
               {settings?.address && <p className="text-xs text-ink-500">{settings.address}</p>}
               <p className="text-xs text-ink-500">
                 {[settings?.phone, settings?.email].filter(Boolean).join(" · ")}

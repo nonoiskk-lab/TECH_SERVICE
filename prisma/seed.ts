@@ -33,7 +33,7 @@ async function main() {
     update: {},
     create: {
       id: 1,
-      companyName: "RepairFlow Service Center",
+      companyName: "TECH CARE",
       address: "12 MG Road, Ranchi, Jharkhand 834001",
       phone: "+91 98765 43210",
       whatsappNumber: "+91 98765 43210",

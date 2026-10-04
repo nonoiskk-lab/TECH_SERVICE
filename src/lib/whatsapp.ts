@@ -2,6 +2,12 @@ import { toWhatsAppNumber, formatCurrency, formatDate } from "./utils";
 import { statusUrlFor } from "./qr";
 import type { WhatsAppTemplateKey } from "./constants";
 
+// Mandatory brand header prepended to every outgoing WhatsApp message by the
+// single central send route (src/app/api/jobs/[id]/whatsapp/route.ts) — do
+// not add this separately inside individual template bodies, or it will be
+// duplicated.
+export const BRAND_HEADER = "TECH CARE\n(By QBE INDIA)";
+
 export type TemplateVars = {
   customerName: string;
   companyName: string;

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requireSession, errorResponse, ApiError } from "@/lib/api-helpers";
-import { buildTemplateVars, buildWaLink, isTwilioConfigured, renderTemplate, sendViaTwilio } from "@/lib/whatsapp";
+import { BRAND_HEADER, buildTemplateVars, buildWaLink, isTwilioConfigured, renderTemplate, sendViaTwilio } from "@/lib/whatsapp";
 import { JOB_STATUS_CUSTOMER_LABELS, WHATSAPP_TEMPLATE_KEYS, type JobStatus } from "@/lib/constants";
 import { safeJsonParse } from "@/lib/utils";
 
@@ -34,7 +34,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     const total = job.approvedCost ?? job.estimatedCost ?? 0;
     const vars = buildTemplateVars({
       customerName: job.customer.name,
-      companyName: settings?.companyName ?? "RepairFlow Service Center",
+      companyName: settings?.companyName ?? "TECH CARE",
       jobNumber: job.jobNumber,
       publicToken: job.publicToken,
       deviceBrand: job.device.brand,
@@ -46,10 +46,14 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       pendingAmount: Math.max(0, total - paidTotal),
     });
 
-    const messageText =
+    const bodyText =
       templateKey === "CUSTOM" && customMessage
         ? customMessage
         : renderTemplate(template?.body ?? "Hi {{customerName}}, update from {{companyName}} on {{jobNumber}}.", vars);
+    // Every outgoing message gets the mandatory brand header exactly once,
+    // applied here in the single central send path (covers Twilio + wa.me,
+    // every template, and what's logged to WhatsAppMessage history).
+    const messageText = `${BRAND_HEADER}\n\n${bodyText}`;
 
     const targetNumber = job.customer.whatsapp || job.customer.mobile;
 
