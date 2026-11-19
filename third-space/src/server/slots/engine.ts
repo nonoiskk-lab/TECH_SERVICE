@@ -3,6 +3,7 @@ import { randomBytes } from "node:crypto";
 import { Prisma } from "@prisma/client";
 import { booking as bookingCfg, hours, site } from "@/config/site";
 import { getPackage } from "@/config/packages";
+import { allowedDuration } from "@/lib/session";
 import { declarationText, DECLARATION_VERSION, docsForService, POLICY_PACK_VERSION } from "@/config/policies";
 import { db } from "@/server/db";
 import { audit } from "@/server/audit";
@@ -46,15 +47,15 @@ function statusAt(t: number, end: number, busy: Busy[], now: Date): Slot["status
 }
 
 export const availability: AvailabilityService = {
-  async slotsFor(date, packageId, now = new Date()) {
+  async slotsFor(date, packageId, durationMinutes, now = new Date()) {
     const pkg = getPackage(packageId);
-    if (!pkg) return [];
+    if (!pkg || !allowedDuration(pkg, durationMinutes)) return [];
     const open = istDateTime(date, hours.open);
     const close = istDateTime(date, hours.close);
     const launch = Date.parse(site.launchAt);
     const busy = await busyIntervals(db, resourceOf(packageId), open, close, now);
     const slots: Slot[] = [];
-    const len = pkg.durationMinutes * 60_000;
+    const len = durationMinutes * 60_000;
     for (let t = open.getTime(); t + len <= close.getTime(); t += hours.slotStepMinutes * 60_000) {
       if (t < launch) continue;
       slots.push({ start: toIstIso(new Date(t)), end: toIstIso(new Date(t + len)), status: statusAt(t, t + len, busy, now) });
@@ -76,17 +77,24 @@ function isOnGrid(start: Date) {
 }
 
 function toHold(h: { id: string; packageId: string; start: Date; end: Date; expiresAt: Date }): Hold {
-  return { id: h.id, packageId: h.packageId, start: toIstIso(h.start), end: toIstIso(h.end), expiresAt: h.expiresAt.toISOString() };
+  return {
+    id: h.id,
+    packageId: h.packageId,
+    start: toIstIso(h.start),
+    end: toIstIso(h.end),
+    expiresAt: h.expiresAt.toISOString(),
+    durationMinutes: (h.end.getTime() - h.start.getTime()) / 60_000,
+  };
 }
 
 export const holds: HoldService = {
-  async create(packageId, start, now = new Date()) {
+  async create(packageId, start, durationMinutes, now = new Date()) {
     const pkg = getPackage(packageId);
     const s = new Date(start);
-    if (!pkg || Number.isNaN(s.getTime())) throw new Error("BAD_REQUEST");
-    const len = pkg.durationMinutes * 60_000;
+    if (!pkg || Number.isNaN(s.getTime()) || !allowedDuration(pkg, durationMinutes)) throw new Error("BAD_REQUEST");
+    const len = durationMinutes * 60_000;
     const grid = isOnGrid(s);
-    if (!grid.ok || grid.minutes < grid.open || grid.minutes + pkg.durationMinutes > grid.close || s.getTime() < Date.parse(site.launchAt)) {
+    if (!grid.ok || grid.minutes < grid.open || grid.minutes + durationMinutes > grid.close || s.getTime() < Date.parse(site.launchAt)) {
       throw new Error("BAD_REQUEST");
     }
     const resource = resourceOf(packageId);
@@ -125,6 +133,7 @@ export async function createBooking(draft: BookingDraft, holdId: string, payment
   return db.$transaction(async (tx) => {
     const hold = await tx.hold.findUnique({ where: { id: holdId } });
     if (!hold || hold.expiresAt <= new Date() || hold.packageId !== draft.packageId) throw new HoldExpiredError();
+    if (hold.end.getTime() - hold.start.getTime() !== draft.durationMinutes * 60_000) throw new HoldExpiredError();
     await lockResource(tx, hold.resource as Resource);
     const b = await tx.booking.create({
       data: {
@@ -138,6 +147,10 @@ export async function createBooking(draft: BookingDraft, holdId: string, payment
         end: hold.end,
         addOnIds: draft.addOnIds,
         themeId: draft.themeId,
+        titleId: draft.titleId,
+        titleName: draft.titleName,
+        sessionInput: draft.sessionInput,
+        durationMinutes: draft.durationMinutes,
         guestName: draft.guest.name,
         guestPhone: draft.guest.phone,
         guestEmail: draft.guest.email,

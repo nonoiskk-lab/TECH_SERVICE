@@ -43,6 +43,7 @@ Staff log in at `/admin/login` with their name and `ADMIN_PASSWORD`.
 |---|---|
 | Today | Day schedule for both spaces; go-live readiness checklist; counts of open incidents, messages to send, payments captured after a hold expired |
 | Bookings | Search by ID, phone or name; open a booking to check in, record the balance, mark completed or no-show, cancel with a refund suggested by the tiers, stop a session, and read the guest's accepted declaration |
+| Titles | Licensed titles for the private room (runtime decides time and price); licence reference required |
 | Slots | Timeline of the room and the studio; block time for maintenance or private events (blocked slots disappear from the public site) |
 | Incidents | Register of incidents: objective facts, witnesses, actions, evidence preserved, authorities contacted; updates are appended, never overwritten |
 | Leads | Enquiries with purpose and first-touch UTM; WhatsApp reply link; mark contacted or closed |
@@ -60,6 +61,7 @@ Check-in records only how many guests were seen as 18+ ("18+ verified"). The pan
 | `prisma/schema.prisma` | Bookings, holds, slot blocks, policy acceptances, leads, OTP codes, incidents, audit log, notifications |
 | `src/server/` | Slot engine on Postgres (`slots/engine.ts`), payments (Razorpay or mock), OTP, notifications outbox, audit, admin auth and actions |
 | `src/app/admin/` | Staff panel |
+| `src/lib/session.ts` | Decides session time and base price from the guest's input (title, episodes, reels, hours); used by browser and server |
 | `src/config/site.ts` | Single source of truth: hours, advance %, GST, hold time, add-ons, themes, refund tiers, every policy text, Legal Gate, contact (from env) |
 | `src/config/packages.ts` | Packages and prices (server-only, so closed-gate client bundles never carry Theatre names) |
 | `src/i18n/` | English and Hinglish copy (`en.ts`, `hi.ts`, `seo.ts`) |

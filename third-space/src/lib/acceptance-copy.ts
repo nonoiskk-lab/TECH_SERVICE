@@ -18,7 +18,7 @@ export function acceptanceCopy(b: Booking, a: PolicyAcceptance): string {
     "THIRD SPACE — Booking acceptance record",
     "",
     `Booking ID: ${b.id}`,
-    `Package: ${pkg?.name.en ?? b.packageId}`,
+    `Package: ${pkg?.name.en ?? b.packageId}${b.titleName ? ` (${b.titleName})` : ""}`,
     `Slot: ${b.start.toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric", timeZone: "Asia/Kolkata" })}, ${istTimeLabel(toIstIso(b.start))} to ${istTimeLabel(toIstIso(b.end))}`,
     `Guests: ${b.guestCount}`,
     `Booked by: ${b.guestName} (phone ${mask(b.guestPhone)})`,

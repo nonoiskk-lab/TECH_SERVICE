@@ -3,6 +3,7 @@ import { bookablePackages, getPackage } from "@/config/packages";
 import { getDict } from "@/lib/locale";
 import { bookingDates } from "@/lib/booking-dates";
 import { otp } from "@/server/slots";
+import { activeTitles } from "@/server/titles";
 import { PageHeader, Section } from "@/components/ui";
 import { BookingFlow } from "@/components/booking-flow";
 
@@ -27,7 +28,8 @@ export default async function BookPage({ searchParams }: PageProps<"/book">) {
           locale={locale}
           mode="any"
           packages={pkgs}
-          initialPackageId={initial ?? (getPackage("podcast-2h") ? "podcast-2h" : undefined)}
+          initialPackageId={initial ?? (getPackage("podcast") ? "podcast" : undefined)}
+          titles={await activeTitles()}
           {...bookingDates()}
           otpIsMock={otp.isMock}
         />

@@ -63,7 +63,7 @@ test.describe("Booking software (admin)", () => {
     await form.getByLabel("Reason").fill("Deep clean");
     await form.getByRole("button", { name: "Block" }).click();
     await expect(form.getByRole("status")).toContainText("Blocked");
-    const slots = (await (await request.get(`/api/availability?date=${day}&packageId=podcast-2h`)).json()).slots as { start: string; status: string }[];
+    const slots = (await (await request.get(`/api/availability?date=${day}&packageId=podcast`)).json()).slots as { start: string; status: string }[];
     expect(slots.find((s) => s.start.includes("T10:00"))!.status).toBe("blocked");
     expect(slots.find((s) => s.start.includes("T14:30"))!.status).toBe("available");
   });

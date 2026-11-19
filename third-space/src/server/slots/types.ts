@@ -8,7 +8,7 @@ export type Resource = "room" | "studio";
 
 export type Slot = { start: string; end: string; status: SlotStatus };
 
-export type Hold = { id: string; packageId: string; start: string; end: string; expiresAt: string };
+export type Hold = { id: string; packageId: string; start: string; end: string; expiresAt: string; durationMinutes: number };
 
 export type GuestDetails = { name: string; phone: string; email: string };
 
@@ -27,6 +27,10 @@ export type BookingDraft = {
   mode: string;
   addOnIds: string[];
   themeId?: string;
+  titleId?: string;
+  titleName?: string;
+  sessionInput: Record<string, string | number>;
+  durationMinutes: number;
   guest: GuestDetails;
   guestCount: number;
   locale: string;
@@ -51,11 +55,11 @@ export class HoldExpiredError extends Error {
 }
 
 export interface AvailabilityService {
-  slotsFor(date: string, packageId: string, now?: Date): Promise<Slot[]>;
+  slotsFor(date: string, packageId: string, durationMinutes: number, now?: Date): Promise<Slot[]>;
 }
 
 export interface HoldService {
-  create(packageId: string, start: string, now?: Date): Promise<Hold>;
+  create(packageId: string, start: string, durationMinutes: number, now?: Date): Promise<Hold>;
   get(holdId: string, now?: Date): Promise<Hold | null>;
   release(holdId: string): Promise<void>;
 }

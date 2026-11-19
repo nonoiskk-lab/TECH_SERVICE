@@ -28,7 +28,7 @@ test("enquiry form creates a lead", async ({ page }) => {
 test("WhatsApp button opens wa.me with prefilled text", async ({ page }) => {
   await page.goto("/");
   const href = await page.getByTestId("whatsapp-float").getAttribute("href");
-  expect(href).toMatch(/^https:\/\/wa\.me\/919876543210\?text=/);
+  expect(href).toMatch(/^https:\/\/wa\.me\/919031627292\?text=/);
 });
 
 test("no horizontal scroll and 44px tap targets on key pages", async ({ page }) => {

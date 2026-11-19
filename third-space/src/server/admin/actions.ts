@@ -221,3 +221,31 @@ export async function notificationSentAction(f: FormData) {
   await audit(null, who, "notification.sent_manually", "Notification", id);
   revalidatePath("/admin", "layout");
 }
+
+/** Add a licensed title. A licence reference is mandatory (Private Theatre addendum). */
+export async function createTitleAction(_: ActionState, f: FormData): Promise<ActionState> {
+  const who = await requireStaff();
+  const name = str(f, "name");
+  const runtime = Number(str(f, "runtimeMinutes"));
+  const licenceRef = str(f, "licenceRef");
+  if (name.length < 1 || name.length > 120) return { error: "Enter the title." };
+  if (!Number.isInteger(runtime) || runtime < 10 || runtime > 420) return { error: "Runtime must be 10 to 420 minutes." };
+  if (licenceRef.length < 3) return { error: "Enter the exhibition licence reference. Titles without a licence cannot be listed." };
+  if (f.get("licenceConfirmed") !== "on") return { error: "Confirm the licence covers private exhibition at THIRD SPACE." };
+  const title = await db.title.create({
+    data: { name, runtimeMinutes: runtime, language: str(f, "language").slice(0, 40), certification: str(f, "certification").slice(0, 10), licenceRef, createdBy: who },
+  });
+  await audit(null, who, "title.created", "Title", title.id, { name, runtimeMinutes: runtime, licenceRef });
+  revalidatePath("/admin/titles");
+  return { ok: `Added ${name}.` };
+}
+
+export async function toggleTitleAction(f: FormData) {
+  const who = await requireStaff();
+  const id = str(f, "titleId");
+  const t = await db.title.findUnique({ where: { id } });
+  if (!t) return;
+  await db.title.update({ where: { id }, data: { active: !t.active } });
+  await audit(null, who, t.active ? "title.deactivated" : "title.activated", "Title", id, { name: t.name });
+  revalidatePath("/admin/titles");
+}

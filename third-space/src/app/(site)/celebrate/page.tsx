@@ -6,6 +6,7 @@ import { getDict } from "@/lib/locale";
 import { tl } from "@/i18n";
 import { bookingDates } from "@/lib/booking-dates";
 import { otp } from "@/server/slots";
+import { activeTitles } from "@/server/titles";
 import { PageHeader, Section } from "@/components/ui";
 import { BookingFlow } from "@/components/booking-flow";
 
@@ -33,7 +34,7 @@ export default async function CelebratePage() {
       </Section>
       <Section title={t.celebrate.builderTitle} id="builder">
         {open ? (
-          <BookingFlow t={t} locale={locale} mode="celebrate" packages={roomPkgs} themes={themes} {...bookingDates()} otpIsMock={otp.isMock} />
+          <BookingFlow t={t} locale={locale} mode="celebrate" packages={roomPkgs} themes={themes} titles={await activeTitles()} {...bookingDates()} otpIsMock={otp.isMock} />
         ) : (
           <p className="ts-card p-5 text-muted" data-testid="celebrate-closed">
             {t.celebrate.closedText}

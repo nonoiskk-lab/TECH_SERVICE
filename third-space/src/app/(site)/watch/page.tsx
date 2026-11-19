@@ -7,6 +7,8 @@ import { tl } from "@/i18n";
 import { formatINR } from "@/lib/pricing";
 import { PackageCard, PageHeader, Section } from "@/components/ui";
 import { TrackOnView } from "@/components/client-bits";
+import { activeTitles } from "@/server/titles";
+import { durationText, resolveSession } from "@/lib/session";
 
 export async function generateMetadata(): Promise<Metadata> {
   const { t } = await getDict();
@@ -43,6 +45,7 @@ export default async function WatchPage() {
   }
 
   const watchPkgs = packages.filter((p) => p.mode === "watch");
+  const titles = await activeTitles();
   return (
     <>
       <PageHeader title={t.watch.title} intro={t.watch.intro} />
@@ -53,6 +56,42 @@ export default async function WatchPage() {
           ))}
         </div>
         <TrackOnView event="view_package" props={{ page: "watch" }} />
+      </Section>
+      <Section title={t.watch.nowShowing} id="titles">
+        {titles.length === 0 ? (
+          <p className="ts-card p-5 text-muted" data-testid="no-titles">
+            {t.book.noTitles}
+          </p>
+        ) : (
+          <ul className="grid gap-3 sm:grid-cols-2" data-testid="title-list">
+            {titles.map((ti) => {
+              const quotes = watchPkgs.map((p) => ({ p, r: resolveSession(p, { titleId: ti.id }, titles) }));
+              const first = quotes.find((q) => q.r.ok)?.r;
+              return (
+                <li key={ti.id} className="ts-card p-5">
+                  <h3 className="font-bold">{ti.name}</h3>
+                  <p className="text-sm text-faint">
+                    {durationText(ti.runtimeMinutes)}
+                    {ti.language ? ` · ${ti.language}` : ""}
+                    {first?.ok ? ` · ${t.book.sessionTime}: ${durationText(first.session.durationMinutes)}` : ""}
+                  </p>
+                  <ul className="mt-3 space-y-1 text-sm">
+                    {quotes.map(({ p, r }) =>
+                      r.ok ? (
+                        <li key={p.id} className="flex justify-between gap-3">
+                          <span>{tl(p.name, locale)}</span>
+                          <a href={`/book?package=${p.id}`} className="font-semibold text-warm" data-testid={`title-price-${p.id}`}>
+                            {formatINR(r.session.basePrice)}
+                          </a>
+                        </li>
+                      ) : null,
+                    )}
+                  </ul>
+                </li>
+              );
+            })}
+          </ul>
+        )}
       </Section>
       <Section title={t.watch.themesTitle} id="themes">
         <div className="grid gap-3 sm:grid-cols-3">

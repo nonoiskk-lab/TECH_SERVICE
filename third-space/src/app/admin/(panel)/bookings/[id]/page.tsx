@@ -5,6 +5,7 @@ import { getPackage } from "@/config/packages";
 import { db } from "@/server/db";
 import { acceptanceCopy } from "@/lib/acceptance-copy";
 import { formatINR, refundFor } from "@/lib/pricing";
+import { durationText } from "@/lib/session";
 import { balancePaidAction, cancelAction, checkInAction, setStatusAction, stopSessionAction } from "@/server/admin/actions";
 import { ActionForm } from "@/components/admin/action-form";
 import { Card, Field, fmtDateTime, fmtTime, H1, hoursUntil, Status } from "@/components/admin/ui";
@@ -40,6 +41,12 @@ export default async function BookingDetail({ params }: PageProps<"/admin/bookin
             <dt className="text-muted">Guest</dt>
             <dd>
               {b.guestName} · <a className="underline" href={`tel:+91${b.guestPhone}`}>{b.guestPhone}</a> · {b.guestEmail}
+            </dd>
+            <dt className="text-muted">Session</dt>
+            <dd data-testid="session-detail">
+              {b.titleName ? `${b.titleName} · ` : ""}
+              {durationText(b.durationMinutes || (b.end.getTime() - b.start.getTime()) / 60_000)}
+              {b.sessionInput ? <span className="text-faint"> ({Object.entries(b.sessionInput as Record<string, unknown>).filter(([k]) => k !== "titleId").map(([k, v]) => `${k} ${v}`).join(", ")})</span> : null}
             </dd>
             <dt className="text-muted">Guests</dt>
             <dd>{b.guestCount}</dd>

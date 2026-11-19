@@ -12,10 +12,6 @@ const contactEnv = {
   DATABASE_URL: TEST_DATABASE_URL,
   ADMIN_PASSWORD: "test-staff-password",
   AUTH_SECRET: "test-auth-secret-at-least-16-chars",
-  THIRD_SPACE_PHONE: "+91 98765 43210",
-  THIRD_SPACE_EMAIL: "hello@thirdspace.in",
-  THIRD_SPACE_ADDRESS_LINE: "Bank More",
-  THIRD_SPACE_MAP_URL: "https://maps.google.com/?q=Dhanbad",
 };
 
 const use = { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, deviceScaleFactor: 2 };

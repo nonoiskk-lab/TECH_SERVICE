@@ -43,7 +43,10 @@ export default async function ConfirmationPage({ params, searchParams }: PagePro
           <dl className="mt-6 space-y-2 text-sm">
             <div className="flex justify-between gap-3">
               <dt className="text-muted">{t.confirmation.package}</dt>
-              <dd>{pkg ? tl(pkg.name, locale) : b.packageId}</dd>
+              <dd>
+                {pkg ? tl(pkg.name, locale) : b.packageId}
+                {b.titleName ? ` · ${b.titleName}` : ""}
+              </dd>
             </div>
             <div className="flex justify-between gap-3">
               <dt className="text-muted">{t.confirmation.when}</dt>

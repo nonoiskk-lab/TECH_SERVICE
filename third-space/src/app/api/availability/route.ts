@@ -10,5 +10,6 @@ export async function GET(req: NextRequest) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return json({ error: "BAD_DATE" }, 400);
   const { minDate, maxDate } = bookingDates();
   if (date < minDate || date > maxDate) return json({ slots: [] });
-  return json({ slots: await availability.slotsFor(date, pkg.id) });
+  const duration = Number(req.nextUrl.searchParams.get("duration") ?? pkg.durationMinutes);
+  return json({ slots: await availability.slotsFor(date, pkg.id, duration) });
 }

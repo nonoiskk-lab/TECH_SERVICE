@@ -7,6 +7,8 @@ import { audit } from "@/server/audit";
 import { queueConfirmation } from "@/server/notify";
 import { bookablePackage, json } from "@/lib/api";
 import { buildQuote } from "@/lib/pricing";
+import { resolveSession } from "@/lib/session";
+import { activeTitles } from "@/server/titles";
 import type { BookingDraft } from "@/server/slots/types";
 
 const Body = z.object({
@@ -15,6 +17,16 @@ const Body = z.object({
   mode: z.enum(["watch", "create", "celebrate", "visit"]),
   addOnIds: z.array(z.string()).max(20),
   themeId: z.string().optional(),
+  session: z
+    .object({
+      titleId: z.string().max(60).optional(),
+      episodeMinutes: z.number().int().optional(),
+      episodes: z.number().int().optional(),
+      reels: z.number().int().optional(),
+      longVideos: z.number().int().optional(),
+      hours: z.number().int().optional(),
+    })
+    .default({}),
   guestCount: z.number().int().min(1).max(50),
   locale: z.enum(["en", "hi"]),
   guest: z.object({
@@ -55,13 +67,23 @@ export async function POST(req: Request) {
   const addOnIds = b.addOnIds.filter((id) => allowed.has(id));
   const hold = await holds.get(b.holdId);
   if (!hold || hold.packageId !== pkg.id) return json({ error: "HOLD_EXPIRED" }, 410);
-  const quote = buildQuote(pkg, addOnIds, mode)!;
+  // Time and price are decided here from what the guest asked for; the hold must match.
+  const titles = pkg.pricing.kind === "title" ? await activeTitles() : [];
+  const resolved = resolveSession(pkg, b.session, titles);
+  if (!resolved.ok) return json({ error: resolved.reason }, 400);
+  if (hold.durationMinutes !== resolved.session.durationMinutes) return json({ error: "SESSION_CHANGED" }, 409);
+  const quote = buildQuote(pkg, addOnIds, mode, resolved.session)!;
+  const title = titles.find((x) => x.id === b.session.titleId);
 
   const draft: BookingDraft = {
     packageId: pkg.id,
     mode,
     addOnIds,
     themeId: mode === "celebrate" ? b.themeId : undefined,
+    titleId: title?.id,
+    titleName: title?.name,
+    sessionInput: Object.fromEntries(Object.entries(b.session).filter(([, v]) => v !== undefined)) as Record<string, string | number>,
+    durationMinutes: resolved.session.durationMinutes,
     guest: b.guest,
     guestCount: b.guestCount,
     locale: b.locale,

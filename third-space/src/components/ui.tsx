@@ -3,6 +3,7 @@ import type { Dict } from "@/i18n";
 import { tl } from "@/i18n";
 import type { Locale, Package } from "@/config/site";
 import { formatINR } from "@/lib/pricing";
+import { durationText, hourlyRate } from "@/lib/session";
 
 export function Container({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return <div className={`mx-auto max-w-[var(--ts-maxw)] px-4 ${className}`}>{children}</div>;
@@ -58,12 +59,12 @@ export function PackageCard({
         <h3 className="text-xl font-bold">{tl(pkg.name, locale)}</h3>
         <p className="shrink-0 text-right">
           <span className="block text-2xl font-extrabold text-warm" data-testid="package-price">
-            {pkg.price === 0 ? t.common.free : formatINR(pkg.price)}
+            {hourlyRate(pkg) ? `${formatINR(hourlyRate(pkg)!)}${t.common.perHour}` : pkg.price === 0 ? t.common.free : formatINR(pkg.price)}
           </span>
         </p>
       </div>
       <p className="mt-1 text-sm text-faint">
-        {durationLabel(pkg.durationMinutes, t)} · {t.common.upTo} {pkg.capacity} {t.common.guests}
+        {pkg.pricing.kind === "fixed" ? durationText(pkg.durationMinutes) : t.book.timeAuto} · {t.common.upTo} {pkg.capacity} {t.common.guests}
         {pkg.prepaidHours ? ` · ${pkg.prepaidHours} ${t.common.hours} prepaid` : ""}
       </p>
       <p className="mt-3 text-muted">{tl(pkg.summary, locale)}</p>

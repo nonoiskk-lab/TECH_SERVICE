@@ -15,13 +15,30 @@ export type L = { en: string; hi: string };
 
 export type Mode = "watch" | "create" | "celebrate" | "visit";
 
+/**
+ * How a package's time and price are decided.
+ * - fixed:   `price` for `durationMinutes` (Creator Plan, free visit)
+ * - title:   theatre; time = movie runtime + setup, price = rate × time
+ * - podcast: time = episodes × episode length + setup, price = rate × time
+ * - creator: time = reels and videos to shoot + setup, price = rate × time
+ * - hourly:  guest picks whole hours, price = rate × hours (space only)
+ */
+export type Pricing =
+  | { kind: "fixed" }
+  | { kind: "title"; ratePerHour: number }
+  | { kind: "podcast"; ratePerHour: number }
+  | { kind: "creator"; ratePerHour: number }
+  | { kind: "hourly"; ratePerHour: number };
+
 export type Package = {
   id: string;
   mode: Mode;
   name: L;
   summary: L;
-  /** Price in whole rupees for the package (before add-ons and tax). */
+  pricing: Pricing;
+  /** Fixed packages: price in whole rupees before add-ons and tax. Others: 0 (computed). */
   price: number;
+  /** Fixed packages: session length. Others: typical length, shown as a hint. */
   durationMinutes: number;
   capacity: number;
   includes: L[];
@@ -68,26 +85,33 @@ export const site = {
   currency: "INR",
 };
 
+/** Public contact details. Env vars override these (e.g. for a test server). */
+const CONTACT_DEFAULTS = {
+  phone: "+91 90316 27292",
+  whatsapp: "+91 90316 27292",
+  email: "sandeep@mythirdspace.co.in",
+  addressLine: "Ground Floor, Om Sai Plaza, Police Line Road, Near HDFC Bank, CMPF Colony, Hirapur",
+};
+
 export const contact = {
   get phone() {
-    return env("THIRD_SPACE_PHONE");
+    return env("THIRD_SPACE_PHONE") || CONTACT_DEFAULTS.phone;
   },
   get whatsapp() {
-    return env("THIRD_SPACE_WHATSAPP") || env("THIRD_SPACE_PHONE");
+    return env("THIRD_SPACE_WHATSAPP") || env("THIRD_SPACE_PHONE") || CONTACT_DEFAULTS.whatsapp;
   },
   get email() {
-    return env("THIRD_SPACE_EMAIL");
+    return env("THIRD_SPACE_EMAIL") || CONTACT_DEFAULTS.email;
   },
   get addressLine() {
-    return env("THIRD_SPACE_ADDRESS_LINE");
+    return env("THIRD_SPACE_ADDRESS_LINE") || CONTACT_DEFAULTS.addressLine;
   },
   get mapUrl() {
-    return env("THIRD_SPACE_MAP_URL");
+    return env("THIRD_SPACE_MAP_URL") || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(this.fullAddress)}`;
   },
   /** Full address as shown everywhere (header, footer, contact, JSON-LD). */
   get fullAddress() {
-    const line = env("THIRD_SPACE_ADDRESS_LINE");
-    return [line, `${site.city}, ${site.region}`].filter(Boolean).join(", ");
+    return [this.addressLine, `${site.city}, ${site.region}`].filter(Boolean).join(", ");
   },
 };
 
@@ -109,6 +133,17 @@ export const hours = {
   /** Cleaning/reset gap kept free after every booking. */
   bufferMinutes: 30,
   label: { en: "Open daily, 10 AM to 10 PM", hi: "Roz khula, subah 10 se raat 10 baje tak" } as L,
+};
+
+/** Rules the session resolver (src/lib/session.ts) uses to decide time automatically. */
+export const sessionRules = {
+  /** Sessions are rounded up to this many minutes. */
+  roundToMinutes: 30,
+  maxSessionMinutes: 480,
+  theatre: { setupMinutes: 15 },
+  podcast: { setupMinutes: 30, minMinutes: 60, episodeLengths: [15, 30, 45, 60, 90], maxEpisodes: 4 },
+  creator: { setupMinutes: 30, minMinutes: 60, reelMinutes: 15, longVideoMinutes: 30, maxReels: 10, maxLongVideos: 4 },
+  space: { minHours: 1, maxHours: 6 },
 };
 
 export const booking = {

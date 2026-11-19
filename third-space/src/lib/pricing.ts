@@ -1,4 +1,5 @@
 import { addOns, booking, refundTiers, type L, type Mode, type Package } from "@/config/site";
+import type { Session } from "./session";
 
 export type QuoteLine = { label: L; amount: number; kind: "base" | "addon" | "tax" };
 
@@ -15,12 +16,13 @@ const round = (n: number) => Math.round(n);
 
 /**
  * Itemised quote. The estimator and the checkout both call this, so the price a
- * guest sees while exploring is the price they pay.
+ * guest sees while exploring is the price they pay. `session` comes from
+ * resolveSession() (time and base price decided automatically).
  */
-export function buildQuote(pkg: Package | undefined, addOnIds: string[], flowMode?: Mode): Quote | null {
-  if (!pkg) return null;
+export function buildQuote(pkg: Package | undefined, addOnIds: string[], flowMode: Mode | undefined, session: Session | null): Quote | null {
+  if (!pkg || !session) return null;
   const mode = flowMode ?? pkg.mode;
-  const lines: QuoteLine[] = [{ label: pkg.name, amount: pkg.price, kind: "base" }];
+  const lines: QuoteLine[] = [{ label: session.label, amount: session.basePrice, kind: "base" }];
   for (const id of addOnIds) {
     const a = addOns.find((x) => x.id === id && x.modes.includes(mode));
     if (a) lines.push({ label: a.name, amount: a.price, kind: "addon" });
@@ -28,7 +30,7 @@ export function buildQuote(pkg: Package | undefined, addOnIds: string[], flowMod
   const subtotal = lines.reduce((s, l) => s + l.amount, 0);
   const tax = round((subtotal * booking.taxPercent) / 100);
   const total = subtotal + tax;
-  const advance = pkg.price === 0 ? 0 : round((total * booking.advancePercent) / 100);
+  const advance = total === 0 ? 0 : round((total * booking.advancePercent) / 100);
   return { lines, subtotal, tax, total, advance, balance: total - advance };
 }
 

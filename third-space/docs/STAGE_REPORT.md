@@ -4,6 +4,35 @@ Repo `TECH_SERVICE`, folder `third-space/`, branch `claude/intelligent-ride-aojo
 
 - **Stage 1 (19 Nov 2026):** guest website from the Competitor Audit blueprint.
 - **Stage 2 (19 Nov 2026):** booking software, plus the THIRD SPACE Terms v2.0 pack (Master 18+ Safety & Conduct Policy, Private Theatre / Podcast Studio / Creator Studio addenda) and the owner's Mandatory Customer Declaration.
+- **Stage 3 (19 Nov 2026):** real contact details, and time + price decided automatically from what the guest wants to do.
+
+## Stage 3: automatic time and price
+
+Owner's decisions: "From ₹799" is space only, at ₹799 per hour. Theatre price = per-hour rate × time set by the title. Podcast and Creator Studio time is worked out from the work the guest describes.
+
+| Package | Guest tells us | Time | Price (before add-ons and GST) |
+|---|---|---|---|
+| THIRD SPACE Cinema | Which title (from the admin's licensed list) | Runtime + 15 min, rounded up to the next 30 min | ₹850/hr × time |
+| THIRD SPACE Premium | Which title | Same | ₹1,350/hr × time |
+| Podcast Session | Episode length (15–90 min) × number of episodes (1–4) | Episodes + 30 min setup, rounded up, minimum 1 h | ₹950/hr × time |
+| Creator Studio Shoot | Short reels (15 min each) and longer videos (30 min each) | Work + 30 min setup, rounded up, minimum 1 h | ₹950/hr × time |
+| Studio Space Only | Hours (1–6) | Hours | ₹799/hr × hours |
+| Monthly Creator Plan, free visit | Nothing | Fixed (2 h first session / 10 min) | ₹4,999 / free |
+
+- **Where the rules live:** rates and rules are in `src/config/packages.ts` and `sessionRules` in `src/config/site.ts`. The resolver is `src/lib/session.ts`; the browser and the server run the same code.
+- **Server checks:** the server recomputes the time and price at checkout and refuses a hold whose length no longer matches (409).
+- **Changing the session releases the hold:** if the guest edits the session after holding a slot, the hold is released, so the slot length always matches.
+- **Admin `Titles` page:** staff list licensed titles with runtime, language, certification and a mandatory licence reference, plus a confirmation that the licence covers private exhibition. Guests see titles only while the Legal Gate is open.
+- **Watch page:** shows each title's time and the price of both theatre packages.
+- **Contact details** are now in config and appear everywhere: phone/WhatsApp +91 90316 27292, sandeep@mythirdspace.co.in, and Ground Floor, Om Sai Plaza, Police Line Road, Near HDFC Bank, CMPF Colony, Hirapur, Dhanbad, Jharkhand. A Google Maps link is built from the address.
+- **Verified:** 37 e2e tests pass in both gate states, including new ones for:
+  - podcast, creator and space pricing
+  - the title-based theatre price (120-min title → 2h 30m → ₹2,125 / ₹3,375)
+  - releasing the hold when the session changes
+  - the server rejecting a mismatched hold
+
+  Content checks pass in both gates, with the real contact details.
+
 
 Docs 05 (Software Implementation 18+ Compliance) and 06 (Master Prompt) were listed in the pack but not supplied. Their requirements were taken from the README of the pack and from section 10 of the Master Policy: mandatory acceptance, 18+ verification, policy version history, incident reporting, audit logs.
 
@@ -86,13 +115,13 @@ From Stage 1 and not re-measured: Lighthouse mobile (local) Home 93/100, Create 
 5. Exact ID-check process, CCTV signage and retention period, privacy retention schedule, local permissions, fire/occupancy approvals, film/music rights.
 
 **From Stage 1 (still open)**
-6. **"From ₹799":** no such package is defined.
-7. **Contact details:** phone, WhatsApp, email, address, map link.
-8. **Assumed defaults:** add-on prices, refund tiers (90/50/0), hours 10 AM–10 PM, GST 18% on top, capacities.
+6. **Rates and rules to confirm (my defaults):** Cinema ₹850/hr and Premium ₹1,350/hr (from the earlier 2-hour prices), Podcast and Creator ₹950/hr, 15 min theatre setup, 30 min studio setup, 15 min per reel, 30 min per longer video, rounding to 30 min.
+7. **Space only:** studio only, not the private room, so nobody can screen unlicensed content there. Say if the room should be rentable too.
+8. **Other assumed defaults:** add-on prices, refund tiers (90/50/0), hours 10 AM–10 PM, GST 18% on top, capacities.
 9. **Logo and room photos.**
 
 **New in Stage 2**
-10. **Creator Studio Shoot:** price ₹1,899 for 2 hours, capacity 4, and "bring your own camera" are my placeholders. Confirm them.
+10. **Creator Studio Shoot:** capacity 4 and "bring your own camera" are my placeholders. Confirm them.
 11. **Shared space:** Podcast and Creator Studio are assumed to share one studio, so they cannot overlap. Say if they are separate rooms.
 12. **Providers:** an SMS/WhatsApp OTP provider, a WhatsApp/email sender, Razorpay keys and a hosted Postgres.
 13. **Staff accounts:** one shared password today. Per-person accounts and roles can be added if needed.

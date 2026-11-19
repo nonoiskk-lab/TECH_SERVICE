@@ -45,7 +45,7 @@ export async function adminLogin(page: Page) {
 
 /** Books a podcast slot through the UI and returns the booking ID. */
 export async function bookPodcast(page: Page, offset: number) {
-  await page.goto("/book?package=podcast-2h");
+  await page.goto("/book?package=podcast");
   await chooseDate(page, offset);
   await (await firstAvailableSlot(page)).click();
   await expect(page.getByTestId("hold-banner")).toBeVisible();
@@ -55,4 +55,20 @@ export async function bookPodcast(page: Page, offset: number) {
   await page.getByTestId("pay-button").click();
   await expect(page.getByTestId("booking-id")).toHaveText(/^TS-/);
   return (await page.getByTestId("booking-id").textContent())!.trim();
+}
+
+/** Adds a licensed title through the admin panel and returns its unique name. */
+export async function addTitle(page: Page, runtimeMinutes: number) {
+  await adminLogin(page);
+  const name = `Test Title ${Date.now().toString(36)}`;
+  await page.goto("/admin/titles");
+  const form = page.getByTestId("title-form");
+  await form.getByLabel("Title", { exact: true }).fill(name);
+  await form.getByLabel("Runtime (minutes)").fill(String(runtimeMinutes));
+  await form.getByLabel("Language").fill("Hindi");
+  await form.getByLabel("Licence reference").fill("TEST-LIC-001");
+  await form.getByRole("checkbox").check();
+  await form.getByRole("button", { name: "Add title" }).click();
+  await expect(form.getByRole("status")).toContainText(`Added ${name}`);
+  return name;
 }

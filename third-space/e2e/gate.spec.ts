@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { acceptTerms, chooseDate, fillDetailsAndVerify, firstAvailableSlot, isOpen } from "./helpers";
+import { acceptTerms, addTitle, chooseDate, fillDetailsAndVerify, firstAvailableSlot, isOpen } from "./helpers";
 
 test.describe("Legal Gate closed", () => {
   test.beforeEach(({}, info) => test.skip(isOpen(info), "closed-gate only"));
@@ -8,7 +8,7 @@ test.describe("Legal Gate closed", () => {
     await page.goto("/");
     await expect(page.getByTestId("gate-banner")).toContainText("Podcast Studio is bookable now");
     await expect(page.getByTestId("pick-watch")).toContainText("Coming soon");
-    await expect(page.getByTestId("from-price")).toHaveText("₹1,899");
+    await expect(page.getByTestId("from-price")).toHaveText("₹799");
   });
 
   test("watch page shows coming soon, no packages, noindex", async ({ page }) => {
@@ -43,15 +43,25 @@ test.describe("Legal Gate open", () => {
   test("theatre appears normally with prices and content rule", async ({ page }) => {
     await page.goto("/");
     await expect(page.getByTestId("gate-banner")).toHaveCount(0);
-    await expect(page.getByTestId("from-price")).toHaveText("₹1,699");
+    await expect(page.getByTestId("from-price")).toHaveText("₹799");
     await page.goto("/watch");
-    await expect(page.getByTestId("package-theatre-classic").getByTestId("package-price")).toHaveText("₹1,699");
-    await expect(page.getByTestId("package-theatre-premium").getByTestId("package-price")).toHaveText("₹2,699");
+    await expect(page.getByTestId("package-theatre-classic").getByTestId("package-price")).toHaveText("₹850/hr");
+    await expect(page.getByTestId("package-theatre-premium").getByTestId("package-price")).toHaveText("₹1,350/hr");
     await expect(page.getByTestId("content-rule")).toBeVisible();
   });
 
-  test("celebration booking with theme and add-ons", async ({ page }) => {
+  test("movie length decides theatre time and price; celebration books with a title", async ({ page }) => {
+    const name = await addTitle(page, 120);
+    await page.goto("/watch");
+    // 120 min + 15 setup = 135 → rounded up to 2h 30m. Cinema ₹850/hr → ₹2,125; Premium ₹1,350/hr → ₹3,375.
+    const card = page.getByTestId("title-list").locator("li", { hasText: name }).first();
+    await expect(card).toContainText("2h 30m");
+    await expect(card.getByTestId("title-price-theatre-classic")).toHaveText("₹2,125");
+    await expect(card.getByTestId("title-price-theatre-premium")).toHaveText("₹3,375");
     await page.goto("/celebrate");
+    const option = await page.getByTestId("title-select").locator("option", { hasText: name }).getAttribute("value");
+    await page.getByTestId("title-select").selectOption(option!);
+    await expect(page.getByTestId("session-summary")).toContainText("2h 30m");
     await page.getByLabel("Anniversary").check();
     await chooseDate(page, 5);
     await page.getByTestId("addon-fog-entry").check();

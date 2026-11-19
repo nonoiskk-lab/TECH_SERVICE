@@ -23,6 +23,12 @@ model Booking {
   end              DateTime
   addOnIds         String[]
   themeId          String?
+  /// Theatre: the licensed title chosen (name copied for the record)
+  titleId          String?
+  titleName        String?
+  /// What the guest asked for (episodes, reels, hours…); time and price were derived from it
+  sessionInput     Json?
+  durationMinutes  Int       @default(0)
   guestName        String
   guestPhone       String
   guestEmail       String
@@ -186,4 +192,19 @@ model Notification {
 model EventCount {
   event String @id
   count Int    @default(0)
+}
+
+/// Licensed titles the private room may play. Only staff add these, and only
+/// with a valid exhibition licence (policy: Private Theatre addendum).
+model Title {
+  id             String   @id @default(uuid())
+  name           String
+  runtimeMinutes Int
+  language       String   @default("")
+  certification  String   @default("")
+  licenceRef     String
+  active         Boolean  @default(true)
+  createdBy      String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 }

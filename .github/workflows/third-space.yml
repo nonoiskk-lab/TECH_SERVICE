@@ -30,10 +30,6 @@ jobs:
       TEST_DATABASE_URL: postgresql://thirdspace:thirdspace@localhost:5432/thirdspace_test
       ADMIN_PASSWORD: test-staff-password
       AUTH_SECRET: test-auth-secret-at-least-16-chars
-      THIRD_SPACE_PHONE: "+91 98765 43210"
-      THIRD_SPACE_EMAIL: "hello@thirdspace.in"
-      THIRD_SPACE_ADDRESS_LINE: "Bank More"
-      THIRD_SPACE_MAP_URL: "https://maps.google.com/?q=Dhanbad"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

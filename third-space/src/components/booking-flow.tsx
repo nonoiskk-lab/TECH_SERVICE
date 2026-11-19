@@ -2,14 +2,15 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { addOnsFor, booking as bookingCfg, recordingConsent, refundTiers, venueRules, type Locale, type Mode, type Package, type Theme } from "@/config/site";
+import { addOnsFor, sessionRules, booking as bookingCfg, recordingConsent, refundTiers, venueRules, type Locale, type Mode, type Package, type Theme } from "@/config/site";
 import { tl, type Dict } from "@/i18n";
 import { buildQuote, formatINR } from "@/lib/pricing";
+import { defaultInput, durationText, hourlyRate, resolveSession, type SessionInput, type TitleInfo } from "@/lib/session";
 import { getFirstTouch, track } from "@/lib/analytics";
 import { DECLARATION_CLOSING, DECLARATION_INTRO, DECLARATION_POINTS, DECLARATION_TITLE, EASY_SUMMARY, POLICY_DOCS, POLICY_PACK_VERSION } from "@/config/policies";
 
 type Slot = { start: string; end: string; status: "available" | "held" | "booked" | "past" };
-type Hold = { id: string; packageId?: string; start: string; end: string; expiresAt: string };
+type Hold = { id: string; packageId?: string; start: string; end: string; expiresAt: string; durationMinutes?: number };
 
 export type BookingFlowProps = {
   t: Dict;
@@ -19,6 +20,8 @@ export type BookingFlowProps = {
   packages: Package[];
   initialPackageId?: string;
   themes?: Theme[];
+  /** Licensed titles for theatre packages (empty while the Legal Gate is closed). */
+  titles?: TitleInfo[];
   minDate: string;
   maxDate: string;
   defaultDate: string;
@@ -89,7 +92,21 @@ export function BookingFlow(props: BookingFlowProps) {
   }, [hold]);
 
   const availableAddOns = useMemo(() => addOnsFor(flowMode), [flowMode]);
-  const quote = useMemo(() => (pkg ? buildQuote(pkg, addOnIds, flowMode) : null), [pkg, addOnIds, flowMode]);
+  const titles = useMemo(() => props.titles ?? [], [props.titles]);
+  const [inputs, setInputs] = useState<Record<string, SessionInput>>({});
+  const inputFor = useCallback(
+    (id: string): SessionInput => {
+      const p = packages.find((x) => x.id === id);
+      if (!p) return {};
+      return inputs[id] ?? (p.pricing.kind === "title" ? { titleId: titles[0]?.id } : defaultInput(p));
+    },
+    [inputs, packages, titles],
+  );
+  const sessionInput = inputFor(packageId);
+  const resolved = useMemo(() => (pkg ? resolveSession(pkg, sessionInput, titles) : null), [pkg, sessionInput, titles]);
+  const session = resolved?.ok ? resolved.session : null;
+  const duration = session?.durationMinutes ?? 0;
+  const quote = useMemo(() => (pkg ? buildQuote(pkg, addOnIds, flowMode, session) : null), [pkg, addOnIds, flowMode, session]);
   const needsRecordingConsent = pkg?.service === "podcast" || pkg?.service === "creator";
   const addendum = pkg && pkg.service !== "visit" ? POLICY_DOCS[pkg.service] : null;
   const capacity = pkg?.capacity ?? 1;
@@ -103,22 +120,22 @@ export function BookingFlow(props: BookingFlowProps) {
     } catch {}
   }, []);
 
-  const slotKey = `${packageId}|${date}|${refreshTick}`;
+  const slotKey = `${packageId}|${date}|${duration}|${refreshTick}`;
   const slots = slotData?.key === slotKey ? slotData.slots : null;
   const slotsLoading = slots === null;
   const loadSlots = useCallback(() => setRefreshTick((n) => n + 1), []);
 
   useEffect(() => {
-    if (!packageId || !date) return;
+    if (!packageId || !date || !duration) return;
     let cancelled = false;
-    fetch(`/api/availability?date=${date}&packageId=${encodeURIComponent(packageId)}`, { cache: "no-store" })
+    fetch(`/api/availability?date=${date}&packageId=${encodeURIComponent(packageId)}&duration=${duration}`, { cache: "no-store" })
       .then((r) => r.json() as Promise<{ slots?: Slot[] }>)
       .then((j) => !cancelled && setSlotData({ key: slotKey, slots: j.slots ?? [] }))
       .catch(() => !cancelled && setSlotData({ key: slotKey, slots: [] }));
     return () => {
       cancelled = true;
     };
-  }, [packageId, date, slotKey]);
+  }, [packageId, date, duration, slotKey]);
 
   useEffect(() => {
     if (pkg) track("view_package", { packageId: pkg.id, mode: flowMode });
@@ -162,6 +179,14 @@ export function BookingFlow(props: BookingFlowProps) {
     setAddOnIds([]);
   }
 
+  async function changeInput(patch: SessionInput) {
+    if (!pkg) return;
+    const next = { ...sessionInput, ...patch };
+    const r = resolveSession(pkg, next, titles);
+    if (hold && (!r.ok || r.session.durationMinutes !== hold.durationMinutes)) await releaseHold(hold);
+    setInputs((m) => ({ ...m, [pkg.id]: next }));
+  }
+
   async function pickDate(d: string) {
     await releaseHold(hold);
     setDate(d);
@@ -175,7 +200,7 @@ export function BookingFlow(props: BookingFlowProps) {
     const r = await fetch("/api/holds", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ packageId, start: s.start }),
+      body: JSON.stringify({ packageId, start: s.start, durationMinutes: duration }),
     });
     if (r.status === 409) {
       setError(t.book.slotTaken);
@@ -236,6 +261,7 @@ export function BookingFlow(props: BookingFlowProps) {
           mode: flowMode,
           addOnIds,
           themeId: flowMode === "celebrate" ? themeId : undefined,
+          session: sessionInput,
           guest: { name, phone, email },
           guestCount: Math.min(guestCount, capacity),
           locale,
@@ -339,11 +365,12 @@ export function BookingFlow(props: BookingFlowProps) {
                     <input type="radio" name="package" value={p.id} checked={p.id === packageId} onChange={() => pickPackage(p.id)} className="h-5 w-5 accent-[var(--ts-warm)]" />
                     {tl(p.name, locale)}
                   </span>
-                  <span className="font-bold text-warm">{p.price === 0 ? t.common.free : formatINR(p.price)}</span>
+                  <span className="font-bold text-warm">
+                    {hourlyRate(p) ? `${formatINR(hourlyRate(p)!)}${t.common.perHour}` : p.price === 0 ? t.common.free : formatINR(p.price)}
+                  </span>
                 </span>
                 <span className="mt-1 pl-7 text-xs text-faint">
-                  {p.durationMinutes >= 60 ? `${p.durationMinutes / 60} ${t.common.hours}` : `${p.durationMinutes} ${t.common.minutes}`} · {t.common.upTo}{" "}
-                  {p.capacity} {t.common.guests}
+                  {p.pricing.kind === "fixed" ? durationText(p.durationMinutes) : t.book.timeAuto} · {t.common.upTo} {p.capacity} {t.common.guests}
                 </span>
               </label>
             ))}
@@ -362,6 +389,101 @@ export function BookingFlow(props: BookingFlowProps) {
             </fieldset>
           )}
         </section>
+
+        {/* Session: time and price decided from what the guest wants to do */}
+        {pkg && pkg.pricing.kind !== "fixed" && (
+          <section className="ts-card space-y-4 p-5" data-testid="session-step">
+            <h2 className="text-lg font-bold">{t.book.sessionTitle}</h2>
+            {pkg.pricing.kind === "title" &&
+              (titles.length === 0 ? (
+                <p className="text-sm text-muted" data-testid="no-titles">
+                  {t.book.noTitles}
+                </p>
+              ) : (
+                <label className="block">
+                  <span className="mb-1 block text-sm text-muted">{t.book.chooseTitle}</span>
+                  <select className="ts-input" value={sessionInput.titleId ?? ""} onChange={(e) => changeInput({ titleId: e.target.value })} data-testid="title-select">
+                    {titles.map((ti) => (
+                      <option key={ti.id} value={ti.id}>
+                        {ti.name} · {durationText(ti.runtimeMinutes)}
+                        {ti.language ? ` · ${ti.language}` : ""}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              ))}
+            {pkg.pricing.kind === "podcast" && (
+              <div className="grid grid-cols-2 gap-3">
+                <label className="block">
+                  <span className="mb-1 block text-sm text-muted">{t.book.episodeLength}</span>
+                  <select className="ts-input" value={sessionInput.episodeMinutes} onChange={(e) => changeInput({ episodeMinutes: Number(e.target.value) })} data-testid="episode-length">
+                    {sessionRules.podcast.episodeLengths.map((m) => (
+                      <option key={m} value={m}>
+                        {m} {t.common.minutes}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="block">
+                  <span className="mb-1 block text-sm text-muted">{t.book.episodes}</span>
+                  <select className="ts-input" value={sessionInput.episodes} onChange={(e) => changeInput({ episodes: Number(e.target.value) })} data-testid="episodes">
+                    {Array.from({ length: sessionRules.podcast.maxEpisodes }, (_, i) => i + 1).map((n) => (
+                      <option key={n} value={n}>
+                        {n}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+            )}
+            {pkg.pricing.kind === "creator" && (
+              <div className="grid grid-cols-2 gap-3">
+                <label className="block">
+                  <span className="mb-1 block text-sm text-muted">{t.book.reels}</span>
+                  <select className="ts-input" value={sessionInput.reels} onChange={(e) => changeInput({ reels: Number(e.target.value) })} data-testid="reels">
+                    {Array.from({ length: sessionRules.creator.maxReels + 1 }, (_, i) => i).map((n) => (
+                      <option key={n} value={n}>
+                        {n}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="block">
+                  <span className="mb-1 block text-sm text-muted">{t.book.longVideos}</span>
+                  <select className="ts-input" value={sessionInput.longVideos} onChange={(e) => changeInput({ longVideos: Number(e.target.value) })} data-testid="long-videos">
+                    {Array.from({ length: sessionRules.creator.maxLongVideos + 1 }, (_, i) => i).map((n) => (
+                      <option key={n} value={n}>
+                        {n}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+            )}
+            {pkg.pricing.kind === "hourly" && (
+              <label className="block max-w-xs">
+                <span className="mb-1 block text-sm text-muted">{t.book.hours}</span>
+                <select className="ts-input" value={sessionInput.hours} onChange={(e) => changeInput({ hours: Number(e.target.value) })} data-testid="hours">
+                  {Array.from({ length: sessionRules.space.maxHours - sessionRules.space.minHours + 1 }, (_, i) => i + sessionRules.space.minHours).map((n) => (
+                    <option key={n} value={n}>
+                      {n}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
+            {session ? (
+              <p className="rounded-xl bg-raised px-4 py-3 text-sm" data-testid="session-summary">
+                {t.book.sessionTime}: <strong>{durationText(session.durationMinutes)}</strong> · {formatINR(session.basePrice)}
+                <span className="mt-1 block text-xs text-faint">{t.book.sessionHint[pkg.pricing.kind]}</span>
+              </p>
+            ) : (
+              resolved &&
+              !resolved.ok &&
+              resolved.reason === "NEED_WORK" && <p className="text-sm text-danger">{t.book.needWork}</p>
+            )}
+          </section>
+        )}
 
         {/* 2. Add-ons */}
         {showAddOns && (
@@ -405,7 +527,7 @@ export function BookingFlow(props: BookingFlowProps) {
               data-testid="date-input"
             />
           </label>
-          {slotsLoading && !slots && <p className="text-sm text-muted">{t.book.loadingSlots}</p>}
+          {duration > 0 && slotsLoading && !slots && <p className="text-sm text-muted">{t.book.loadingSlots}</p>}
           {slots && visibleSlots.length === 0 && <p className="text-sm text-muted">{t.book.noSlots}</p>}
           <div className="grid grid-cols-3 gap-2 sm:grid-cols-4" role="group" aria-label={t.book.stepSlot}>
             {visibleSlots.map((s) => {

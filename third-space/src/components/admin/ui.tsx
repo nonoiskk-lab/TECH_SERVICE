@@ -22,6 +22,8 @@ const STATUS_COLORS: Record<string, string> = {
   sent: "border-ok text-ok",
   new: "border-warm text-warm",
   contacted: "border-ok text-ok",
+  active: "border-ok text-ok",
+  hidden: "border-line text-faint",
 };
 
 export function Status({ value }: { value: string }) {
