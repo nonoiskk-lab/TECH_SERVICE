@@ -117,8 +117,8 @@ From Stage 1 and not re-measured: Lighthouse mobile (local) Home 93/100, Create 
 5. Exact ID-check process, CCTV signage and retention period, privacy retention schedule, local permissions, fire/occupancy approvals, film/music rights.
 
 **From Stage 1 (still open)**
-6. **Rates to confirm (my defaults):** Cinema ₹850/hr and Premium ₹1,350/hr (from the earlier 2-hour prices), Podcast and Creator ₹950/hr, 15 min per reel, 30 min per longer video. 
-7. **Space only:** studio only, not the private room, so nobody can screen unlicensed content there. Say if the room should be rentable too.
+6. ~~Rates~~ **Confirmed by owner (19 Nov 2026):** Cinema ₹850/hr, Premium ₹1,350/hr, Podcast and Creator ₹950/hr, Space only ₹799/hr, ₹799 minimum booking, 30 min setup, 30 min gap.
+7. ~~Space only~~ **Confirmed:** studio only, not the private room.
 8. **Other assumed defaults:** add-on prices, refund tiers (90/50/0), hours 10 AM–10 PM, GST 18% on top, capacities.
 9. **Logo and room photos.**
 
