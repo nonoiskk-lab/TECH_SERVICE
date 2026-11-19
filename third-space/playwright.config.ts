@@ -12,6 +12,8 @@ const contactEnv = {
   DATABASE_URL: TEST_DATABASE_URL,
   ADMIN_PASSWORD: "test-staff-password",
   AUTH_SECRET: "test-auth-secret-at-least-16-chars",
+  PAYMENTS_MODE: "mock",
+  OTP_MODE: "mock",
 };
 
 const use = { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, deviceScaleFactor: 2 };
@@ -23,8 +25,10 @@ export default defineConfig({
   reporter: process.env.CI ? [["list"], ["html", { open: "never" }]] : "list",
   use: { trace: "off" },
   projects: [
-    { name: "gate-closed", use: { ...use, baseURL: "http://localhost:3100" } },
-    { name: "gate-open", use: { ...use, baseURL: "http://localhost:3101" } },
+    { name: "gate-closed", testIgnore: /live\.spec/, use: { ...use, baseURL: "http://localhost:3100" } },
+    { name: "gate-open", testIgnore: /live\.spec/, use: { ...use, baseURL: "http://localhost:3101" } },
+    // Settings of the live site without Razorpay keys or an SMS provider.
+    { name: "live-mode", testMatch: /live\.spec/, use: { ...use, baseURL: "http://localhost:3102" } },
   ],
   webServer: [
     {
@@ -37,6 +41,12 @@ export default defineConfig({
       command: "npx next start -p 3101",
       url: "http://localhost:3101/api/public-config",
       env: { ...contactEnv, THIRD_SPACE_LEGAL_GATE: "open" },
+      reuseExistingServer: !process.env.CI,
+    },
+    {
+      command: "npx next start -p 3102",
+      url: "http://localhost:3102/api/public-config",
+      env: { ...contactEnv, THIRD_SPACE_LEGAL_GATE: "closed", PAYMENTS_MODE: "venue", OTP_MODE: "off" },
       reuseExistingServer: !process.env.CI,
     },
   ],

@@ -25,10 +25,10 @@ export type Mode = "watch" | "create" | "celebrate" | "visit";
  */
 export type Pricing =
   | { kind: "fixed" }
-  | { kind: "title"; ratePerHour: number }
-  | { kind: "podcast"; ratePerHour: number }
-  | { kind: "creator"; ratePerHour: number }
-  | { kind: "hourly"; ratePerHour: number };
+  | { kind: "title"; ratePerHour: number; startingPrice: number }
+  | { kind: "podcast"; ratePerHour: number; startingPrice: number }
+  | { kind: "creator"; ratePerHour: number; startingPrice: number }
+  | { kind: "hourly"; ratePerHour: number; startingPrice: number };
 
 export type Package = {
   id: string;
@@ -48,7 +48,9 @@ export type Package = {
   /** True when this package plays films on screen; hidden while the Legal Gate is closed. */
   requiresLegalGate: boolean;
   /** Which service addendum applies; "visit" accepts only the master policy. */
-  service: "theatre" | "podcast" | "creator" | "visit";
+  service: "theatre" | "podcast" | "creator" | "celebration" | "visit";
+  /** Row in the public price list (owner's "Proposed launch packages"). Omit to leave the package out of the list. */
+  priceList?: { label: L; includes: L; plus?: boolean };
   /** Zero-price tour etc. are excluded from the "From ₹" price. */
   excludeFromFromPrice?: boolean;
 };

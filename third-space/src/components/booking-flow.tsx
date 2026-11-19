@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { addOnsFor, hours as hoursCfg, sessionRules, booking as bookingCfg, recordingConsent, refundTiers, venueRules, type Locale, type Mode, type Package, type Theme } from "@/config/site";
 import { tl, type Dict } from "@/i18n";
 import { buildQuote, formatINR } from "@/lib/pricing";
-import { defaultInput, durationText, hourlyRate, resolveSession, type SessionInput, type TitleInfo } from "@/lib/session";
+import { defaultInput, durationText, priceLabel, resolveSession, type SessionInput, type TitleInfo } from "@/lib/session";
 import { getFirstTouch, track } from "@/lib/analytics";
 import { DECLARATION_CLOSING, DECLARATION_INTRO, DECLARATION_POINTS, DECLARATION_TITLE, EASY_SUMMARY, POLICY_DOCS, POLICY_PACK_VERSION } from "@/config/policies";
 
@@ -25,7 +25,9 @@ export type BookingFlowProps = {
   minDate: string;
   maxDate: string;
   defaultDate: string;
-  otpIsMock: boolean;
+  otpMode: "sms" | "mock" | "off";
+  /** 0 when the site takes no online payment (whole amount paid at the venue). */
+  advancePercent: number;
 };
 
 function timeLabel(iso: string) {
@@ -58,7 +60,9 @@ function StepTitle({ n, title, done }: { n: number; title: string; done?: boolea
 }
 
 export function BookingFlow(props: BookingFlowProps) {
-  const { t, locale, packages, themes, minDate, maxDate, otpIsMock } = props;
+  const { t, locale, packages, themes, minDate, maxDate, otpMode, advancePercent } = props;
+  const otpIsMock = otpMode === "mock";
+  const otpRequired = otpMode !== "off";
   const router = useRouter();
   const [packageId, setPackageId] = useState(props.initialPackageId ?? packages[0]?.id ?? "");
   const pkg = packages.find((p) => p.id === packageId);
@@ -106,9 +110,9 @@ export function BookingFlow(props: BookingFlowProps) {
   const resolved = useMemo(() => (pkg ? resolveSession(pkg, sessionInput, titles) : null), [pkg, sessionInput, titles]);
   const session = resolved?.ok ? resolved.session : null;
   const duration = session?.durationMinutes ?? 0;
-  const quote = useMemo(() => (pkg ? buildQuote(pkg, addOnIds, flowMode, session) : null), [pkg, addOnIds, flowMode, session]);
+  const quote = useMemo(() => (pkg ? buildQuote(pkg, addOnIds, flowMode, session, advancePercent) : null), [pkg, addOnIds, flowMode, session, advancePercent]);
   const needsRecordingConsent = pkg?.service === "podcast" || pkg?.service === "creator";
-  const addendum = pkg && pkg.service !== "visit" ? POLICY_DOCS[pkg.service] : null;
+  const addendum = pkg && pkg.service !== "visit" && pkg.service !== "celebration" ? POLICY_DOCS[pkg.service] : null;
   const capacity = pkg?.capacity ?? 1;
   const isFree = (quote?.total ?? 0) === 0;
 
@@ -241,7 +245,7 @@ export function BookingFlow(props: BookingFlowProps) {
     setOtpMsg(ok ? t.book.otpVerified : t.book.otpWrong);
   }
 
-  const detailsOk = name.trim().length >= 2 && /^[6-9]\d{9}$/.test(phone.replace(/\D/g, "").slice(-10)) && /.+@.+\..+/.test(email) && otpOk;
+  const detailsOk = name.trim().length >= 2 && /^[6-9]\d{9}$/.test(phone.replace(/\D/g, "").slice(-10)) && /.+@.+\..+/.test(email) && (otpOk || !otpRequired);
   const consentOk = agreeDeclaration && agreeVenue && (!needsRecordingConsent || agreeRecording);
   const canPay = !!hold && remainingMs > 0 && detailsOk && consentOk && !paying;
 
@@ -369,7 +373,7 @@ export function BookingFlow(props: BookingFlowProps) {
                     {tl(p.name, locale)}
                   </span>
                   <span className="font-bold text-warm">
-                    {hourlyRate(p) ? `${formatINR(hourlyRate(p)!)}${t.common.perHour}` : p.price === 0 ? t.common.free : formatINR(p.price)}
+                    {priceLabel(p, formatINR, t.common.free)}
                   </span>
                 </span>
                 <span className="mt-1 pl-7 text-xs text-faint">
@@ -497,7 +501,7 @@ export function BookingFlow(props: BookingFlowProps) {
                 </dl>
                 {session.minimumApplied && (
                   <p className="mt-2 text-xs text-warm" data-testid="minimum-note">
-                    {t.book.minimumNote.replace("{min}", formatINR(sessionRules.minimumCharge))}
+                    {t.book.minimumNote.replaceAll("{min}", formatINR(session.startingPrice))}
                   </p>
                 )}
                 <p className="mt-2 text-xs text-faint" data-testid="gap-note">
@@ -625,9 +629,11 @@ export function BookingFlow(props: BookingFlowProps) {
                   }}
                   data-testid="guest-phone"
                 />
-                <button type="button" className="ts-btn ts-btn-ghost shrink-0 text-sm" disabled={!/^[6-9]\d{9}$/.test(phone)} onClick={sendOtp} data-testid="send-otp">
-                  {t.book.sendOtp}
-                </button>
+                {otpRequired && (
+                  <button type="button" className="ts-btn ts-btn-ghost shrink-0 text-sm" disabled={!/^[6-9]\d{9}$/.test(phone)} onClick={sendOtp} data-testid="send-otp">
+                    {t.book.sendOtp}
+                  </button>
+                )}
               </span>
             </label>
             {otpSent && !otpOk && (
@@ -750,7 +756,13 @@ export function BookingFlow(props: BookingFlowProps) {
           </fieldset>
           {!hold && <p className="text-sm text-faint">{t.book.needSlot}</p>}
           <button type="button" className="ts-btn ts-btn-primary w-full text-base" disabled={!canPay} onClick={pay} data-testid="pay-button">
-            {paying ? t.book.paying : isFree ? t.book.confirmFree : `${t.book.pay} ${formatINR(quote?.advance ?? 0)}`}
+            {paying
+              ? t.book.paying
+              : isFree
+                ? t.book.confirmFree
+                : (quote?.advance ?? 0) === 0
+                  ? t.book.confirmVenue.replace("{amount}", formatINR(quote?.total ?? 0))
+                  : `${t.book.pay} ${formatINR(quote?.advance ?? 0)}`}
           </button>
         </section>
       </div>
@@ -781,11 +793,17 @@ export function BookingFlow(props: BookingFlowProps) {
                 <dt>{t.book.total}</dt>
                 <dd data-testid="quote-total">{formatINR(quote.total)}</dd>
               </div>
-              {!isFree && (
+              {!isFree && quote.advance === 0 && (
+                <div className="flex justify-between gap-3 rounded-lg bg-raised px-3 py-2 font-semibold text-warm" data-testid="pay-at-venue">
+                  <dt>{t.book.balanceVenue}</dt>
+                  <dd>{formatINR(quote.total)}</dd>
+                </div>
+              )}
+              {!isFree && quote.advance > 0 && (
                 <>
                   <div className="flex justify-between gap-3 rounded-lg bg-raised px-3 py-2 font-semibold text-warm">
                     <dt>
-                      {t.book.advanceNow} · {bookingCfg.advancePercent}%
+                      {t.book.advanceNow} · {advancePercent}%
                     </dt>
                     <dd data-testid="quote-advance">{formatINR(quote.advance)}</dd>
                   </div>

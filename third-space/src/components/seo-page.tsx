@@ -3,7 +3,7 @@ import type { Dict } from "@/i18n";
 import { tl } from "@/i18n";
 import type { Locale, Package } from "@/config/site";
 import { formatINR } from "@/lib/pricing";
-import { hourlyRate } from "@/lib/session";
+import { priceLabel } from "@/lib/session";
 import { Container, Faq, HowItWorks, PageHeader, Section, durationLabel } from "./ui";
 import { JsonLd, faqLd } from "./json-ld";
 
@@ -49,7 +49,7 @@ export function SeoPage({
                   <td className="py-2 pr-4">
                     {t.common.upTo} {p.capacity}
                   </td>
-                  <td className="py-2 font-semibold text-warm">{hourlyRate(p) ? `${formatINR(hourlyRate(p)!)}${t.common.perHour}` : formatINR(p.price)}</td>
+                  <td className="py-2 font-semibold text-warm">{priceLabel(p, formatINR, t.common.free)}</td>
                 </tr>
               ))}
             </tbody>

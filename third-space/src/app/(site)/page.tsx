@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { isLegalGateOpen, site } from "@/config/site";
-import { fromPrice } from "@/config/packages";
+import { bookablePackages, fromPrice } from "@/config/packages";
+import { PriceList } from "@/components/price-list";
 import { getDict } from "@/lib/locale";
 import { faqItems } from "@/lib/faq";
 import { formatINR } from "@/lib/pricing";
@@ -20,7 +21,7 @@ export default async function Home() {
       id: "watch",
     },
     { href: "/create", title: t.home.pickCreate, text: t.home.pickCreateText, soon: false, id: "create" },
-    { href: "/celebrate", title: t.home.pickCelebrate, text: t.home.pickCelebrateText, soon: !gateOpen, id: "celebrate" },
+    { href: "/celebrate", title: t.home.pickCelebrate, text: t.home.pickCelebrateText, soon: false, id: "celebrate" },
   ];
   return (
     <>
@@ -70,6 +71,10 @@ export default async function Home() {
             </Link>
           ))}
         </div>
+      </Section>
+
+      <Section title={t.home.pricesTitle} id="prices">
+        <PriceList pkgs={bookablePackages(gateOpen)} t={t} locale={locale} />
       </Section>
 
       <Section title={t.home.stepsTitle} id="steps">

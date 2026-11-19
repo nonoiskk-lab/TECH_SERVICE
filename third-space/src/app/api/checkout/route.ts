@@ -8,6 +8,7 @@ import { queueConfirmation } from "@/server/notify";
 import { bookablePackage, json } from "@/lib/api";
 import { buildQuote } from "@/lib/pricing";
 import { resolveSession } from "@/lib/session";
+import { flowEnv } from "@/lib/flow-env";
 import { activeTitles } from "@/server/titles";
 import type { BookingDraft } from "@/server/slots/types";
 
@@ -72,7 +73,7 @@ export async function POST(req: Request) {
   const resolved = resolveSession(pkg, b.session, titles);
   if (!resolved.ok) return json({ error: resolved.reason }, 400);
   if (hold.durationMinutes !== resolved.session.durationMinutes) return json({ error: "SESSION_CHANGED" }, 409);
-  const quote = buildQuote(pkg, addOnIds, mode, resolved.session)!;
+  const quote = buildQuote(pkg, addOnIds, mode, resolved.session, flowEnv().advancePercent)!;
   const title = titles.find((x) => x.id === b.session.titleId);
 
   const draft: BookingDraft = {
@@ -103,7 +104,7 @@ export async function POST(req: Request) {
   };
 
   if (quote.advance === 0) {
-    const booking = await createBooking(draft, hold.id, {});
+    const booking = await createBooking(draft, hold.id, { provider: quote.total > 0 ? "venue" : undefined });
     await queueConfirmation(booking);
     return json({ bookingId: booking.id, token: booking.accessToken });
   }

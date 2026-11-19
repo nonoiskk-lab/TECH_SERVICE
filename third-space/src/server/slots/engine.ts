@@ -17,7 +17,8 @@ import { HoldExpiredError, SlotTakenError, type AvailabilityService, type Bookin
  * per-resource advisory lock so two guests can never get the same slot.
  */
 export function resourceOf(packageId: string): Resource {
-  return getPackage(packageId)?.mode === "watch" ? "room" : "studio";
+  const mode = getPackage(packageId)?.mode;
+  return mode === "watch" || mode === "celebrate" ? "room" : "studio";
 }
 
 const LIVE_STATUSES = ["confirmed", "checked_in", "completed"];

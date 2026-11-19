@@ -10,13 +10,13 @@ test("podcast time follows episodes; creator time follows reels; space is ₹799
   await expect(page.getByTestId("session-summary")).toContainText("2h 45m · ₹2,613");
   await expect(page.getByTestId("gap-note")).toContainText("30 minutes free");
 
-  // Shortest podcast: 15 min + 30 min setup = 45 min → ₹713 by time, raised to the ₹799 minimum.
+  // Shortest podcast: 15 min + 30 min setup = 45 min → ₹713 by time, raised to the package's starting price ₹1,899.
   await page.getByTestId("episode-length").selectOption("15");
   await page.getByTestId("episodes").selectOption("1");
-  await expect(page.getByTestId("session-summary")).toContainText("45m · ₹799");
-  await expect(page.getByTestId("minimum-note")).toContainText("₹799");
+  await expect(page.getByTestId("session-summary")).toContainText("45m · ₹1,899");
+  await expect(page.getByTestId("minimum-note")).toContainText("₹1,899");
 
-  await page.getByLabel(/Creator Studio Shoot/).check();
+  await page.getByLabel(/Content Creation/).check();
   await page.getByTestId("reels").selectOption("4");
   await page.getByTestId("long-videos").selectOption("1");
   // 4 × 15 + 1 × 30 = 90 min shoot + 30 min setup = 2h at ₹950/hr = ₹1,900.
@@ -26,10 +26,10 @@ test("podcast time follows episodes; creator time follows reels; space is ₹799
   await page.getByTestId("long-videos").selectOption("0");
   await expect(page.getByText("Pick at least one reel or video.")).toBeVisible();
 
-  await page.getByLabel(/Studio Space Only/).check();
+  await page.getByLabel(/Small Private Celebration/).check();
   await page.getByTestId("hours").selectOption("3");
   await expect(page.getByTestId("session-summary")).toContainText("₹2,397");
-  await expect(page.getByTestId("setup-time")).toHaveCount(0); // space only: no setup added
+  await expect(page.getByTestId("setup-time")).toHaveCount(0); // only space: no setup added
   await expect(page.getByTestId("quote-total")).toHaveText("₹2,828"); // 2,397 + 18% GST
 });
 

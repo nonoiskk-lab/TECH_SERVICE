@@ -2,8 +2,8 @@ import Link from "next/link";
 import { contact, isLegalGateOpen } from "@/config/site";
 import { missingLegalFields, policyStatus } from "@/config/policies";
 import { db } from "@/server/db";
-import { otp } from "@/server/otp";
-import { paymentService } from "@/server/payments";
+import { otpMode } from "@/server/otp";
+import { paymentMode } from "@/server/payments";
 import { addDays, istDateTime, istToday } from "@/server/slots/time";
 import { BookingTable } from "@/components/admin/booking-table";
 import { Card, H1 } from "@/components/admin/ui";
@@ -26,8 +26,16 @@ export default async function AdminHome({ searchParams }: PageProps<"/admin">) {
     { label: "Policy text approved by advocate", ok: policyStatus() === "final", note: policyStatus() === "final" ? "POLICY_STATUS=final" : "Draft banner shown (POLICY_STATUS)" },
     { label: "Legal entity and grievance details", ok: missing.length === 0, note: missing.length ? `Missing: ${missing.join(", ")}` : "Set" },
     { label: "Public phone / WhatsApp / address", ok: !!(contact.phone && contact.addressLine), note: contact.phone && contact.addressLine ? "Set" : "THIRD_SPACE_PHONE / THIRD_SPACE_ADDRESS_LINE missing" },
-    { label: "Payments", ok: paymentService().provider === "razorpay", note: paymentService().provider === "razorpay" ? "Razorpay keys set" : "Mock: no money is collected" },
-    { label: "OTP delivery", ok: !otp.isMock, note: otp.isMock ? "Mock: code 123456 shown on screen" : "SMS mode" },
+    {
+      label: "Payments",
+      ok: paymentMode() === "razorpay",
+      note: { razorpay: "Razorpay keys set", mock: "Mock: no money is collected (test mode)", venue: "Pay at venue: no online advance until Razorpay keys are set" }[paymentMode()],
+    },
+    {
+      label: "OTP delivery",
+      ok: otpMode() === "sms",
+      note: { sms: "SMS mode", mock: "Mock: code 123456 shown on screen", off: "Off: phone numbers are not verified" }[otpMode()],
+    },
   ];
 
   return (

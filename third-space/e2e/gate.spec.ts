@@ -30,10 +30,18 @@ test.describe("Legal Gate closed", () => {
     expect(sitemap).not.toContain("theatre");
   });
 
-  test("celebrate offers only the quote path", async ({ page }) => {
+  test("celebrations stay bookable without any screening", async ({ page }) => {
     await page.goto("/celebrate");
-    await expect(page.getByTestId("celebrate-closed")).toBeVisible();
-    await expect(page.getByTestId("booking-flow")).toHaveCount(0);
+    await expect(page.getByTestId("booking-flow")).toBeVisible();
+    await expect(page.getByTestId("title-select")).toHaveCount(0);
+    await expect(page.getByTestId("price-list")).toHaveCount(0); // price list lives on the home page
+    await page.goto("/");
+    const list = page.getByTestId("price-list");
+    await expect(list).toContainText("Podcast Studio / Content Creation – 2 hours");
+    await expect(list).toContainText("₹2,499+");
+    await expect(list).toContainText("Small Private Celebration – 1 hour");
+    await expect(list).not.toContainText("Private Cinema");
+    await expect(list).not.toContainText("Family Package");
   });
 });
 
@@ -45,26 +53,40 @@ test.describe("Legal Gate open", () => {
     await expect(page.getByTestId("gate-banner")).toHaveCount(0);
     await expect(page.getByTestId("from-price")).toHaveText("₹799"); // minimum booking price
     await page.goto("/watch");
-    await expect(page.getByTestId("package-theatre-classic").getByTestId("package-price")).toHaveText("₹850/hr");
-    await expect(page.getByTestId("package-theatre-premium").getByTestId("package-price")).toHaveText("₹1,350/hr");
+    await expect(page.getByTestId("package-theatre-classic").getByTestId("package-price")).toHaveText("₹1,699");
+    await expect(page.getByTestId("package-theatre-premium").getByTestId("package-price")).toHaveText("₹2,699");
+    await expect(page.getByTestId("package-family").getByTestId("package-price")).toHaveText("₹6,999");
+    await page.goto("/");
+    const list = page.getByTestId("price-list");
+    for (const [label, price] of [
+      ["Private Cinema – 2 hours (max 5 people)", "₹1,699"],
+      ["Premium Experience – 2 hours (max 4 people)", "₹2,699"],
+      ["Podcast Studio / Content Creation – 2 hours", "₹1,899"],
+      ["Birthday / Anniversary Experience – 2 hours", "₹2,499+"],
+      ["Family Package – 3 hours (max 5 people)", "₹6,999"],
+      ["Small Private Celebration – 1 hour", "₹799"],
+      ["Monthly Creator Plan", "₹4,999"],
+    ]) {
+      await expect(list.locator("tr", { hasText: label })).toContainText(price);
+    }
+    await page.goto("/watch");
     await expect(page.getByTestId("content-rule")).toBeVisible();
   });
 
-  test("movie length decides theatre time and price; celebration books with a title", async ({ page }) => {
+  test("movie length decides theatre time and price; theatre books with a title", async ({ page }) => {
     const name = await addTitle(page, 120);
     await page.goto("/watch");
-    // 120 min + 15 setup = 135 → rounded up to 2h 30m. Cinema ₹850/hr → ₹2,125; Premium ₹1,350/hr → ₹3,375.
+    // 120 min + 30 setup = 2h 30m. Cinema ₹850/hr → ₹2,125; Premium ₹1,350/hr → ₹3,375 (both above their starting prices).
     const card = page.getByTestId("title-list").locator("li", { hasText: name }).first();
     await expect(card).toContainText("2h 30m");
     await expect(card.getByTestId("title-price-theatre-classic")).toHaveText("₹2,125");
     await expect(card.getByTestId("title-price-theatre-premium")).toHaveText("₹3,375");
-    await page.goto("/celebrate");
+    await page.goto("/book?package=theatre-classic");
     const option = await page.getByTestId("title-select").locator("option", { hasText: name }).getAttribute("value");
     await page.getByTestId("title-select").selectOption(option!);
     await expect(page.getByTestId("session-summary")).toContainText("2h 30m");
-    await page.getByLabel("Anniversary").check();
     await chooseDate(page, 5);
-    await page.getByTestId("addon-fog-entry").check();
+    await page.getByTestId("addon-cake").check();
     await (await firstAvailableSlot(page)).click();
     await fillDetailsAndVerify(page);
     await expect(page.getByTestId("link-addendum")).toHaveAttribute("href", "/policies/theatre");

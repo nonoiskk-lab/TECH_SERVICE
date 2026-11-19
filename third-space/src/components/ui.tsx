@@ -3,7 +3,7 @@ import type { Dict } from "@/i18n";
 import { tl } from "@/i18n";
 import type { Locale, Package } from "@/config/site";
 import { formatINR } from "@/lib/pricing";
-import { durationText, hourlyRate } from "@/lib/session";
+import { durationText, hourlyRate, priceLabel } from "@/lib/session";
 
 export function Container({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return <div className={`mx-auto max-w-[var(--ts-maxw)] px-4 ${className}`}>{children}</div>;
@@ -59,8 +59,12 @@ export function PackageCard({
         <h3 className="text-xl font-bold">{tl(pkg.name, locale)}</h3>
         <p className="shrink-0 text-right">
           <span className="block text-2xl font-extrabold text-warm" data-testid="package-price">
-            {hourlyRate(pkg) ? `${formatINR(hourlyRate(pkg)!)}${t.common.perHour}` : pkg.price === 0 ? t.common.free : formatINR(pkg.price)}
+            {priceLabel(pkg, formatINR, t.common.free)}
           </span>
+          {hourlyRate(pkg) && pkg.pricing.kind !== "hourly" && (
+            <span className="block text-xs text-faint">{t.common.thenRate.replace("{rate}", `${formatINR(hourlyRate(pkg)!)}${t.common.perHour}`)}</span>
+          )}
+          {pkg.pricing.kind === "hourly" && <span className="block text-xs text-faint">{t.common.perHourLong}</span>}
         </p>
       </div>
       <p className="mt-1 text-sm text-faint">

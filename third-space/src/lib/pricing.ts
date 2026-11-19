@@ -19,7 +19,13 @@ const round = (n: number) => Math.round(n);
  * guest sees while exploring is the price they pay. `session` comes from
  * resolveSession() (time and base price decided automatically).
  */
-export function buildQuote(pkg: Package | undefined, addOnIds: string[], flowMode: Mode | undefined, session: Session | null): Quote | null {
+export function buildQuote(
+  pkg: Package | undefined,
+  addOnIds: string[],
+  flowMode: Mode | undefined,
+  session: Session | null,
+  advancePercent: number = booking.advancePercent,
+): Quote | null {
   if (!pkg || !session) return null;
   const mode = flowMode ?? pkg.mode;
   const lines: QuoteLine[] = [{ label: session.label, amount: session.basePrice, kind: "base" }];
@@ -30,7 +36,7 @@ export function buildQuote(pkg: Package | undefined, addOnIds: string[], flowMod
   const subtotal = lines.reduce((s, l) => s + l.amount, 0);
   const tax = round((subtotal * booking.taxPercent) / 100);
   const total = subtotal + tax;
-  const advance = total === 0 ? 0 : round((total * booking.advancePercent) / 100);
+  const advance = total === 0 ? 0 : round((total * advancePercent) / 100);
   return { lines, subtotal, tax, total, advance, balance: total - advance };
 }
 

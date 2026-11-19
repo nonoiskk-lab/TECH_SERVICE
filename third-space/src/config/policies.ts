@@ -80,25 +80,26 @@ export const POLICY_DOCS: Record<PolicyDocId, { title: string; path: string }> =
 };
 
 /** Documents a booking for this service accepts: the master policy + its addendum. */
-export function docsForService(service: ServiceId | "visit"): { id: PolicyDocId; title: string; version: string }[] {
+export function docsForService(service: ServiceId | "visit" | "celebration"): { id: PolicyDocId; title: string; version: string }[] {
   const docs: { id: PolicyDocId; title: string; version: string }[] = [
     { id: "safety", title: POLICY_DOCS.safety.title, version: POLICY_PACK_VERSION },
   ];
-  if (service !== "visit") docs.push({ id: service, title: POLICY_DOCS[service].title, version: POLICY_PACK_VERSION });
+  if (service !== "visit" && service !== "celebration") docs.push({ id: service, title: POLICY_DOCS[service].title, version: POLICY_PACK_VERSION });
   return docs;
 }
 
 /** Legal-entity and grievance details for section 11; set via env before go-live. */
 export function legalContact() {
   const e = (k: string) => (process.env[k] ?? "").trim();
+  const address = "Ground Floor, Om Sai Plaza, Police Line Road, Near HDFC Bank, CMPF Colony, Hirapur, Dhanbad, Jharkhand";
   return {
-    entityName: e("LEGAL_ENTITY_NAME"),
-    entityAddress: e("LEGAL_ENTITY_ADDRESS"),
+    entityName: e("LEGAL_ENTITY_NAME") || "THIRD SPACE",
+    entityAddress: e("LEGAL_ENTITY_ADDRESS") || address,
     grievanceName: e("GRIEVANCE_OFFICER_NAME"),
     grievanceDesignation: e("GRIEVANCE_OFFICER_DESIGNATION"),
-    grievanceEmail: e("GRIEVANCE_EMAIL"),
-    grievancePhone: e("GRIEVANCE_PHONE"),
-    grievanceAddress: e("GRIEVANCE_POSTAL_ADDRESS"),
+    grievanceEmail: e("GRIEVANCE_EMAIL") || "sandeep@mythirdspace.co.in",
+    grievancePhone: e("GRIEVANCE_PHONE") || "+91 90316 27292",
+    grievanceAddress: e("GRIEVANCE_POSTAL_ADDRESS") || address,
     effectiveDate: e("POLICY_EFFECTIVE_DATE"),
   };
 }

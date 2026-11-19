@@ -4,7 +4,7 @@ import { packages } from "@/config/packages";
 import { getDict } from "@/lib/locale";
 import { tl } from "@/i18n";
 import { bookingDates } from "@/lib/booking-dates";
-import { otp } from "@/server/slots";
+import { flowEnv } from "@/lib/flow-env";
 import { BulletList, PackageCard, PageHeader, Section } from "@/components/ui";
 import { BookingFlow } from "@/components/booking-flow";
 
@@ -45,7 +45,7 @@ export default async function CreatePage() {
       </Section>
       <Section title={t.create.estimatorTitle} id="estimator">
         <p className="mb-6 max-w-2xl text-muted">{t.create.estimatorText}</p>
-        <BookingFlow t={t} locale={locale} mode="create" packages={createPkgs} {...bookingDates()} otpIsMock={otp.isMock} />
+        <BookingFlow t={t} locale={locale} mode="create" packages={createPkgs} {...bookingDates()} {...flowEnv()} />
       </Section>
     </>
   );

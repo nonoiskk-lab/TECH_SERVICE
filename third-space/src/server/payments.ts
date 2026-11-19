@@ -44,8 +44,27 @@ function razorpay(keyId: string, secret: string): PaymentService {
   };
 }
 
+/**
+ * "razorpay" when keys are set. Otherwise PAYMENTS_MODE decides: "mock"
+ * (tests, local) or "venue" (live site without keys: no online payment, the
+ * whole amount is paid at the venue). Production defaults to "venue" so a live
+ * site never pretends to take money.
+ */
+export function paymentMode(): "razorpay" | "mock" | "venue" {
+  const id = (process.env.RAZORPAY_KEY_ID ?? "").trim();
+  const secret = (process.env.RAZORPAY_KEY_SECRET ?? "").trim();
+  if (id && secret) return "razorpay";
+  const m = (process.env.PAYMENTS_MODE ?? "").trim();
+  if (m === "mock" || m === "venue") return m;
+  return process.env.NODE_ENV === "production" ? "venue" : "mock";
+}
+
+export function onlinePaymentsEnabled() {
+  return paymentMode() !== "venue";
+}
+
 export function paymentService(): PaymentService {
   const id = (process.env.RAZORPAY_KEY_ID ?? "").trim();
   const secret = (process.env.RAZORPAY_KEY_SECRET ?? "").trim();
-  return id && secret ? razorpay(id, secret) : mock;
+  return paymentMode() === "razorpay" ? razorpay(id, secret) : mock;
 }

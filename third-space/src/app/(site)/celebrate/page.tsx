@@ -1,12 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { isLegalGateOpen, themes } from "@/config/site";
+import { themes } from "@/config/site";
 import { packages } from "@/config/packages";
 import { getDict } from "@/lib/locale";
 import { tl } from "@/i18n";
 import { bookingDates } from "@/lib/booking-dates";
-import { otp } from "@/server/slots";
-import { activeTitles } from "@/server/titles";
+import { flowEnv } from "@/lib/flow-env";
 import { PageHeader, Section } from "@/components/ui";
 import { BookingFlow } from "@/components/booking-flow";
 
@@ -17,8 +16,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function CelebratePage() {
   const { t, locale } = await getDict();
-  const open = isLegalGateOpen();
-  const roomPkgs = packages.filter((p) => p.mode === "watch");
+  const celebrationPkgs = packages.filter((p) => p.mode === "celebrate");
   return (
     <>
       <PageHeader title={t.celebrate.title} intro={t.celebrate.intro} />
@@ -33,13 +31,7 @@ export default async function CelebratePage() {
         </div>
       </Section>
       <Section title={t.celebrate.builderTitle} id="builder">
-        {open ? (
-          <BookingFlow t={t} locale={locale} mode="celebrate" packages={roomPkgs} themes={themes} titles={await activeTitles()} {...bookingDates()} otpIsMock={otp.isMock} />
-        ) : (
-          <p className="ts-card p-5 text-muted" data-testid="celebrate-closed">
-            {t.celebrate.closedText}
-          </p>
-        )}
+        <BookingFlow t={t} locale={locale} mode="celebrate" packages={celebrationPkgs} themes={themes} {...bookingDates()} {...flowEnv()} />
       </Section>
       <Section id="quote">
         <div className="ts-card ts-glow p-6">
