@@ -6,6 +6,31 @@ Repo `TECH_SERVICE`, folder `third-space/`, branch `claude/intelligent-ride-aojo
 - **Stage 2 (19 Nov 2026):** booking software, plus the THIRD SPACE Terms v2.0 pack (Master 18+ Safety & Conduct Policy, Private Theatre / Podcast Studio / Creator Studio addenda) and the owner's Mandatory Customer Declaration.
 - **Stage 3 (19 Nov 2026):** real contact details, and time + price decided automatically from what the guest wants to do.
 
+## LIVE (19 Nov 2026)
+
+- **Site:** https://third-space-gamma.vercel.app (Vercel project `third-space`, team "nonoiskk-lab's projects"). It is deployed from branch `claude/intelligent-ride-aojomq`, root directory `third-space`, and its functions run in Mumbai (`bom1`).
+- **Database:** Supabase project `third-space` (Mumbai, `ap-south-1`, free plan).
+  - Tables live in their own `thirdspace` schema, owned by a dedicated `thirdspace_app` role.
+  - That schema is not exposed through Supabase's public REST API.
+  - Migrations run automatically on every Vercel build (`vercel-build`).
+- **Live settings:**
+  - Legal Gate closed: no theatre or film offers.
+  - Pay at venue: no online payment until Razorpay keys are added.
+  - OTP off.
+  - Policies show "Draft under legal review".
+  - Deployment Protection covers previews only, so the live site is public.
+- **Verified on the live deployment:**
+  - `/api/public-config` returns the real contact details.
+  - `/api/availability` reads slots from Supabase.
+  - The sitemap excludes theatre pages.
+  - Responses are served from `bom1`.
+- **Secrets** (`DATABASE_URL`, `ADMIN_PASSWORD`, `AUTH_SECRET`) are stored only as Vercel "sensitive" env vars. They are not in the repo.
+- **Later:**
+  - A custom domain (Vercel → Domains), then update `SITE_URL`.
+  - Razorpay keys.
+  - An SMS provider.
+  - Merge the PR, then point the Vercel production branch at the default branch so pushes deploy automatically.
+
 ## Stage 3: automatic time and price
 
 Owner's rules:
