@@ -1,0 +1,51 @@
+name: third-space
+
+on:
+  push:
+    paths: ["third-space/**", ".github/workflows/third-space.yml"]
+  pull_request:
+    paths: ["third-space/**", ".github/workflows/third-space.yml"]
+
+defaults:
+  run:
+    working-directory: third-space
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    env:
+      CI: "1"
+      THIRD_SPACE_PHONE: "+91 98765 43210"
+      THIRD_SPACE_EMAIL: "hello@thirdspace.in"
+      THIRD_SPACE_ADDRESS_LINE: "Bank More"
+      THIRD_SPACE_MAP_URL: "https://maps.google.com/?q=Dhanbad"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: third-space/package-lock.json
+      - run: npm ci
+      - run: npx next typegen && npm run typecheck
+      - run: npm run lint
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - name: Start both Legal Gate states
+        run: |
+          THIRD_SPACE_LEGAL_GATE=closed npx next start -p 3100 &
+          THIRD_SPACE_LEGAL_GATE=open npx next start -p 3101 &
+          npx --yes wait-on@8.0.3 http://localhost:3100/api/public-config http://localhost:3101/api/public-config
+      - name: Content checks (placeholders, consistency, links, claims, Legal Gate)
+        run: |
+          node scripts/check-content.mjs http://localhost:3100
+          node scripts/check-content.mjs http://localhost:3101
+      - name: e2e at 390px, both gate states
+        run: npx playwright test --trace off
+        env:
+          CI: ""
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: third-space/playwright-report

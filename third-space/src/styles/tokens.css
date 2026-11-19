@@ -1,0 +1,23 @@
+/*
+ * THIRD SPACE brand tokens. Dark, cinematic, warm 3000K light.
+ * Owner: replace values here; components only use these variables.
+ */
+:root {
+  --ts-bg: #0d0a08;
+  --ts-bg-raised: #17120e;
+  --ts-bg-card: #1d1712;
+  --ts-line: #3a2e24;
+  --ts-text: #f6ede3;
+  --ts-text-muted: #c9b8a6;
+  --ts-text-faint: #9a8775;
+  --ts-warm: #ffb46b;        /* 3000K lamp */
+  --ts-warm-strong: #ff9d3f;
+  --ts-warm-ink: #1a0f05;    /* text on warm buttons */
+  --ts-ok: #8fd19e;
+  --ts-danger: #ff8a7a;
+  --ts-glow: 0 0 0 1px rgba(255, 180, 107, 0.18), 0 10px 40px -12px rgba(255, 157, 63, 0.35);
+  --ts-radius: 16px;
+  --ts-radius-sm: 10px;
+  --ts-tap: 44px;
+  --ts-maxw: 1120px;
+}
