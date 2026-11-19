@@ -26,10 +26,7 @@ Owner's rules:
 - **What the guest sees while booking:** the work time, "+ 30m setup", the total time and price, and a note that 30 minutes are kept free after the session (not charged).
 - **Slot buttons** show start and end time. The hold banner shows the full time range.
 - **Where the rules live:** rates are in `src/config/packages.ts`, setup and limits in `sessionRules` (`src/config/site.ts`), and the gap in `hours.bufferMinutes`. The resolver is `src/lib/session.ts`; the browser and the server run the same code. Checkout recomputes time and price and rejects a hold whose length no longer matches (409).
-- **"From" price:** the site shows the true lowest price, so it is now **₹713** (a 15-minute podcast + 30 minutes setup = 45 minutes at ₹950/hr), not ₹799. Showing "From ₹799" would be untrue while a cheaper booking exists. **NEEDS OWNER:** if ₹799 must be the lowest, choose one:
-  - a 1-hour minimum for Podcast/Creator, or
-  - remove the 15-minute episode option, or
-  - raise the studio rate.
+- **Minimum booking price ₹799 (owner's decision):** every paid booking costs at least ₹799, before add-ons and GST. A short session keeps its real time, and only the price is raised. For example, a 15-min podcast + 30 min setup = 45 min, ₹713 by time, charged ₹799; the guest sees a note saying so. The value is `sessionRules.minimumCharge`. The site's "From" price is therefore ₹799, which is also the real lowest price.
 - **Admin `Titles` page:** staff list licensed titles with runtime, language, certification and a mandatory licence reference. Guests see titles only while the Legal Gate is open.
 - **Contact details** are in config everywhere: +91 90316 27292, sandeep@mythirdspace.co.in, and Ground Floor, Om Sai Plaza, Police Line Road, Near HDFC Bank, CMPF Colony, Hirapur, Dhanbad, Jharkhand, with a Maps link.
 - **Verified:** 39 e2e tests pass in both gate states, including:
@@ -120,7 +117,7 @@ From Stage 1 and not re-measured: Lighthouse mobile (local) Home 93/100, Create 
 5. Exact ID-check process, CCTV signage and retention period, privacy retention schedule, local permissions, fire/occupancy approvals, film/music rights.
 
 **From Stage 1 (still open)**
-6. **Rates to confirm (my defaults):** Cinema ₹850/hr and Premium ₹1,350/hr (from the earlier 2-hour prices), Podcast and Creator ₹950/hr, 15 min per reel, 30 min per longer video. Also decide the "From" price question in Stage 3.
+6. **Rates to confirm (my defaults):** Cinema ₹850/hr and Premium ₹1,350/hr (from the earlier 2-hour prices), Podcast and Creator ₹950/hr, 15 min per reel, 30 min per longer video. 
 7. **Space only:** studio only, not the private room, so nobody can screen unlicensed content there. Say if the room should be rentable too.
 8. **Other assumed defaults:** add-on prices, refund tiers (90/50/0), hours 10 AM–10 PM, GST 18% on top, capacities.
 9. **Logo and room photos.**

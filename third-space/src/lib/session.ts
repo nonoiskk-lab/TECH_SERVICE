@@ -23,7 +23,15 @@ export type TitleInfo = { id: string; name: string; runtimeMinutes: number; lang
  * each booking (hours.bufferMinutes) is kept free by the slot engine and is
  * not billed.
  */
-export type Session = { workMinutes: number; setupMinutes: number; durationMinutes: number; basePrice: number; label: L };
+export type Session = {
+  workMinutes: number;
+  setupMinutes: number;
+  durationMinutes: number;
+  basePrice: number;
+  /** True when the time-based price was below the minimum charge and was raised to it. */
+  minimumApplied: boolean;
+  label: L;
+};
 export type SessionResult = { ok: true; session: Session } | { ok: false; reason: "NEED_TITLE" | "NEED_WORK" | "TOO_LONG" | "BAD_INPUT" };
 
 const R = sessionRules;
@@ -56,7 +64,10 @@ export function resolveSession(pkg: Package, input: SessionInput, titles: TitleI
   let what: string;
   switch (p.kind) {
     case "fixed":
-      return { ok: true, session: { workMinutes: pkg.durationMinutes, setupMinutes: 0, durationMinutes: pkg.durationMinutes, basePrice: pkg.price, label: pkg.name } };
+      return {
+        ok: true,
+        session: { workMinutes: pkg.durationMinutes, setupMinutes: 0, durationMinutes: pkg.durationMinutes, basePrice: pkg.price, minimumApplied: false, label: pkg.name },
+      };
     case "title": {
       const title = titles.find((t) => t.id === input.titleId);
       if (!title) return { ok: false, reason: "NEED_TITLE" };
@@ -92,7 +103,8 @@ export function resolveSession(pkg: Package, input: SessionInput, titles: TitleI
   }
   const minutes = work + setup;
   if (minutes > R.maxSessionMinutes) return { ok: false, reason: "TOO_LONG" };
-  const price = p.kind === "hourly" ? p.ratePerHour * (work / 60) : priceFor(p.ratePerHour, minutes);
+  const timePrice = p.kind === "hourly" ? p.ratePerHour * (work / 60) : priceFor(p.ratePerHour, minutes);
+  const price = Math.max(timePrice, R.minimumCharge);
   const tail = setup ? ` + ${setup}m setup = ${durationText(minutes)}` : ` = ${durationText(minutes)}`;
   return {
     ok: true,
@@ -101,6 +113,7 @@ export function resolveSession(pkg: Package, input: SessionInput, titles: TitleI
       setupMinutes: setup,
       durationMinutes: minutes,
       basePrice: price,
+      minimumApplied: price > timePrice,
       label: { en: `${pkg.name.en}: ${what}${tail}`, hi: `${pkg.name.hi}: ${what}${tail}` },
     },
   };
@@ -121,11 +134,11 @@ export function minimumPrice(pkg: Package): number | null {
     case "fixed":
       return pkg.price;
     case "hourly":
-      return p.ratePerHour * R.space.minHours;
+      return Math.max(R.minimumCharge, p.ratePerHour * R.space.minHours);
     case "podcast":
-      return priceFor(p.ratePerHour, Math.min(...R.podcast.episodeLengths) + R.setupMinutes);
+      return Math.max(R.minimumCharge, priceFor(p.ratePerHour, Math.min(...R.podcast.episodeLengths) + R.setupMinutes));
     case "creator":
-      return priceFor(p.ratePerHour, R.creator.reelMinutes + R.setupMinutes);
+      return Math.max(R.minimumCharge, priceFor(p.ratePerHour, R.creator.reelMinutes + R.setupMinutes));
     case "title":
       return null;
   }

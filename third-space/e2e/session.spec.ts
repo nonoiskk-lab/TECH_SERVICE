@@ -10,6 +10,12 @@ test("podcast time follows episodes; creator time follows reels; space is ₹799
   await expect(page.getByTestId("session-summary")).toContainText("2h 45m · ₹2,613");
   await expect(page.getByTestId("gap-note")).toContainText("30 minutes free");
 
+  // Shortest podcast: 15 min + 30 min setup = 45 min → ₹713 by time, raised to the ₹799 minimum.
+  await page.getByTestId("episode-length").selectOption("15");
+  await page.getByTestId("episodes").selectOption("1");
+  await expect(page.getByTestId("session-summary")).toContainText("45m · ₹799");
+  await expect(page.getByTestId("minimum-note")).toContainText("₹799");
+
   await page.getByLabel(/Creator Studio Shoot/).check();
   await page.getByTestId("reels").selectOption("4");
   await page.getByTestId("long-videos").selectOption("1");

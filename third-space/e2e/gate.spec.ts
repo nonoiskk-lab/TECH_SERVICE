@@ -8,7 +8,7 @@ test.describe("Legal Gate closed", () => {
     await page.goto("/");
     await expect(page.getByTestId("gate-banner")).toContainText("Podcast Studio is bookable now");
     await expect(page.getByTestId("pick-watch")).toContainText("Coming soon");
-    await expect(page.getByTestId("from-price")).toHaveText("₹713"); // lowest real price: 15-min podcast + 30-min setup at ₹950/hr
+    await expect(page.getByTestId("from-price")).toHaveText("₹799"); // minimum booking price
   });
 
   test("watch page shows coming soon, no packages, noindex", async ({ page }) => {
@@ -43,7 +43,7 @@ test.describe("Legal Gate open", () => {
   test("theatre appears normally with prices and content rule", async ({ page }) => {
     await page.goto("/");
     await expect(page.getByTestId("gate-banner")).toHaveCount(0);
-    await expect(page.getByTestId("from-price")).toHaveText("₹713"); // lowest real price: 15-min podcast + 30-min setup at ₹950/hr
+    await expect(page.getByTestId("from-price")).toHaveText("₹799"); // minimum booking price
     await page.goto("/watch");
     await expect(page.getByTestId("package-theatre-classic").getByTestId("package-price")).toHaveText("₹850/hr");
     await expect(page.getByTestId("package-theatre-premium").getByTestId("package-price")).toHaveText("₹1,350/hr");

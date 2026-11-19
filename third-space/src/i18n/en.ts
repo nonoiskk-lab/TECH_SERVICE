@@ -208,6 +208,7 @@ export const en = {
     errorGeneric: "Something went wrong. Please try again.",
     theme: "Theme",
     setupLabel: "Setup",
+    minimumNote: "Minimum booking price is {min}, so this short session is charged {min}.",
     until: "to {time}",
     gapNote: "After your session we keep {gap} minutes free to clean and reset before the next booking. This gap is not charged.",
     workLabel: { title: "Running time", podcast: "Recording", creator: "Shoot", hourly: "Space" },

@@ -204,6 +204,7 @@ export const hi: Dict = {
     errorGeneric: "Kuch gadbad hui. Dobara try kijiye.",
     theme: "Theme",
     setupLabel: "Setup",
+    minimumNote: "Booking ka minimum price {min} hai, isliye is chhote session ka {min} lagega.",
     until: "{time} tak",
     gapNote: "Aapke session ke baad agli booking se pehle {gap} minute safai aur reset ke liye khaali rakhte hain. Is gap ka charge nahi.",
     workLabel: { title: "Running time", podcast: "Recording", creator: "Shoot", hourly: "Space" },

@@ -495,6 +495,11 @@ export function BookingFlow(props: BookingFlowProps) {
                     </dd>
                   </div>
                 </dl>
+                {session.minimumApplied && (
+                  <p className="mt-2 text-xs text-warm" data-testid="minimum-note">
+                    {t.book.minimumNote.replace("{min}", formatINR(sessionRules.minimumCharge))}
+                  </p>
+                )}
                 <p className="mt-2 text-xs text-faint" data-testid="gap-note">
                   {t.book.gapNote.replace("{gap}", String(hoursCfg.bufferMinutes))}
                 </p>

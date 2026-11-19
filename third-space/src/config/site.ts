@@ -139,6 +139,8 @@ export const hours = {
 export const sessionRules = {
   /** Owner's rule: booking time = the work itself + 30 minutes setup. No rounding. */
   setupMinutes: 30,
+  /** Lowest price of any paid booking (owner: "₹799 is the lowest price"). Applied to the base price before add-ons and GST. */
+  minimumCharge: 799,
   maxSessionMinutes: 480,
   podcast: { episodeLengths: [15, 30, 45, 60, 90], maxEpisodes: 4 },
   creator: { reelMinutes: 15, longVideoMinutes: 30, maxReels: 10, maxLongVideos: 4 },
