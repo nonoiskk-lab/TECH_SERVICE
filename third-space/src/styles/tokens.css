@@ -1,23 +1,47 @@
 /*
- * THIRD SPACE brand tokens. Dark, cinematic, warm 3000K light.
- * Owner: replace values here; components only use these variables.
+ * THIRD SPACE brand tokens (v2, light studio look).
+ * Light grey page, white cards, warm gold accent, near-black headings,
+ * dark footer. Components use only these variables.
+ *
+ * Gold has two roles: --ts-gold is the fill for buttons and highlights
+ * (with dark text on it); --ts-warm is the darker gold used for text so it
+ * stays readable (≥4.5:1 on white).
  */
 :root {
-  --ts-bg: #0d0a08;
-  --ts-bg-raised: #17120e;
-  --ts-bg-card: #1d1712;
-  --ts-line: #3a2e24;
-  --ts-text: #f6ede3;
-  --ts-text-muted: #c9b8a6;
-  --ts-text-faint: #9a8775;
-  --ts-warm: #ffb46b;        /* 3000K lamp */
-  --ts-warm-strong: #ff9d3f;
-  --ts-warm-ink: #1a0f05;    /* text on warm buttons */
-  --ts-ok: #8fd19e;
-  --ts-danger: #ff8a7a;
-  --ts-glow: 0 0 0 1px rgba(255, 180, 107, 0.18), 0 10px 40px -12px rgba(255, 157, 63, 0.35);
-  --ts-radius: 16px;
-  --ts-radius-sm: 10px;
+  --ts-bg: #f6f6f6;
+  --ts-bg-card: #ffffff;
+  --ts-bg-raised: #f7f1e6;      /* warm tint for selected rows and highlights */
+  --ts-line: #e3e0da;
+  --ts-text: #1c1c1d;
+  --ts-text-muted: #55545a;
+  --ts-text-faint: #6b6970;
+  --ts-gold: #caa05c;           /* fills */
+  --ts-gold-strong: #b98d47;
+  --ts-warm: #8a6428;           /* gold text */
+  --ts-warm-strong: #6f4f1c;
+  --ts-warm-ink: #ffffff;       /* text on --ts-warm fills */
+  --ts-on-gold: #1c1c1d;        /* text on --ts-gold fills */
+  --ts-ok: #23704a;
+  --ts-danger: #b3261e;
+  --ts-glow: 0 1px 2px rgba(28, 28, 29, 0.04), 0 12px 32px -16px rgba(28, 28, 29, 0.18);
+  --ts-radius: 24px;
+  --ts-radius-sm: 14px;
   --ts-tap: 44px;
-  --ts-maxw: 1120px;
+  --ts-maxw: 1180px;
+}
+
+/* Dark surfaces (footer, banners): the same tokens, inverted. */
+.ts-dark {
+  --ts-bg: #1c1c1d;
+  --ts-bg-card: #262628;
+  --ts-bg-raised: #2d2c2a;
+  --ts-line: #3b3a37;
+  --ts-text: #f4f2ee;
+  --ts-text-muted: #cfcbc4;
+  --ts-text-faint: #aeaaa2;
+  --ts-warm: #e0bd84;
+  --ts-warm-strong: #ecd0a3;
+  --ts-warm-ink: #1c1c1d;
+  background: var(--ts-bg);
+  color: var(--ts-text);
 }

@@ -2,8 +2,8 @@
 @import "../styles/tokens.css";
 
 @theme inline {
-  --font-heading: var(--font-montserrat), ui-sans-serif, system-ui, sans-serif;
-  --font-sans: var(--font-inter), var(--font-devanagari), ui-sans-serif, system-ui, sans-serif;
+  --font-heading: var(--font-calsans), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-golos), var(--font-devanagari), ui-sans-serif, system-ui, sans-serif;
   --color-bg: var(--ts-bg);
   --color-raised: var(--ts-bg-raised);
   --color-card: var(--ts-bg-card);
@@ -14,12 +14,14 @@
   --color-warm: var(--ts-warm);
   --color-warm-strong: var(--ts-warm-strong);
   --color-warm-ink: var(--ts-warm-ink);
+  --color-gold: var(--ts-gold);
+  --color-on-gold: var(--ts-on-gold);
   --color-ok: var(--ts-ok);
   --color-danger: var(--ts-danger);
 }
 
 html {
-  color-scheme: dark;
+  color-scheme: light;
   background: var(--ts-bg);
 }
 body {
@@ -29,9 +31,13 @@ body {
 }
 h1, h2, h3 {
   font-family: var(--font-heading);
-  letter-spacing: -0.01em;
+  font-weight: 400;
+  letter-spacing: -0.015em;
   text-wrap: balance;
+  overflow-wrap: anywhere;
 }
+/* Cal Sans ships one weight; never fake-bold it. */
+h1, h2, h3, h4, .font-heading { font-synthesis: none; }
 :focus-visible {
   outline: 2px solid var(--ts-warm);
   outline-offset: 2px;
@@ -40,27 +46,41 @@ h1, h2, h3 {
 .ts-glow { box-shadow: var(--ts-glow); }
 .ts-hero-bg {
   background:
-    radial-gradient(60% 50% at 50% 0%, rgba(255, 157, 63, 0.22), transparent 70%),
-    radial-gradient(40% 40% at 85% 30%, rgba(255, 180, 107, 0.08), transparent 70%),
-    var(--ts-bg);
+    radial-gradient(55% 60% at 85% 20%, rgba(202, 160, 92, 0.16), transparent 70%),
+    radial-gradient(40% 50% at 0% 100%, rgba(202, 160, 92, 0.08), transparent 70%),
+    var(--ts-bg-card);
 }
+/* Pill buttons. Add .ts-btn-arrow for the round gold arrow on the right. */
 .ts-btn {
-  display: inline-flex; align-items: center; justify-content: center; gap: .5rem;
-  min-height: var(--ts-tap); padding: 0 1.25rem; border-radius: 999px;
-  font-weight: 600; transition: background-color .15s, transform .15s;
+  display: inline-flex; align-items: center; justify-content: center; gap: .6rem;
+  min-height: var(--ts-tap); padding: 0 1.4rem; border-radius: 999px;
+  font-family: var(--font-heading); font-weight: 400; letter-spacing: .01em;
+  transition: background-color .15s, border-color .15s, transform .15s;
 }
-.ts-btn-primary { background: var(--ts-warm); color: var(--ts-warm-ink); }
-.ts-btn-primary:hover { background: var(--ts-warm-strong); }
-.ts-btn-ghost { border: 1px solid var(--ts-line); color: var(--ts-text); }
-.ts-btn-ghost:hover { border-color: var(--ts-warm); }
+.ts-btn-primary { background: var(--ts-gold); color: var(--ts-on-gold); }
+.ts-btn-primary:hover { background: var(--ts-gold-strong); }
+.ts-btn-ghost { border: 1px solid var(--ts-line); color: var(--ts-text); background: var(--ts-bg-card); }
+.ts-btn-ghost:hover { border-color: var(--ts-gold); }
+.ts-btn-arrow { padding-right: .35rem; }
+.ts-btn-arrow::after {
+  content: ""; width: 34px; height: 34px; border-radius: 999px; flex-shrink: 0;
+  background: var(--ts-gold) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M7 17 17 7M8 7h9v9'/%3E%3C/svg%3E") center / 16px no-repeat;
+}
+.ts-btn-primary.ts-btn-arrow::after { background-color: var(--ts-on-gold); }
 .ts-btn[disabled], .ts-btn[aria-disabled="true"] { opacity: .5; cursor: not-allowed; }
 .ts-card { background: var(--ts-bg-card); border: 1px solid var(--ts-line); border-radius: var(--ts-radius); }
 .ts-input {
   width: 100%; min-height: var(--ts-tap); padding: .5rem .875rem; border-radius: var(--ts-radius-sm);
-  background: var(--ts-bg-raised); border: 1px solid var(--ts-line); color: var(--ts-text);
+  background: #fff; border: 1px solid var(--ts-line); color: #1c1c1d;
 }
-.ts-input:focus { border-color: var(--ts-warm); outline: none; }
+.ts-input:focus { border-color: var(--ts-gold); outline: none; box-shadow: 0 0 0 3px rgba(202, 160, 92, .25); }
 .ts-prose p + p { margin-top: .75rem; }
+/* Eyebrow label with the gold dot. */
+.ts-eyebrow {
+  display: inline-flex; align-items: center; gap: .5rem;
+  font-size: .72rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--ts-text);
+}
+.ts-eyebrow::before { content: ""; width: 6px; height: 6px; border-radius: 999px; background: var(--ts-gold); }
 }
 
 @media (prefers-reduced-motion: no-preference) {

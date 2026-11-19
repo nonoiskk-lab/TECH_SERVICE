@@ -6,7 +6,7 @@ import { Wordmark } from "./site-header";
 export function SiteFooter({ t, biz, gateOpen }: { t: Dict; biz: PublicBusiness; gateOpen: boolean }) {
   const tel = telHref(biz.phone);
   return (
-    <footer className="mt-16 border-t border-line bg-raised pb-28 sm:pb-10" data-testid="site-footer">
+    <footer className="ts-dark mt-16 pb-28 sm:pb-10" data-testid="site-footer">
       <div className="mx-auto grid max-w-[var(--ts-maxw)] gap-8 px-4 py-10 sm:grid-cols-3">
         <div className="space-y-3">
           <Wordmark />

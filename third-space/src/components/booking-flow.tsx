@@ -660,7 +660,12 @@ export function BookingFlow(props: BookingFlowProps) {
         <section className="ts-card space-y-4 p-5">
           <StepTitle n={5 + stepOffset} title={t.book.stepReview} done={consentOk} />
           <h3 className="font-semibold">{t.book.beforePay}</h3>
-          {!isFree && (
+          {!isFree && quote?.advance === 0 && (
+            <p className="rounded-xl bg-raised px-4 py-3 text-sm" data-testid="venue-note">
+              {t.book.venueNote}
+            </p>
+          )}
+          {!isFree && (quote?.advance ?? 0) > 0 && (
             <div>
               <h4 className="text-sm font-semibold text-muted">{t.book.refundTitle}</h4>
               <ul className="mt-2 space-y-1 text-sm" data-testid="refund-tiers">

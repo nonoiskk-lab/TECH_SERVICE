@@ -5,7 +5,7 @@ test("Hinglish toggle switches copy and persists", async ({ page }) => {
   await expect(page.locator("html")).toHaveAttribute("lang", "en-IN");
   await page.getByTestId("locale-toggle").click();
   await expect(page.locator("html")).toHaveAttribute("lang", "hi-Latn");
-  await expect(page.getByRole("heading", { name: "Aap kya karna chahte hain?" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Apna experience chuniye" })).toBeVisible();
   await page.goto("/policies");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Rules aur Policies");
   await page.getByTestId("locale-toggle").click();

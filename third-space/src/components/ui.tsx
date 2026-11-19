@@ -9,26 +9,62 @@ export function Container({ children, className = "" }: { children: React.ReactN
   return <div className={`mx-auto max-w-[var(--ts-maxw)] px-4 ${className}`}>{children}</div>;
 }
 
-export function PageHeader({ title, intro, eyebrow }: { title: string; intro?: string; eyebrow?: string }) {
+/** Two-tone heading: the accent part in gold, the rest in near-black. */
+export function TwoTone({ accent, rest }: { accent?: string; rest: string }) {
   return (
-    <div className="ts-hero-bg border-b border-line/60">
+    <>
+      {accent && <span className="text-warm">{accent} </span>}
+      {rest}
+    </>
+  );
+}
+
+export function PageHeader({ title, intro, eyebrow, accent }: { title: string; intro?: string; eyebrow?: string; accent?: string }) {
+  return (
+    <div className="ts-hero-bg border-b border-line">
       <Container className="py-12 sm:py-16">
-        {eyebrow && <p className="mb-2 text-xs font-semibold uppercase tracking-[0.25em] text-warm">{eyebrow}</p>}
-        <h1 className="text-3xl font-extrabold sm:text-5xl">{title}</h1>
-        {intro && <p className="mt-4 max-w-2xl text-lg text-muted">{intro}</p>}
+        {eyebrow && <p className="ts-eyebrow mb-4">{eyebrow}</p>}
+        <h1 className="text-4xl leading-[1.05] sm:text-6xl">
+          <TwoTone accent={accent} rest={title} />
+        </h1>
+        {intro && <p className="mt-5 max-w-2xl text-lg text-muted">{intro}</p>}
       </Container>
     </div>
   );
 }
 
-export function Section({ title, children, id, className = "" }: { title?: string; children: React.ReactNode; id?: string; className?: string }) {
+export function Section({
+  title,
+  accent,
+  eyebrow,
+  intro,
+  children,
+  id,
+  className = "",
+  center = false,
+}: {
+  title?: string;
+  accent?: string;
+  eyebrow?: string;
+  intro?: string;
+  children: React.ReactNode;
+  id?: string;
+  className?: string;
+  center?: boolean;
+}) {
   return (
-    <section id={id} className={`py-10 ${className}`} aria-labelledby={title && id ? `${id}-h` : undefined}>
+    <section id={id} className={`py-12 sm:py-16 ${className}`} aria-labelledby={title && id ? `${id}-h` : undefined}>
       <Container>
-        {title && (
-          <h2 id={id ? `${id}-h` : undefined} className="mb-6 text-2xl font-bold sm:text-3xl">
-            {title}
-          </h2>
+        {(eyebrow || title) && (
+          <div className={`mb-8 ${center ? "mx-auto max-w-3xl text-center" : ""}`}>
+            {eyebrow && <p className="ts-eyebrow mb-3">{eyebrow}</p>}
+            {title && (
+              <h2 id={id ? `${id}-h` : undefined} className="text-3xl leading-tight sm:text-5xl">
+                <TwoTone accent={accent} rest={title} />
+              </h2>
+            )}
+            {intro && <p className="mt-4 text-muted">{intro}</p>}
+          </div>
         )}
         {children}
       </Container>
@@ -96,10 +132,10 @@ export function PackageCard({
   );
 }
 
-export function Faq({ items, title }: { items: { q: string; a: string }[]; title: string }) {
+export function Faq({ items, title }: { items: { q: string; a: string }[]; title?: string }) {
   return (
     <div>
-      <h2 className="mb-4 text-2xl font-bold">{title}</h2>
+      {title && <h2 className="mb-4 text-3xl">{title}</h2>}
       <div className="space-y-2">
         {items.map((f) => (
           <details key={f.q} className="ts-card group p-4">

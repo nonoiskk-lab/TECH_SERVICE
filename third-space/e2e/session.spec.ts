@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { chooseDate } from "./helpers";
 
 test("podcast time follows episodes; creator time follows reels; space is ₹799/hr", async ({ page }) => {
   await page.goto("/book?package=podcast");
@@ -35,11 +36,7 @@ test("podcast time follows episodes; creator time follows reels; space is ₹799
 
 test("changing the session after holding a slot releases the hold", async ({ page }) => {
   await page.goto("/book?package=podcast");
-  const input = page.getByTestId("date-input");
-  const min = await input.getAttribute("min");
-  const d = new Date(`${min}T12:00:00+05:30`);
-  d.setUTCDate(d.getUTCDate() + 20);
-  await input.fill(d.toISOString().slice(0, 10));
+  await chooseDate(page, 20);
   await page.locator('[data-testid="slot"][data-status="available"]').first().click();
   await expect(page.getByTestId("hold-banner")).toBeVisible();
   await page.getByTestId("episodes").selectOption("2");

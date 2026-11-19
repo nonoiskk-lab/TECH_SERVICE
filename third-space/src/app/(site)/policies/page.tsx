@@ -4,6 +4,7 @@ import { getDict } from "@/lib/locale";
 import { tl } from "@/i18n";
 import { publicBusiness } from "@/lib/business";
 import { BulletList, PageHeader, Section } from "@/components/ui";
+import { flowEnv } from "@/lib/flow-env";
 import { EASY_SUMMARY, POLICY_HISTORY, type PolicyDocId } from "@/config/policies";
 import { PolicyDocLinks, PolicyStatusBanner } from "@/components/policy-bits";
 
@@ -38,6 +39,11 @@ export default async function PoliciesPage() {
       </Section>
       <Section title={t.policies.cancelTitle} id="cancellation">
         <div className="ts-card p-5">
+          {flowEnv().advancePercent === 0 && (
+            <p className="mb-3 rounded-xl bg-raised px-4 py-3 text-sm" data-testid="venue-policy-note">
+              {t.policies.venueNote}
+            </p>
+          )}
           <p className="mb-3 text-muted">{t.policies.cancelIntro}</p>
           <ul className="space-y-2">
             {refundTiers.map((r) => (
@@ -64,7 +70,7 @@ export default async function PoliciesPage() {
       )}
       <Section title={t.policies.termsTitle} id="terms">
         <div className="ts-card p-5">
-          <BulletList items={L(termsPoints)} />
+          <BulletList items={flowEnv().advancePercent === 0 ? [t.policies.venueTerm, ...L(termsPoints).slice(2)] : L(termsPoints)} />
         </div>
       </Section>
       <Section title={t.policies.privacyTitle} id="privacy">

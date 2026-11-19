@@ -7,7 +7,7 @@ export function Wordmark({ className = "" }: { className?: string }) {
   // No logo file has been supplied yet; this text wordmark stands in until
   // public/brand/logo.svg exists (see docs/STAGE_REPORT.md, NEEDS OWNER).
   return (
-    <span className={`whitespace-nowrap font-heading text-base font-extrabold tracking-[0.14em] sm:text-lg ${className}`}>
+    <span className={`whitespace-nowrap font-heading text-lg tracking-[0.12em] sm:text-xl ${className}`}>
       THIRD<span className="text-warm"> SPACE</span>
     </span>
   );
@@ -23,23 +23,26 @@ export function SiteHeader({ t, locale }: { t: Dict; locale: Locale }) {
     { href: "/contact", label: t.nav.contact },
   ];
   return (
-    <header className="sticky top-0 z-40 border-b border-line/60 bg-bg/85 backdrop-blur">
+    <header className="sticky top-0 z-40 border-b border-line bg-white/90 backdrop-blur">
       <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-2 focus:rounded focus:bg-warm focus:px-3 focus:py-2 focus:text-warm-ink">
         {t.nav.skip}
       </a>
-      <div className="mx-auto flex h-16 max-w-[var(--ts-maxw)] items-center justify-between gap-3 px-4">
+      <div className="mx-auto flex h-[72px] max-w-[var(--ts-maxw)] items-center justify-between gap-3 px-4">
         <Link href="/" aria-label="THIRD SPACE home" className="flex min-h-11 items-center">
           <Wordmark />
         </Link>
         <nav aria-label="Main" className="hidden items-center gap-1 lg:flex">
           {links.map((l) => (
-            <Link key={l.href} href={l.href} className="rounded-full px-3 py-2 text-sm text-muted hover:text-text">
+            <Link key={l.href} href={l.href} className="rounded-full px-3 py-2 text-[15px] text-text hover:text-warm">
               {l.label}
             </Link>
           ))}
         </nav>
         <div className="flex items-center gap-2">
           <LocaleToggle next={locale === "en" ? "hi" : "en"} label={locale === "en" ? "Hinglish" : "English"} />
+          <Link href="/visit" className="ts-btn ts-btn-ghost hidden text-sm xl:inline-flex">
+            {t.nav.visit}
+          </Link>
           <Link href="/book" className="ts-btn ts-btn-primary hidden text-sm sm:inline-flex">
             {t.nav.book}
           </Link>
