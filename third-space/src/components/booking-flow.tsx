@@ -6,6 +6,7 @@ import { addOnsFor, booking as bookingCfg, recordingConsent, refundTiers, venueR
 import { tl, type Dict } from "@/i18n";
 import { buildQuote, formatINR } from "@/lib/pricing";
 import { getFirstTouch, track } from "@/lib/analytics";
+import { DECLARATION_CLOSING, DECLARATION_INTRO, DECLARATION_POINTS, DECLARATION_TITLE, EASY_SUMMARY, POLICY_DOCS, POLICY_PACK_VERSION } from "@/config/policies";
 
 type Slot = { start: string; end: string; status: "available" | "held" | "booked" | "past" };
 type Hold = { id: string; packageId?: string; start: string; end: string; expiresAt: string };
@@ -77,6 +78,10 @@ export function BookingFlow(props: BookingFlowProps) {
   const [otpMsg, setOtpMsg] = useState<string | null>(null);
   const [agreeVenue, setAgreeVenue] = useState(false);
   const [agreeRecording, setAgreeRecording] = useState(false);
+  const [agreeDeclaration, setAgreeDeclaration] = useState(false);
+  const [agreePromo, setAgreePromo] = useState(false);
+  const [agreeMarketing, setAgreeMarketing] = useState(false);
+  const [guestCount, setGuestCount] = useState(1);
   const [paying, setPaying] = useState(false);
   const holdRef = useRef<Hold | null>(null);
   useEffect(() => {
@@ -85,7 +90,9 @@ export function BookingFlow(props: BookingFlowProps) {
 
   const availableAddOns = useMemo(() => addOnsFor(flowMode), [flowMode]);
   const quote = useMemo(() => (pkg ? buildQuote(pkg, addOnIds, flowMode) : null), [pkg, addOnIds, flowMode]);
-  const needsRecordingConsent = flowMode === "create";
+  const needsRecordingConsent = pkg?.service === "podcast" || pkg?.service === "creator";
+  const addendum = pkg && pkg.service !== "visit" ? POLICY_DOCS[pkg.service] : null;
+  const capacity = pkg?.capacity ?? 1;
   const isFree = (quote?.total ?? 0) === 0;
 
   const releaseHold = useCallback(async (h: Hold | null) => {
@@ -210,7 +217,7 @@ export function BookingFlow(props: BookingFlowProps) {
   }
 
   const detailsOk = name.trim().length >= 2 && /^[6-9]\d{9}$/.test(phone.replace(/\D/g, "").slice(-10)) && /.+@.+\..+/.test(email) && otpOk;
-  const consentOk = agreeVenue && (!needsRecordingConsent || agreeRecording);
+  const consentOk = agreeDeclaration && agreeVenue && (!needsRecordingConsent || agreeRecording);
   const canPay = !!hold && remainingMs > 0 && detailsOk && consentOk && !paying;
 
   async function pay() {
@@ -230,7 +237,15 @@ export function BookingFlow(props: BookingFlowProps) {
           addOnIds,
           themeId: flowMode === "celebrate" ? themeId : undefined,
           guest: { name, phone, email },
-          consent: { venue: agreeVenue, recording: needsRecordingConsent ? agreeRecording : undefined },
+          guestCount: Math.min(guestCount, capacity),
+          locale,
+          consent: {
+            declaration: agreeDeclaration,
+            venue: agreeVenue,
+            recording: needsRecordingConsent ? agreeRecording : undefined,
+            promotional: agreePromo,
+            marketing: agreeMarketing,
+          },
           utm: getFirstTouch(),
         }),
       });
@@ -241,14 +256,23 @@ export function BookingFlow(props: BookingFlowProps) {
         return;
       }
       if (!r.ok) throw new Error();
-      let j = (await r.json()) as { bookingId?: string; orderId?: string };
+      let j = (await r.json()) as { bookingId?: string; token?: string; orderId?: string; amount?: number; provider?: string; keyId?: string };
       if (!j.bookingId && j.orderId) {
-        // Payment hand-off. With the mock gateway this confirms immediately; the
-        // real Razorpay adapter opens its checkout here and confirms on success.
+        // Payment hand-off. The mock gateway confirms immediately; Razorpay
+        // opens its checkout and we confirm with its signed response.
+        let proof: { paymentId?: string; signature?: string } = {};
+        if (j.provider === "razorpay" && j.keyId) {
+          const res = await openRazorpay({ keyId: j.keyId, orderId: j.orderId, amount: j.amount ?? 0, name, email, phone });
+          if (!res) {
+            setError(t.book.paymentCancelled);
+            return;
+          }
+          proof = res;
+        }
         const c = await fetch("/api/checkout/confirm", {
           method: "POST",
           headers: { "content-type": "application/json" },
-          body: JSON.stringify({ orderId: j.orderId }),
+          body: JSON.stringify({ orderId: j.orderId, ...proof }),
         });
         if (c.status === 410) {
           setHold(null);
@@ -257,12 +281,12 @@ export function BookingFlow(props: BookingFlowProps) {
           return;
         }
         if (!c.ok) throw new Error();
-        j = (await c.json()) as { bookingId?: string };
+        j = (await c.json()) as { bookingId?: string; token?: string };
       }
       if (!j.bookingId) throw new Error();
       if (!isFree) track("payment_success", { packageId: pkg.id });
       setHold(null);
-      router.push(`/book/confirmation/${j.bookingId}`);
+      router.push(`/book/confirmation/${j.bookingId}?t=${j.token ?? ""}`);
     } catch {
       setError(t.book.errorGeneric);
     } finally {
@@ -414,6 +438,17 @@ export function BookingFlow(props: BookingFlowProps) {
           <StepTitle n={4 + stepOffset} title={t.book.stepDetails} done={detailsOk} />
           <div className="grid gap-3 sm:grid-cols-2">
             <label className="block">
+              <span className="mb-1 block text-sm text-muted">{t.book.guestCount}</span>
+              <select className="ts-input" value={Math.min(guestCount, capacity)} onChange={(e) => setGuestCount(Number(e.target.value))} data-testid="guest-count">
+                {Array.from({ length: capacity }, (_, i) => i + 1).map((n) => (
+                  <option key={n} value={n}>
+                    {n}
+                  </option>
+                ))}
+              </select>
+              <span className="mt-1 block text-xs text-faint">{t.book.adultsOnly}</span>
+            </label>
+            <label className="block">
               <span className="mb-1 block text-sm text-muted">{t.book.name}</span>
               <input className="ts-input" autoComplete="name" value={name} onChange={(e) => setName(e.target.value)} data-testid="guest-name" />
             </label>
@@ -495,6 +530,51 @@ export function BookingFlow(props: BookingFlowProps) {
               ))}
             </ul>
           )}
+          <div data-testid="policy-summary">
+            <h4 className="text-sm font-semibold text-muted">{t.book.summaryTitle}</h4>
+            <ul className="mt-2 list-disc space-y-1 pl-5 text-sm">
+              {EASY_SUMMARY.map((p) => (
+                <li key={p.en}>{tl(p, locale)}</li>
+              ))}
+            </ul>
+            <p className="mt-2 text-sm">
+              {t.book.readFull}{" "}
+              <a href={POLICY_DOCS.safety.path} target="_blank" rel="noopener" className="font-semibold text-warm underline underline-offset-4" data-testid="link-safety">
+                {POLICY_DOCS.safety.title}
+              </a>
+              {addendum && (
+                <>
+                  {" · "}
+                  <a href={addendum.path} target="_blank" rel="noopener" className="font-semibold text-warm underline underline-offset-4" data-testid="link-addendum">
+                    {addendum.title}
+                  </a>
+                </>
+              )}{" "}
+              <span className="text-faint">(v{POLICY_PACK_VERSION})</span>
+            </p>
+          </div>
+          <div className="rounded-xl border border-warm/50 bg-raised p-4" data-testid="declaration">
+            <h4 className="font-bold">{DECLARATION_TITLE}</h4>
+            <p className="mt-2 text-sm">{DECLARATION_INTRO}</p>
+            <ol className="mt-2 list-decimal space-y-1 pl-5 text-sm">
+              {DECLARATION_POINTS.map((p) => (
+                <li key={p}>{p}</li>
+              ))}
+            </ol>
+            <p className="mt-2 text-sm font-semibold">{DECLARATION_CLOSING}</p>
+            {locale === "hi" && <p className="mt-2 text-xs text-faint">{t.book.declarationHi}</p>}
+            <label className="mt-3 flex min-h-11 cursor-pointer items-start gap-3">
+              <input
+                type="checkbox"
+                className="mt-1 h-5 w-5 accent-[var(--ts-warm)]"
+                checked={agreeDeclaration}
+                onChange={(e) => setAgreeDeclaration(e.target.checked)}
+                data-testid="consent-declaration"
+                required
+              />
+              <span className="text-sm font-semibold">{t.book.consentDeclaration}</span>
+            </label>
+          </div>
           <label className="flex min-h-11 cursor-pointer items-start gap-3">
             <input type="checkbox" className="mt-1 h-5 w-5 accent-[var(--ts-warm)]" checked={agreeVenue} onChange={(e) => setAgreeVenue(e.target.checked)} data-testid="consent-venue" />
             <span className="text-sm">{t.book.consentVenue}</span>
@@ -505,6 +585,17 @@ export function BookingFlow(props: BookingFlowProps) {
               <span className="text-sm">{t.book.consentRecording}</span>
             </label>
           )}
+          <fieldset className="space-y-1 border-t border-line pt-3">
+            <legend className="text-xs font-semibold uppercase tracking-widest text-faint">{t.book.optionalTitle}</legend>
+            <label className="flex min-h-11 cursor-pointer items-start gap-3">
+              <input type="checkbox" className="mt-1 h-5 w-5 accent-[var(--ts-warm)]" checked={agreePromo} onChange={(e) => setAgreePromo(e.target.checked)} data-testid="consent-promotional" />
+              <span className="text-sm text-muted">{t.book.consentPromotional}</span>
+            </label>
+            <label className="flex min-h-11 cursor-pointer items-start gap-3">
+              <input type="checkbox" className="mt-1 h-5 w-5 accent-[var(--ts-warm)]" checked={agreeMarketing} onChange={(e) => setAgreeMarketing(e.target.checked)} data-testid="consent-marketing" />
+              <span className="text-sm text-muted">{t.book.consentMarketing}</span>
+            </label>
+          </fieldset>
           {!hold && <p className="text-sm text-faint">{t.book.needSlot}</p>}
           <button type="button" className="ts-btn ts-btn-primary w-full text-base" disabled={!canPay} onClick={pay} data-testid="pay-button">
             {paying ? t.book.paying : isFree ? t.book.confirmFree : `${t.book.pay} ${formatINR(quote?.advance ?? 0)}`}
@@ -559,4 +650,33 @@ export function BookingFlow(props: BookingFlowProps) {
       </aside>
     </div>
   );
+}
+
+type RazorpayCtor = new (opts: Record<string, unknown>) => { open: () => void };
+
+/** Loads Razorpay Checkout and resolves with its signed result, or null if the guest closes it. */
+function openRazorpay(o: { keyId: string; orderId: string; amount: number; name: string; email: string; phone: string }) {
+  return new Promise<{ paymentId: string; signature: string } | null>((resolve) => {
+    const start = () => {
+      const Ctor = (window as unknown as { Razorpay?: RazorpayCtor }).Razorpay;
+      if (!Ctor) return resolve(null);
+      new Ctor({
+        key: o.keyId,
+        order_id: o.orderId,
+        amount: o.amount * 100,
+        currency: "INR",
+        name: "THIRD SPACE",
+        prefill: { name: o.name, email: o.email, contact: o.phone },
+        theme: { color: "#ffb46b" },
+        handler: (r: { razorpay_payment_id: string; razorpay_signature: string }) => resolve({ paymentId: r.razorpay_payment_id, signature: r.razorpay_signature }),
+        modal: { ondismiss: () => resolve(null) },
+      }).open();
+    };
+    if ((window as unknown as { Razorpay?: unknown }).Razorpay) return start();
+    const s = document.createElement("script");
+    s.src = "https://checkout.razorpay.com/v1/checkout.js";
+    s.onload = start;
+    s.onerror = () => resolve(null);
+    document.body.appendChild(s);
+  });
 }

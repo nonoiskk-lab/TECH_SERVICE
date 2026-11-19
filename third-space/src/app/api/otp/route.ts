@@ -1,6 +1,5 @@
 import { otp } from "@/server/slots";
 import { json } from "@/lib/api";
-import { markVerified } from "@/lib/verified-phones";
 
 const PHONE = /^[6-9]\d{9}$/;
 
@@ -9,13 +8,13 @@ export async function POST(req: Request) {
   const phone = (body.phone ?? "").replace(/\D/g, "").slice(-10);
   if (!PHONE.test(phone)) return json({ error: "BAD_PHONE" }, 400);
   if (body.action === "send") {
-    await otp.send(phone);
+    try {
+      await otp.send(phone);
+    } catch {
+      return json({ error: "OTP_UNAVAILABLE" }, 503);
+    }
     return json({ ok: true });
   }
-  if (body.action === "verify") {
-    const ok = await otp.verify(phone, String(body.code ?? ""));
-    if (ok) markVerified(phone);
-    return json({ ok });
-  }
+  if (body.action === "verify") return json({ ok: await otp.verify(phone, String(body.code ?? "")) });
   return json({ error: "BAD_REQUEST" }, 400);
 }

@@ -3,9 +3,9 @@ import Link from "next/link";
 import { getPackage } from "@/config/packages";
 import { getDict } from "@/lib/locale";
 import { tl } from "@/i18n";
-import { bookings } from "@/server/slots";
+import { getBookingForGuest } from "@/server/slots";
 import { formatINR } from "@/lib/pricing";
-import { istTimeLabel } from "@/server/slots/time";
+import { istTimeLabel, toIstIso } from "@/server/slots/time";
 import { PageHeader, Section } from "@/components/ui";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -13,10 +13,12 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: t.confirmation.metaTitle, robots: { index: false, follow: false } };
 }
 
-export default async function ConfirmationPage({ params }: PageProps<"/book/confirmation/[id]">) {
+export default async function ConfirmationPage({ params, searchParams }: PageProps<"/book/confirmation/[id]">) {
   const { t, locale } = await getDict();
   const { id } = await params;
-  const b = await bookings.get(id);
+  const sp = await searchParams;
+  const token = typeof sp.t === "string" ? sp.t : "";
+  const b = await getBookingForGuest(id, token);
   if (!b) {
     return (
       <Section>
@@ -46,8 +48,12 @@ export default async function ConfirmationPage({ params }: PageProps<"/book/conf
             <div className="flex justify-between gap-3">
               <dt className="text-muted">{t.confirmation.when}</dt>
               <dd>
-                {day}, {istTimeLabel(b.start)}
+                {day}, {istTimeLabel(toIstIso(b.start))}
               </dd>
+            </div>
+            <div className="flex justify-between gap-3">
+              <dt className="text-muted">{t.confirmation.guests}</dt>
+              <dd>{b.guestCount}</dd>
             </div>
             <div className="flex justify-between gap-3">
               <dt className="text-muted">{t.confirmation.paid}</dt>
@@ -59,6 +65,22 @@ export default async function ConfirmationPage({ params }: PageProps<"/book/conf
             </div>
           </dl>
           <p className="mt-6 text-sm">{t.confirmation.bringId}</p>
+          {b.acceptance && (
+            <div className="mt-6 rounded-xl border border-line p-4 text-sm" data-testid="acceptance-summary">
+              <p className="font-semibold">{t.confirmation.acceptedTitle}</p>
+              <p className="mt-1 text-muted">
+                {t.confirmation.acceptedText.replace("{version}", b.acceptance.policyPackVersion)}
+              </p>
+              <a
+                href={`/book/confirmation/${b.id}/declaration?t=${token}`}
+                className="ts-btn ts-btn-ghost mt-3 text-sm"
+                data-testid="download-declaration"
+                download
+              >
+                {t.confirmation.download}
+              </a>
+            </div>
+          )}
           <Link href="/" className="ts-btn ts-btn-ghost mt-6">
             {t.confirmation.home}
           </Link>

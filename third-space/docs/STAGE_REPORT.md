@@ -1,75 +1,115 @@
-# Stage Report: S2 Super Website
+# Stage Report
 
-Date: 19 Nov 2026. Branch: `claude/intelligent-ride-aojomq` (repo `TECH_SERVICE`, folder `third-space/`).
+Repo `TECH_SERVICE`, folder `third-space/`, branch `claude/intelligent-ride-aojomq`, PR nonoiskk-lab/TECH_SERVICE#11.
 
-The blueprint asked for branch `feat/super-website` in the THIRD SPACE repo. This session could only write to `TECH_SERVICE`, so the owner chose to build the site as a separate Next.js app in `third-space/`. The laptop-repair app in the repo root is untouched, apart from excluding `third-space/` from its `tsconfig.json` and ESLint config.
+- **Stage 1 (19 Nov 2026):** guest website from the Competitor Audit blueprint.
+- **Stage 2 (19 Nov 2026):** booking software, plus the THIRD SPACE Terms v2.0 pack (Master 18+ Safety & Conduct Policy, Private Theatre / Podcast Studio / Creator Studio addenda) and the owner's Mandatory Customer Declaration.
 
-`docs/MASTER_PLAN.md`, `docs/BUSINESS_RULES.md`, `src/styles/tokens.css`, `src/server/slots` and the logo file did not exist here. Tokens and the slot interfaces were created from the blueprint (see below).
+Docs 05 (Software Implementation 18+ Compliance) and 06 (Master Prompt) were listed in the pack but not supplied. Their requirements were taken from the README of the pack and from section 10 of the Master Policy: mandatory acceptance, 18+ verification, policy version history, incident reporting, audit logs.
+
+## What Stage 2 added
+
+**Booking software (Postgres via Prisma)**
+- **Persistent data:** bookings, slot holds, staff slot blocks, payment orders, enquiries, OTP codes, analytics counts. Nothing is lost on restart.
+- **No double booking:** every hold and booking takes a per-space Postgres advisory lock. Spaces are the room (Watch/Celebrate) and the studio (Podcast/Creator/Visit), with a 30-minute buffer after each booking.
+- **Payments:** a real Razorpay adapter (order + signature check). It is used automatically once keys are set; without keys the mock is used and no money moves.
+- **Paid after hold expired:** if a payment arrives after the hold ran out, it is flagged on the dashboard for a refund or rebook.
+- **Guest confirmation link:** carries a secret token, so a booking ID alone shows nothing.
+- **Admin panel `/admin`:**
+  - today's schedule and a go-live readiness checklist
+  - bookings: check-in, balance, completed / no-show, cancel with refund suggested by the tiers, stop session
+  - slot blocking, incident register, leads, a message outbox for WhatsApp/email, policy acceptance counts
+  - audit log
+- **Staff login:** shared password plus the staff member's own name, which goes into the audit log.
+
+**Policy pack v2.0**
+- **Pages:** `/policies` has the easy summary, document links and version history. `/policies/safety` has all 11 sections of the Master Policy. `/policies/podcast`, `/policies/creator` and `/policies/theatre` hold the addenda; the theatre one exists only while the Legal Gate is open.
+- **Wording:** legal text is word-for-word from the PDFs, in English.
+- **Section 11** (legal entity, grievance officer, effective date) is filled from env. A line whose value is missing is left out, never shown as a "[PLACEHOLDER]".
+- **Draft note:** policy pages say "Draft under legal review" until `POLICY_STATUS=final`.
+
+**Checkout (policy section 10 + your declaration)**
+- **Before payment:** the plain-language summary and clickable links to the full Master Policy and the service's addendum.
+- **Mandatory Customer Declaration:** all 6 points plus the closing line, word-for-word, with an initially unchecked box. Pay stays disabled until it is ticked, and the server refuses a booking without it (tested).
+- **Other mandatory boxes:** venue rules and cancellation tiers; recording permission for Podcast and Creator Studio.
+- **Optional boxes, kept separate:** promotional use of the guest's image/voice and marketing messages. Neither is bundled into the mandatory acceptance.
+- **Guest count:** asked at checkout and capped at the package capacity.
+- **What is stored per booking:** policy pack version, documents with versions, the exact declaration text, language, timestamp, booking ID and the affirmative action (`checkbox:declaration`).
+- **Downloadable copy** of the acceptance on the confirmation page.
+
+**18+ across the site**
+- An "18+ only" badge on the home page.
+- FAQ answers on children and ID.
+- 18+, no smoking/alcohol/drugs and minimal ID recording added to the venue rules and privacy points.
+- At check-in, staff record only how many guests were seen as 18+. ID numbers and images are never asked for or stored.
+
+**Creator Studio** is now its own service, with a package, its own addendum and recording consent.
 
 ## VERIFIED (run in this session)
 
 | Check | Result |
 |---|---|
-| `tsc --noEmit`, `eslint` | Clean |
-| `next build` (Next 16.3.4, Turbopack) | Passes |
-| Content checks, gate closed and gate open (`scripts/check-content.mjs`) | Pass: placeholders, consistency, link checker, visible errors, claims, Legal Gate |
-| Content checks catch real problems | Forcing closed-gate rules on the open server fails with 7 errors ("Cinema" on /book, /watch, /celebrate, theatre in sitemap) |
-| Playwright e2e at 390px, both gate states | 22 passed, 6 skipped by design (gate-specific tests run only in their gate) |
-| Booking happy path | Podcast + add-on, total ₹2,830, advance ₹1,415, OTP, consent, booking ID `TS-XXXXXX` |
-| Hold expiry | Clock moved 15 min: hold banner gone, error shown, slot available again |
-| Slot-taken error | Slot held via API first: UI shows error, slot marked held |
-| Gate closed | Home says "Podcast Studio is bookable now"; Watch "coming soon", noindex, no package cards; theatre API 404/400; theatre SEO page 404; not in sitemap; no "film/movie/screening/cinema" in HTML, RSC payload or client JS chunks |
-| Gate open | Theatre packages ₹1,699 / ₹2,699 with capacity, content rule, celebration booking with theme + add-ons |
-| Hinglish toggle, enquiry form + first-touch UTM cookie, WhatsApp prefilled link | Pass |
-| No horizontal scroll; buttons at least 44 px (/, /create, /book, /contact) | Pass |
-| Lighthouse mobile, local production server (performance / accessibility) | Home 93/100, Create 94/98, Book 95/100, Watch 95/98 |
-| 390 px screenshots of every page in both states | `docs/screenshots/gate-closed/`, `docs/screenshots/gate-open/` |
+| `tsc`, `eslint`, `next build` | Clean |
+| Playwright at 390 px, both gate states, local Postgres | **31 passed**, 11 skipped by design (gate-specific and admin-only tests). Passed twice in a row on the same database |
+| Declaration | Starts unchecked; Pay disabled until ticked; server returns 400 without it or with too many guests; confirmation shows "version 2.0"; downloaded copy contains the declaration, pack version, addendum and optional-consent answers |
+| Confirmation privacy | Booking page without the token shows "not found" |
+| Admin | Wrong password refused. Check-in refused without the ID confirmation, then records "18+ verified for 2 of 2". Balance recorded. Audit log has the actions and no phone numbers. Stop session opens an incident; notes are appended. Blocked studio time shows as `blocked` on the public availability API. Booking confirmations are queued in Messages |
+| Policies | All 11 Master Policy headings render; podcast/creator addenda render; theatre addendum 404 while the gate is closed, 200 when open |
+| Content checks, both gates | Pass (placeholders, consistency, dead links, error text, claims, Legal Gate). The gate check correctly flagged the policy's legal "OTT/digital publisher" and "promote, film or livestream" wording; those two exact phrases are allowlisted |
+| Client JS while gate closed | No "cinema" or "film screening" text in any chunk |
+
+From Stage 1 and not re-measured: Lighthouse mobile (local) Home 93/100, Create 94/98, Book 95/100, Watch 95/98.
 
 ## UNVERIFIED
 
-- **Lighthouse on real 4G / a deployed URL.** Scores above are from localhost with Lighthouse's simulated mobile throttling.
-- **The CI workflow** (`.github/workflows/third-space.yml`) has not run on GitHub yet; its steps match what was run locally.
-- **Real device testing** on an Android phone.
-- **AVIF/WebP images:** enabled in `next.config.ts`, but there are no photos yet, so nothing to measure.
+- **Razorpay:** the adapter is built to Razorpay's documented API but was not run against real keys. Test in Razorpay test mode before launch.
+- **CI on GitHub:** the workflow now starts a Postgres service. It has not run on GitHub yet.
+- **Deployment:** no production deploy has been done. Hosting on Vercel needs a hosted Postgres such as Supabase.
+- **Real phone and real 4G.**
 
-## What is MOCKED
+## Still mocked / not connected
 
-All in `src/server/slots/mock.ts`, wired in `src/server/slots/index.ts`. Swap adapters there and nowhere else.
-
-| Interface | Mock behaviour |
+| Piece | State |
 |---|---|
-| `AvailabilityService` | In-memory; one "room" (Watch/Celebrate) and one "studio" (Create/Visit); open/close, 30-min grid and 30-min buffer from config; no slots before launch (25 Nov, 6 PM) |
-| `HoldService` | In-memory 15-min holds; lost on server restart |
-| `PaymentService` | `mock-razorpay`: creates an order and confirms at once. No money moves |
-| `BookingService` | In-memory; booking IDs `TS-` + 6 characters |
-| `LeadService` | In-memory enquiries with purpose, source and first-touch UTM |
-| `OtpService` | Fixed code `123456`; the screen says "Test mode" while this mock is active |
-| Analytics sink `/api/events` | Counts events in memory; also pushes to `window.dataLayer` |
-| WhatsApp + email confirmation | **Not sent.** The confirmation page shows the ID; the send hook is marked in `api/checkout/confirm` |
+| OTP delivery | Codes are stored hashed in Postgres with expiry and attempt limits. No SMS provider: in `OTP_MODE=mock` the code is `123456` and the screen says "Test mode" |
+| WhatsApp / email confirmations | Queued in the outbox; staff send them from `/admin/notifications` (wa.me / mailto) and mark them sent |
+| Payments | Mock until `RAZORPAY_KEY_ID` / `RAZORPAY_KEY_SECRET` are set |
+| Refund payout | The panel records the refund amount; staff pay it out in the Razorpay dashboard |
 
 ## NEEDS OWNER
 
-Defaults are in `src/config/site.ts` and `src/config/packages.ts`. Change them there and every page, the checkout and JSON-LD follow.
+**From the policy pack ("must be confirmed before publication")**
+1. Legal entity name and address, grievance officer (name, designation, email, phone, postal address) and effective date. Set the env vars in `.env.example`; the admin readiness panel lists what is missing.
+2. Written approval from an Indian/Jharkhand advocate. Then set `POLICY_STATUS=final`.
+3. **Refund treatment after a policy breach.** The panel suggests the normal tiers, and staff can enter any amount up to the advance. The policy says refunds may be withheld "to the extent permitted by the disclosed policy", so the disclosed rule needs your decision.
+4. **Political/religious events:** the text allows them only with written approval. Confirm whether you prohibit all of them or only unapproved ones.
+5. Exact ID-check process, CCTV signage and retention period, privacy retention schedule, local permissions, fire/occupancy approvals, film/music rights.
 
-1. **"From ₹799"**: the blueprint's sticky bar says ₹799, but no ₹799 package exists in the audit. The bar is computed from config (₹1,899 with gate closed, ₹1,699 with gate open). Add the ₹799 package to `packages.ts` if it exists.
-2. **Contact details**: phone, WhatsApp, email, street address, map link (env vars in `.env.example`). Until set, the site hides them instead of showing placeholders. The test values in `playwright.config.ts` are for tests only.
-3. **Hours**: 10 AM to 10 PM daily, 30-min buffer, 60-day booking window.
-4. **Money**: 50% advance; 18% GST added on top; 15-min hold.
-5. **Refund tiers**: 3+ days 90%, 24 h to 3 days 50%, under 24 h 0% (pattern from the audit, not your decision yet).
-6. **Add-on and theme prices**: decor ₹699, cake ₹599, fog ₹499, photos ₹799, extra camera ₹499, basic edit ₹1,499, 3 reels ₹999. These are placeholders for your real rate card.
-7. **Capacities**: Premium = 5 and Podcast = 4 are assumed. Creator Plan validity of 30 days is assumed.
-8. **Policy wording**: venue rules, terms, privacy, recording consent and file delivery (24 h link, open 7 days). Please have them reviewed.
-9. **Logo**: no logo file was supplied. A text wordmark stands in; put the file at `public/brand/logo.svg` and swap `Wordmark` in `src/components/site-header.tsx`.
-10. **Room photos**: none supplied, so the Watch gallery is not rendered.
-11. **Celebrate with gate closed**: instant celebration booking uses the theatre room, so it stays closed with the gate; only the quote path works. Say if celebrations without a screen should open earlier.
-12. **Legal Gate**: set `THIRD_SPACE_LEGAL_GATE=open` only once the licence is in place.
-13. **Real adapters**: Razorpay keys, an SMS/WhatsApp OTP provider and an email sender, plus S1 (slot engine) once merged.
+**From Stage 1 (still open)**
+6. **"From ₹799":** no such package is defined.
+7. **Contact details:** phone, WhatsApp, email, address, map link.
+8. **Assumed defaults:** add-on prices, refund tiers (90/50/0), hours 10 AM–10 PM, GST 18% on top, capacities.
+9. **Logo and room photos.**
 
-## How to test this on your phone
+**New in Stage 2**
+10. **Creator Studio Shoot:** price ₹1,899 for 2 hours, capacity 4, and "bring your own camera" are my placeholders. Confirm them.
+11. **Shared space:** Podcast and Creator Studio are assumed to share one studio, so they cannot overlap. Say if they are separate rooms.
+12. **Providers:** an SMS/WhatsApp OTP provider, a WhatsApp/email sender, Razorpay keys and a hosted Postgres.
+13. **Staff accounts:** one shared password today. Per-person accounts and roles can be added if needed.
 
-1. Run the commands in `third-space/README.md` on a computer on the same Wi-Fi.
-2. On the phone, open `http://<computer-ip>:3000`.
-3. Tap **Book now**, pick Podcast Session, a date from 25 Nov, and a slot. A 15:00 countdown appears.
-4. Fill your details, tap **Send OTP**, enter `123456`, tap **Verify**.
-5. Read the refund tiers and rules, tick the boxes, tap **Pay advance**. Nothing is charged (mock). You land on the booking ID page.
-6. Tap **Hinglish** at the top to switch language. Restart with `THIRD_SPACE_LEGAL_GATE=open` to see the Theatre side.
+## How to test on your phone
+
+1. On a computer, follow `README.md` (Postgres, `.env`, `npx prisma migrate deploy`, build, start). On the phone, open `http://<computer-ip>:3000`.
+2. Book a Podcast Session:
+   - Pick a slot.
+   - Choose the guest count.
+   - Verify OTP `123456`.
+   - Read the terms summary and open the full policy links.
+   - Tick the declaration, venue rules and recording boxes.
+   - Pay the advance (mock).
+   - Download your declaration copy.
+3. Open `/admin/login` with your name and `ADMIN_PASSWORD`:
+   - Open the booking and check in.
+   - Record the balance.
+   - Try "Stop session" and look at the incident.
+   - Block a slot and see it disappear from the booking page.

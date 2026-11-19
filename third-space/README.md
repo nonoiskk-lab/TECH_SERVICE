@@ -1,6 +1,6 @@
-# THIRD SPACE: guest website
+# THIRD SPACE: website + booking software
 
-Mobile-first public site and booking flow for THIRD SPACE, Dhanbad (podcast studio + private room). A guest sees the price, picks a slot and pays an advance in about a minute.
+Mobile-first public site, booking engine and staff admin panel for THIRD SPACE, Dhanbad (Private Theatre, Podcast Studio, Creator Studio). A guest sees the price, picks a slot, accepts the 18+ declaration and pays an advance in about a minute; staff run the day from `/admin`.
 
 This is a separate Next.js 16 app inside the `TECH_SERVICE` repo; it does not share code with the repo-root app.
 
@@ -8,6 +8,8 @@ This is a separate Next.js 16 app inside the `TECH_SERVICE` repo; it does not sh
 - What is done, mocked and waiting on the owner: [`docs/STAGE_REPORT.md`](docs/STAGE_REPORT.md)
 
 ## Run it
+
+Needs Node 22 and a Postgres database (Supabase works).
 
 ```bash
 cd third-space
@@ -18,24 +20,50 @@ npm install
 ```
 
 ```bash
-cp .env.example .env.local
+cp .env.example .env
+```
+
+Fill `DATABASE_URL`, `ADMIN_PASSWORD` and `AUTH_SECRET` in `.env`, then create the tables:
+
+```bash
+npx prisma migrate deploy
 ```
 
 ```bash
 npm run build && npm start
 ```
 
-`THIRD_SPACE_LEGAL_GATE=open` in `.env.local` shows the Theatre side; the default `closed` hides every Theatre offer.
+`THIRD_SPACE_LEGAL_GATE=open` in `.env` shows the Theatre side; the default `closed` hides every Theatre offer.
+
+Staff log in at `/admin/login` with their name and `ADMIN_PASSWORD`.
+
+## Staff panel (`/admin`)
+
+| Page | What staff do there |
+|---|---|
+| Today | Day schedule for both spaces; go-live readiness checklist; counts of open incidents, messages to send, payments captured after a hold expired |
+| Bookings | Search by ID, phone or name; open a booking to check in, record the balance, mark completed or no-show, cancel with a refund suggested by the tiers, stop a session, and read the guest's accepted declaration |
+| Slots | Timeline of the room and the studio; block time for maintenance or private events (blocked slots disappear from the public site) |
+| Incidents | Register of incidents: objective facts, witnesses, actions, evidence preserved, authorities contacted; updates are appended, never overwritten |
+| Leads | Enquiries with purpose and first-touch UTM; WhatsApp reply link; mark contacted or closed |
+| Messages | Booking confirmations queued for WhatsApp and email; open with one tap, then mark sent |
+| Policies | Current policy pack, acceptance counts per version, the declaration text, version history |
+| Audit log | Every staff and system action (login, check-in, refund, block, incident, payment) with who and when |
+
+Check-in records only how many guests were seen as 18+ ("18+ verified"). The panel never asks for ID numbers or photos.
 
 ## Where things live
 
 | Path | What |
 |---|---|
+| `src/config/policies.ts`, `policy-texts.ts` | Policy pack v2.0: easy summary, Master 18+ Safety & Conduct Policy, three addenda, Mandatory Customer Declaration, version history |
+| `prisma/schema.prisma` | Bookings, holds, slot blocks, policy acceptances, leads, OTP codes, incidents, audit log, notifications |
+| `src/server/` | Slot engine on Postgres (`slots/engine.ts`), payments (Razorpay or mock), OTP, notifications outbox, audit, admin auth and actions |
+| `src/app/admin/` | Staff panel |
 | `src/config/site.ts` | Single source of truth: hours, advance %, GST, hold time, add-ons, themes, refund tiers, every policy text, Legal Gate, contact (from env) |
 | `src/config/packages.ts` | Packages and prices (server-only, so closed-gate client bundles never carry Theatre names) |
 | `src/i18n/` | English and Hinglish copy (`en.ts`, `hi.ts`, `seo.ts`) |
 | `src/styles/tokens.css` | Brand tokens: dark, warm 3000K |
-| `src/server/slots/` | Availability, Hold, Payment, Booking, Lead and OTP interfaces + in-memory mocks |
 | `src/components/booking-flow.tsx` | The estimator and the checkout (one component) |
 | `scripts/check-content.mjs` | Build-failing content checks |
 | `e2e/` | Playwright tests at 390 px, both gate states |
@@ -45,6 +73,8 @@ npm run build && npm start
 ```bash
 npm run lint && npm run typecheck && npm run build
 ```
+
+`npm run test:e2e` uses `TEST_DATABASE_URL` (default: local `thirdspace_test`), applies migrations, and never deletes data.
 
 ```bash
 npm run test:e2e

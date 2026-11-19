@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { chooseDate, fillDetailsAndVerify, firstAvailableSlot, isOpen } from "./helpers";
+import { acceptTerms, chooseDate, fillDetailsAndVerify, firstAvailableSlot, isOpen } from "./helpers";
 
 test.describe("Legal Gate closed", () => {
   test.beforeEach(({}, info) => test.skip(isOpen(info), "closed-gate only"));
@@ -24,6 +24,7 @@ test.describe("Legal Gate closed", () => {
     expect((await request.get("/api/availability?date=2026-12-01&packageId=theatre-classic")).status()).toBe(404);
     expect((await request.post("/api/holds", { data: { packageId: "theatre-premium", start: "2026-12-01T18:00:00+05:30" } })).status()).toBe(400);
     expect((await request.get("/private-theatre-in-dhanbad")).status()).toBe(404);
+    expect((await request.get("/policies/theatre")).status()).toBe(404);
     const sitemap = await (await request.get("/sitemap.xml")).text();
     expect(sitemap).not.toContain("/watch");
     expect(sitemap).not.toContain("theatre");
@@ -56,7 +57,8 @@ test.describe("Legal Gate open", () => {
     await page.getByTestId("addon-fog-entry").check();
     await (await firstAvailableSlot(page)).click();
     await fillDetailsAndVerify(page);
-    await page.getByTestId("consent-venue").check();
+    await expect(page.getByTestId("link-addendum")).toHaveAttribute("href", "/policies/theatre");
+    await acceptTerms(page);
     await page.getByTestId("pay-button").click();
     await expect(page.getByTestId("booking-id")).toHaveText(/^TS-/);
   });

@@ -30,6 +30,8 @@ export type Package = {
   prepaidValidityDays?: number;
   /** True when this package plays films on screen; hidden while the Legal Gate is closed. */
   requiresLegalGate: boolean;
+  /** Which service addendum applies; "visit" accepts only the master policy. */
+  service: "theatre" | "podcast" | "creator" | "visit";
   /** Zero-price tour etc. are excluded from the "From ₹" price. */
   excludeFromFromPrice?: boolean;
 };
@@ -170,8 +172,16 @@ export const refundTiers: RefundTier[] = [
 /** Venue rules, shown before the pay button and on the Policies page. */
 export const venueRules: L[] = [
   {
-    en: "Every guest shows a government photo ID at entry.",
-    hi: "Entry par har guest apna government photo ID dikhayega.",
+    en: "18+ only. Every guest and participant must be 18 or older; no minors, even with a parent.",
+    hi: "Sirf 18+. Har guest aur participant 18 ya usse bada ho; minors nahi, parent ke saath bhi nahi.",
+  },
+  {
+    en: "Every guest shows a government photo ID at entry. Staff record only \"18+ verified\", not your ID number.",
+    hi: "Entry par har guest government photo ID dikhayega. Staff sirf \"18+ verified\" note karta hai, ID number nahi.",
+  },
+  {
+    en: "No smoking, vaping, hookah, tobacco, alcohol or drugs anywhere at the venue.",
+    hi: "Venue par kahin bhi smoking, vaping, hookah, tobacco, alcohol ya drugs nahi.",
   },
   {
     en: "Outside food and drinks are not allowed. A celebration cake is fine.",
@@ -216,6 +226,14 @@ export const recordingConsent = {
 
 export const privacyPoints: L[] = [
   {
+    en: "At entry, staff look at your photo ID and record only \"18+ verified\". We do not copy or keep your ID number or image.",
+    hi: "Entry par staff photo ID dekhta hai aur sirf \"18+ verified\" note karta hai. Hum ID number ya photo copy nahi karte, na rakhte hain.",
+  },
+  {
+    en: "If CCTV is used for security, it is shown by signage, access is limited and footage is kept for a set period. No cameras in washrooms.",
+    hi: "Security ke liye CCTV ho to signage se bataya jata hai, access seemit hai aur footage tay samay tak rakhi jati hai. Washroom me koi camera nahi.",
+  },
+  {
     en: "We ask only for your name, phone and email, to confirm and manage your booking.",
     hi: "Booking confirm aur manage karne ke liye hum sirf naam, phone aur email lete hain.",
   },
@@ -255,6 +273,7 @@ export const termsPoints: L[] = [
 export const enquiryPurposes = [
   { id: "theatre", label: { en: "Theatre", hi: "Theatre" } as L, gated: true },
   { id: "podcast", label: { en: "Podcast", hi: "Podcast" } as L, gated: false },
+  { id: "creator", label: { en: "Creator Studio shoot", hi: "Creator Studio shoot" } as L, gated: false },
   { id: "celebration", label: { en: "Birthday / Anniversary", hi: "Birthday / Anniversary" } as L, gated: false },
   { id: "corporate", label: { en: "Corporate", hi: "Corporate" } as L, gated: false },
   { id: "creator-plan", label: { en: "Creator Plan", hi: "Creator Plan" } as L, gated: false },

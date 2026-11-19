@@ -1,0 +1,189 @@
+// THIRD SPACE booking software. Postgres (Supabase in production, any
+// Postgres locally). Prices and rules live in src/config, not here: the DB
+// stores what happened (bookings, acceptances, incidents, audit trail).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// A confirmed booking. Status: confirmed | checked_in | completed | cancelled | stopped | no_show
+model Booking {
+  id               String    @id // TS-XXXXXX
+  accessToken      String    @unique // secret for the guest's confirmation link
+  packageId        String
+  service          String // theatre | podcast | creator | visit
+  mode             String // watch | create | celebrate | visit
+  resource         String // room | studio
+  start            DateTime
+  end              DateTime
+  addOnIds         String[]
+  themeId          String?
+  guestName        String
+  guestPhone       String
+  guestEmail       String
+  guestCount       Int
+  locale           String    @default("en")
+  total            Int
+  advancePaid      Int
+  balanceDue       Int
+  status           String    @default("confirmed")
+  paymentProvider  String?
+  paymentOrderId   String?
+  paymentId        String?
+  balancePaidAt    DateTime?
+  checkedInAt      DateTime?
+  /// Minimal age record: how many guests staff saw as 18+. No ID numbers or images.
+  ageVerifiedCount Int?
+  ageVerifiedBy    String?
+  cancelledAt      DateTime?
+  cancelReason     String?
+  refundAmount     Int?
+  utm              Json?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  acceptance    PolicyAcceptance?
+  incidents     Incident[]
+  notifications Notification[]
+
+  @@index([resource, start])
+  @@index([start])
+}
+
+/// A slot held during checkout. Expired rows are ignored and cleaned up lazily.
+model Hold {
+  id        String   @id @default(uuid())
+  packageId String
+  resource  String
+  start     DateTime
+  end       DateTime
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([resource, start])
+}
+
+/// Staff-blocked time (maintenance, private event, deep cleaning).
+model SlotBlock {
+  id        String   @id @default(uuid())
+  resource  String
+  start     DateTime
+  end       DateTime
+  reason    String
+  createdBy String
+  createdAt DateTime @default(now())
+
+  @@index([resource, start])
+}
+
+/// Payment order waiting for the gateway's success callback.
+model PendingOrder {
+  orderId   String   @id
+  holdId    String
+  amount    Int
+  provider  String
+  draft     Json
+  createdAt DateTime @default(now())
+}
+
+/// Record of the guest's mandatory acceptance (policy section 10).
+model PolicyAcceptance {
+  id                   String   @id @default(uuid())
+  bookingId            String   @unique
+  booking              Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  policyPackVersion    String
+  /// [{ id, title, version }] of every document accepted
+  documents            Json
+  declarationVersion   String
+  /// Exact declaration text shown to the guest at the time of acceptance
+  declarationText      String
+  locale               String
+  /// e.g. "checkbox:declaration" — the affirmative action taken
+  action               String
+  allParticipantsAdult Boolean
+  guestsInformed       Boolean
+  venueRulesAccepted   Boolean
+  recordingConsent     Boolean?
+  /// Optional, separate from the mandatory acceptance
+  promotionalConsent   Boolean  @default(false)
+  marketingConsent     Boolean  @default(false)
+  acceptedAt           DateTime @default(now())
+}
+
+model Lead {
+  id        String   @id @default(uuid())
+  purpose   String
+  name      String
+  phone     String
+  message   String
+  source    String
+  utm       Json
+  status    String   @default("new") // new | contacted | closed
+  createdAt DateTime @default(now())
+}
+
+model OtpCode {
+  phone         String    @id
+  codeHash      String
+  expiresAt     DateTime
+  attempts      Int       @default(0)
+  verifiedUntil DateTime?
+}
+
+/// Incident register (policy sections 7 and 8). Objective facts only.
+model Incident {
+  id                   String    @id @default(uuid())
+  bookingId            String?
+  booking              Booking?  @relation(fields: [bookingId], references: [id])
+  occurredAt           DateTime
+  category             String // conduct | prohibited_item | content | safety | medical | property | other
+  severity             String // low | medium | high
+  description          String
+  witnesses            String    @default("")
+  actionsTaken         String    @default("")
+  sessionStopped       Boolean   @default(false)
+  evidencePreserved    Boolean   @default(false)
+  authoritiesContacted Boolean   @default(false)
+  status               String    @default("open") // open | closed
+  reportedBy           String
+  closedAt             DateTime?
+  createdAt            DateTime  @default(now())
+}
+
+/// Append-only trail of every staff and system action.
+model AuditLog {
+  id       String   @id @default(uuid())
+  at       DateTime @default(now())
+  actor    String
+  action   String
+  entity   String
+  entityId String?
+  details  Json?
+
+  @@index([entity, entityId])
+  @@index([at])
+}
+
+/// Outbox for booking confirmations. Without a provider, staff send them
+/// from the admin panel with a wa.me link.
+model Notification {
+  id        String    @id @default(uuid())
+  bookingId String?
+  booking   Booking?  @relation(fields: [bookingId], references: [id])
+  channel   String // whatsapp | email
+  to        String
+  body      String
+  status    String    @default("queued") // queued | sent | failed
+  sentAt    DateTime?
+  createdAt DateTime  @default(now())
+}
+
+model EventCount {
+  event String @id
+  count Int    @default(0)
+}

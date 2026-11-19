@@ -27,6 +27,9 @@ const PLACEHOLDER = /\blorem\b|example\.(com|org|net)|\bTODO\b|\bTBD\b|\bplaceho
 const ERROR_TEXT = /Application error|Internal Server Error|\bundefined\b|\bNaN\b|\[object Object\]|Unhandled Runtime Error/;
 const CLAIMS = /100\s?%|\bbest in\b|\bnumber one\b|\bno\.? ?1\b|\bguaranteed?\b/i;
 const SCREENING = /\b(films?|movies?|screenings?|cinema|OTT|Netflix|Prime Video|Hotstar|blockbusters?)\b/i;
+// Legal-policy wording that uses these words without advertising screenings.
+const GATE_ALLOWED = ["promote, film or livestream", "OTT/digital publisher"];
+const stripAllowed = (s) => GATE_ALLOWED.reduce((acc, p) => acc.split(p).join(" "), s);
 
 const whitelist = JSON.parse(readFileSync(join(ROOT, "scripts/claims-whitelist.json"), "utf8"));
 const isWhitelisted = (s) => whitelist.some((w) => s.includes(w));
@@ -84,7 +87,7 @@ const sitemapPaths = [...sitemap.body.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) 
 if (gate === "closed" && SCREENING.test(sitemap.body + sitemapPaths.join(" "))) fail("sitemap.xml", "mentions screenings while gate is closed");
 if (gate === "closed" && sitemapPaths.some((p) => /watch|theatre/.test(p))) fail("sitemap.xml", "lists a Theatre page while gate is closed");
 
-const queue = [...new Set(["/", ...sitemapPaths, "/watch", "/celebrate", "/visit", "/book", "/policies", "/contact"])];
+const queue = [...new Set(["/", ...sitemapPaths, "/watch", "/celebrate", "/visit", "/book", "/policies", "/policies/safety", "/policies/podcast", "/policies/creator", "/contact"])];
 const seen = new Set();
 const consistency = { phone: new Set(), address: new Set(), hours: new Set(), email: new Set() };
 
@@ -121,7 +124,7 @@ while (queue.length && seen.size < 150) {
   if (gate === "closed") {
     const head = body.match(/<head>[\s\S]*?<\/head>/)?.[0] ?? "";
     const metas = [...head.matchAll(/<(title)>([^<]*)<|<meta[^>]+content="([^"]*)"/g)].map((m) => m[2] ?? m[3]).join(" ");
-    const s = text.match(SCREENING) || metas.match(SCREENING) || body.match(SCREENING);
+    const s = stripAllowed(text).match(SCREENING) || metas.match(SCREENING) || stripAllowed(body).match(SCREENING);
     if (s) fail(path, `advertises screenings while gate is closed ("${s[0]}")`);
   }
 

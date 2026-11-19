@@ -2,9 +2,16 @@ import { defineConfig } from "@playwright/test";
 
 /**
  * e2e at 390px for both Legal Gate states. One production build serves two
- * servers: gate closed on :3100 and gate open on :3101. Run `npm run build` first.
+ * servers: gate closed on :3100 and gate open on :3101, sharing a test
+ * database that `npm run test:e2e` migrates first (it never resets data;
+ * tests pick free slots, so they tolerate earlier runs). Run `npm run build` first.
  */
+export const TEST_DATABASE_URL = process.env.TEST_DATABASE_URL ?? "postgresql://thirdspace:thirdspace@localhost:5432/thirdspace_test";
+
 const contactEnv = {
+  DATABASE_URL: TEST_DATABASE_URL,
+  ADMIN_PASSWORD: "test-staff-password",
+  AUTH_SECRET: "test-auth-secret-at-least-16-chars",
   THIRD_SPACE_PHONE: "+91 98765 43210",
   THIRD_SPACE_EMAIL: "hello@thirdspace.in",
   THIRD_SPACE_ADDRESS_LINE: "Bank More",

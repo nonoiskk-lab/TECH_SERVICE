@@ -27,3 +27,32 @@ export async function fillDetailsAndVerify(page: Page) {
   await page.getByTestId("verify-otp").click();
   await expect(page.getByTestId("otp-status")).toHaveText(/verified|verify ho gaya/i);
 }
+
+/** Tick the mandatory boxes: declaration, venue rules and (studio services) recording consent. */
+export async function acceptTerms(page: Page, { recording = false } = {}) {
+  await page.getByTestId("consent-declaration").check();
+  await page.getByTestId("consent-venue").check();
+  if (recording) await page.getByTestId("consent-recording").check();
+}
+
+export async function adminLogin(page: Page) {
+  await page.goto("/admin/login");
+  await page.getByTestId("admin-name").fill("Asha (test)");
+  await page.getByTestId("admin-password").fill("test-staff-password");
+  await page.getByRole("button", { name: "Log in" }).click();
+  await expect(page.getByTestId("readiness")).toBeVisible();
+}
+
+/** Books a podcast slot through the UI and returns the booking ID. */
+export async function bookPodcast(page: Page, offset: number) {
+  await page.goto("/book?package=podcast-2h");
+  await chooseDate(page, offset);
+  await (await firstAvailableSlot(page)).click();
+  await expect(page.getByTestId("hold-banner")).toBeVisible();
+  await page.getByTestId("guest-count").selectOption("2");
+  await fillDetailsAndVerify(page);
+  await acceptTerms(page, { recording: true });
+  await page.getByTestId("pay-button").click();
+  await expect(page.getByTestId("booking-id")).toHaveText(/^TS-/);
+  return (await page.getByTestId("booking-id").textContent())!.trim();
+}

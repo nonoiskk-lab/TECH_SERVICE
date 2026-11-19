@@ -9,6 +9,7 @@ import { isLegalGateOpen, type Package } from "./site";
 export const packages: Package[] = [
   {
     id: "theatre-classic",
+    service: "theatre",
     mode: "watch",
     name: { en: "THIRD SPACE Cinema", hi: "THIRD SPACE Cinema" },
     summary: {
@@ -27,6 +28,7 @@ export const packages: Package[] = [
   },
   {
     id: "theatre-premium",
+    service: "theatre",
     mode: "watch",
     name: { en: "THIRD SPACE Premium", hi: "THIRD SPACE Premium" },
     summary: {
@@ -45,6 +47,7 @@ export const packages: Package[] = [
   },
   {
     id: "podcast-2h",
+    service: "podcast",
     mode: "create",
     name: { en: "Podcast Session", hi: "Podcast Session" },
     summary: {
@@ -64,6 +67,7 @@ export const packages: Package[] = [
   },
   {
     id: "creator-plan",
+    service: "podcast",
     mode: "create",
     name: { en: "Monthly Creator Plan", hi: "Monthly Creator Plan" },
     summary: {
@@ -83,7 +87,27 @@ export const packages: Package[] = [
     requiresLegalGate: false,
   },
   {
+    id: "creator-2h",
+    service: "creator",
+    mode: "create",
+    name: { en: "Creator Studio Shoot", hi: "Creator Studio Shoot" },
+    summary: {
+      en: "Two hours to shoot reels, product videos or brand content with lights and backdrops ready.",
+      hi: "Reels, product video ya brand content shoot karne ke liye do ghante; lights aur backdrop ready.",
+    },
+    price: 1899,
+    durationMinutes: 120,
+    capacity: 4,
+    includes: [
+      { en: "Up to 4 people on set", hi: "Set par 4 log tak" },
+      { en: "Lights and backdrops", hi: "Lights aur backdrops" },
+      { en: "Bring your own camera or phone", hi: "Apna camera ya phone laaiye" },
+    ],
+    requiresLegalGate: false,
+  },
+  {
     id: "visit-tour",
+    service: "visit",
     mode: "visit",
     name: { en: "Visit the room", hi: "Room dekhne aaiye" },
     summary: {

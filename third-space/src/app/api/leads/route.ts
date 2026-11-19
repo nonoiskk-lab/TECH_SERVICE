@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { enquiryPurposes, isLegalGateOpen } from "@/config/site";
-import { leads } from "@/server/slots";
+import { db } from "@/server/db";
 import { json } from "@/lib/api";
 
 const Body = z.object({
@@ -17,6 +17,6 @@ export async function POST(req: Request) {
   if (!parsed.success) return json({ error: "BAD_REQUEST" }, 400);
   const purpose = enquiryPurposes.find((p) => p.id === parsed.data.purpose && (!p.gated || isLegalGateOpen()));
   if (!purpose) return json({ error: "BAD_PURPOSE" }, 400);
-  const lead = await leads.create(parsed.data);
+  const lead = await db.lead.create({ data: parsed.data });
   return json({ ok: true, id: lead.id }, 201);
 }

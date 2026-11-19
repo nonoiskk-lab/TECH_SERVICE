@@ -13,8 +13,23 @@ defaults:
 jobs:
   checks:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: thirdspace
+          POSTGRES_PASSWORD: thirdspace
+          POSTGRES_DB: thirdspace_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U thirdspace"
+          --health-interval 5s --health-timeout 5s --health-retries 10
     env:
       CI: "1"
+      DATABASE_URL: postgresql://thirdspace:thirdspace@localhost:5432/thirdspace_test
+      TEST_DATABASE_URL: postgresql://thirdspace:thirdspace@localhost:5432/thirdspace_test
+      ADMIN_PASSWORD: test-staff-password
+      AUTH_SECRET: test-auth-secret-at-least-16-chars
       THIRD_SPACE_PHONE: "+91 98765 43210"
       THIRD_SPACE_EMAIL: "hello@thirdspace.in"
       THIRD_SPACE_ADDRESS_LINE: "Bank More"
@@ -29,6 +44,7 @@ jobs:
       - run: npm ci
       - run: npx next typegen && npm run typecheck
       - run: npm run lint
+      - run: npx prisma migrate deploy
       - run: npm run build
       - run: npx playwright install --with-deps chromium
       - name: Start both Legal Gate states
@@ -41,7 +57,7 @@ jobs:
           node scripts/check-content.mjs http://localhost:3100
           node scripts/check-content.mjs http://localhost:3101
       - name: e2e at 390px, both gate states
-        run: npx playwright test --trace off
+        run: npm run test:e2e
         env:
           CI: ""
       - uses: actions/upload-artifact@v4

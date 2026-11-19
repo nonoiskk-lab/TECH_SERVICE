@@ -26,8 +26,11 @@ export default async function Home() {
     <>
       <div className="ts-hero-bg">
         <Container className="pb-14 pt-14 sm:pt-24">
-          <p className="text-xs font-semibold uppercase tracking-[0.3em] text-warm" data-testid="launch">
+          <p className="flex flex-wrap items-center gap-3 text-xs font-semibold uppercase tracking-[0.3em] text-warm" data-testid="launch">
             {t.home.launch}
+            <span className="rounded-full border border-warm/60 px-2 py-0.5 tracking-widest" data-testid="adults-only">
+              {t.home.adultsOnly}
+            </span>
           </p>
           <h1 className="mt-4 text-4xl font-extrabold leading-tight sm:text-7xl">
             {site.tagline.split(" • ").map((w, i) => (
