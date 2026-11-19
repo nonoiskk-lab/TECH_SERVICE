@@ -7,6 +7,7 @@ import { tl } from "@/i18n";
 import { bookingDates } from "@/lib/booking-dates";
 import { flowEnv } from "@/lib/flow-env";
 import { PageHeader, Section } from "@/components/ui";
+import { CelebrationScene } from "@/components/illustrations";
 import { BookingFlow } from "@/components/booking-flow";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -19,7 +20,7 @@ export default async function CelebratePage() {
   const celebrationPkgs = packages.filter((p) => p.mode === "celebrate");
   return (
     <>
-      <PageHeader title={t.celebrate.title} intro={t.celebrate.intro} />
+      <PageHeader title={t.celebrate.title} intro={t.celebrate.intro} art={<CelebrationScene className="h-full w-full" />} />
       <Section title={t.celebrate.themeTitle} id="themes">
         <div className="grid gap-3 sm:grid-cols-3">
           {themes.map((th) => (

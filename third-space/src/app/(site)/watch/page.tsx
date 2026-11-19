@@ -6,6 +6,7 @@ import { getDict } from "@/lib/locale";
 import { tl } from "@/i18n";
 import { formatINR } from "@/lib/pricing";
 import { PackageCard, PageHeader, Section } from "@/components/ui";
+import { RoomScene } from "@/components/illustrations";
 import { TrackOnView } from "@/components/client-bits";
 import { activeTitles } from "@/server/titles";
 import { durationText, resolveSession } from "@/lib/session";
@@ -48,7 +49,7 @@ export default async function WatchPage() {
   const titles = await activeTitles();
   return (
     <>
-      <PageHeader title={t.watch.title} intro={t.watch.intro} />
+      <PageHeader title={t.watch.title} intro={t.watch.intro} art={<RoomScene className="h-full w-full" />} />
       <Section>
         <div className="grid gap-4 md:grid-cols-2">
           {watchPkgs.map((p) => (

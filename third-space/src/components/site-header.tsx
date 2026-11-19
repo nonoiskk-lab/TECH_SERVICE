@@ -3,12 +3,25 @@ import type { Dict } from "@/i18n";
 import type { Locale } from "@/config/site";
 import { LocaleToggle } from "./client-bits";
 
-export function Wordmark({ className = "" }: { className?: string }) {
-  // No logo file has been supplied yet; this text wordmark stands in until
-  // public/brand/logo.svg exists (see docs/STAGE_REPORT.md, NEEDS OWNER).
+/** Logo mark: a doorway in a gold circle (the "third place" between home and work). */
+export function LogoMark({ className = "h-9 w-9" }: { className?: string }) {
   return (
-    <span className={`whitespace-nowrap font-heading text-lg tracking-[0.12em] sm:text-xl ${className}`}>
-      THIRD<span className="text-warm"> SPACE</span>
+    <svg viewBox="0 0 64 64" className={className} aria-hidden="true">
+      <circle cx="32" cy="32" r="30" fill="#CAA05C" />
+      <path d="M20 50V30a12 12 0 0 1 24 0v20z" fill="#1C1C1D" />
+      <path d="M26 50V32a6 6 0 0 1 12 0v18z" fill="#F7F1E6" />
+      <circle cx="35" cy="41" r="1.6" fill="#CAA05C" />
+    </svg>
+  );
+}
+
+export function Wordmark({ className = "" }: { className?: string }) {
+  return (
+    <span className={`inline-flex items-center gap-2 whitespace-nowrap font-heading text-base tracking-[0.1em] sm:text-xl ${className}`}>
+      <LogoMark className="h-8 w-8 sm:h-9 sm:w-9" />
+      <span>
+        THIRD<span className="text-warm"> SPACE</span>
+      </span>
     </span>
   );
 }

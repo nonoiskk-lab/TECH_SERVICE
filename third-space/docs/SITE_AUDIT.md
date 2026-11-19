@@ -52,7 +52,14 @@ Measured from the live page (computed styles, desktop and 390 px screenshots).
 | Create | 95 | 98 |
 | Book | 97 | 100 |
 
-## 5. Still open (owner)
+## 5. Demo visuals (owner asked us to make them)
+
+The owner asked us to make the demo visuals ourselves. They are **original** artwork, not stock or other businesses' photos:
+
+- **Logo:** a doorway in a gold circle (the "third place" between home and work) plus the THIRD SPACE wordmark. Files: `public/brand/logo-mark.svg` and `src/app/icon.svg` (favicon).
+- **Illustrated scenes:** podcast studio, creator set, private room and celebration (`src/components/illustrations.tsx`). They appear in the hero collage, the home service cards and the page headers of Create, Celebrate, Visit and Watch. Each one is a single component, so a real photo can replace it later.
+
+## 6. Still open (owner)
 
 - Real photos of the studio and the room. They will fill the hero collage and the cards.
 - The logo file.

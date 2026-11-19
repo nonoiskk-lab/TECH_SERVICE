@@ -6,6 +6,7 @@ import { tl } from "@/i18n";
 import { bookingDates } from "@/lib/booking-dates";
 import { flowEnv } from "@/lib/flow-env";
 import { BulletList, PackageCard, PageHeader, Section } from "@/components/ui";
+import { CreatorScene } from "@/components/illustrations";
 import { BookingFlow } from "@/components/booking-flow";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -18,7 +19,7 @@ export default async function CreatePage() {
   const createPkgs = packages.filter((p) => p.mode === "create");
   return (
     <>
-      <PageHeader title={t.create.title} intro={t.create.intro} />
+      <PageHeader title={t.create.title} intro={t.create.intro} art={<CreatorScene className="h-full w-full" />} />
       <Section>
         <div className="grid gap-4 md:grid-cols-2">
           {createPkgs.map((p) => (

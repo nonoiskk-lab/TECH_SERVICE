@@ -4,6 +4,7 @@ import { getDict } from "@/lib/locale";
 import { bookingDates } from "@/lib/booking-dates";
 import { flowEnv } from "@/lib/flow-env";
 import { PageHeader, Section } from "@/components/ui";
+import { PodcastScene } from "@/components/illustrations";
 import { BookingFlow } from "@/components/booking-flow";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -16,7 +17,7 @@ export default async function VisitPage() {
   const tour = getPackage("visit-tour")!;
   return (
     <>
-      <PageHeader title={t.visit.title} intro={t.visit.intro} />
+      <PageHeader title={t.visit.title} intro={t.visit.intro} art={<PodcastScene className="h-full w-full" />} />
       <Section>
         <BookingFlow t={t} locale={locale} mode="visit" packages={[tour]} {...bookingDates()} {...flowEnv()} />
       </Section>

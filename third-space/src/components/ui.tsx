@@ -19,15 +19,35 @@ export function TwoTone({ accent, rest }: { accent?: string; rest: string }) {
   );
 }
 
-export function PageHeader({ title, intro, eyebrow, accent }: { title: string; intro?: string; eyebrow?: string; accent?: string }) {
+export function PageHeader({
+  title,
+  intro,
+  eyebrow,
+  accent,
+  art,
+}: {
+  title: string;
+  intro?: string;
+  eyebrow?: string;
+  accent?: string;
+  /** Decorative illustration shown on the right on larger screens. */
+  art?: React.ReactNode;
+}) {
   return (
     <div className="ts-hero-bg border-b border-line">
-      <Container className="py-12 sm:py-16">
-        {eyebrow && <p className="ts-eyebrow mb-4">{eyebrow}</p>}
-        <h1 className="text-4xl leading-[1.05] sm:text-6xl">
-          <TwoTone accent={accent} rest={title} />
-        </h1>
-        {intro && <p className="mt-5 max-w-2xl text-lg text-muted">{intro}</p>}
+      <Container className={`py-12 sm:py-16 ${art ? "grid items-center gap-8 md:grid-cols-[1.3fr_1fr]" : ""}`}>
+        <div>
+          {eyebrow && <p className="ts-eyebrow mb-4">{eyebrow}</p>}
+          <h1 className="text-4xl leading-[1.05] sm:text-6xl">
+            <TwoTone accent={accent} rest={title} />
+          </h1>
+          {intro && <p className="mt-5 max-w-2xl text-lg text-muted">{intro}</p>}
+        </div>
+        {art && (
+          <div aria-hidden="true" className="hidden aspect-[4/3] overflow-hidden rounded-[var(--ts-radius)] shadow-xl ring-8 ring-white md:block">
+            {art}
+          </div>
+        )}
       </Container>
     </div>
   );

@@ -7,7 +7,8 @@ import { faqItems } from "@/lib/faq";
 import { formatINR } from "@/lib/pricing";
 import { Container, Faq, Section, TwoTone } from "@/components/ui";
 import { JsonLd, faqLd } from "@/components/json-ld";
-import { CakeIcon, CameraIcon, MicIcon, ScreenIcon } from "@/components/icons";
+import { CakeIcon, MicIcon, ScreenIcon } from "@/components/icons";
+import { CelebrationScene, CreatorScene, PodcastScene, RoomScene } from "@/components/illustrations";
 import { flowEnv } from "@/lib/flow-env";
 
 export default async function Home() {
@@ -18,8 +19,8 @@ export default async function Home() {
   const steps = advancePercent > 0 ? t.home.steps : t.home.steps.map((s, i) => (i === 2 ? t.home.stepVenue : s));
   const from = formatINR(fromPrice(gateOpen));
   const cards = [
-    { href: "/create", title: t.home.pickCreate, text: t.home.pickCreateText, soon: false, id: "create", Icon: MicIcon },
-    { href: "/celebrate", title: t.home.pickCelebrate, text: t.home.pickCelebrateText, soon: false, id: "celebrate", Icon: CakeIcon },
+    { href: "/create", title: t.home.pickCreate, text: t.home.pickCreateText, soon: false, id: "create", Icon: MicIcon, Art: PodcastScene },
+    { href: "/celebrate", title: t.home.pickCelebrate, text: t.home.pickCelebrateText, soon: false, id: "celebrate", Icon: CakeIcon, Art: CelebrationScene },
     {
       href: "/watch",
       title: t.home.pickWatch,
@@ -27,6 +28,7 @@ export default async function Home() {
       soon: !gateOpen,
       id: "watch",
       Icon: ScreenIcon,
+      Art: RoomScene,
     },
   ];
 
@@ -60,18 +62,18 @@ export default async function Home() {
               </Link>
             </div>
           </div>
-          {/* Decorative collage (no photos supplied yet). */}
-          <div aria-hidden="true" className="relative mx-auto hidden h-[380px] w-full max-w-[460px] sm:block">
-            <div className="absolute left-0 top-6 flex h-52 w-52 items-center justify-center rounded-full bg-white shadow-xl ring-8 ring-white">
-              <MicIcon className="h-20 w-20 text-warm" />
+          {/* Decorative collage of illustrated rooms (real photos replace these later). */}
+          <div aria-hidden="true" className="relative mx-auto h-[300px] w-full max-w-[460px] sm:h-[400px]">
+            <div className="absolute left-0 top-4 h-48 w-48 overflow-hidden rounded-full shadow-xl ring-8 ring-white sm:h-60 sm:w-60">
+              <PodcastScene className="h-full w-full" />
             </div>
-            <div className="absolute right-4 top-0 flex h-40 w-40 items-center justify-center rounded-full bg-gold shadow-xl ring-8 ring-white">
-              <CameraIcon className="h-14 w-14 text-on-gold" />
+            <div className="absolute right-0 top-0 h-36 w-36 overflow-hidden rounded-full shadow-xl ring-8 ring-white sm:h-44 sm:w-44">
+              <CreatorScene className="h-full w-full" />
             </div>
-            <div className="absolute bottom-0 right-10 flex h-48 w-48 items-center justify-center rounded-full bg-[#1c1c1d] shadow-xl ring-8 ring-white">
-              <CakeIcon className="h-16 w-16 text-[#e0bd84]" />
+            <div className="absolute bottom-0 right-6 h-44 w-44 overflow-hidden rounded-full shadow-xl ring-8 ring-white sm:h-56 sm:w-56">
+              <CelebrationScene className="h-full w-full" />
             </div>
-            <div className="absolute bottom-16 left-24 rounded-full bg-white px-4 py-2 text-sm shadow-lg">
+            <div className="absolute bottom-6 left-6 rounded-full bg-white px-4 py-2 text-sm shadow-lg">
               {t.common.from} <strong className="font-heading text-warm">{from}</strong>
             </div>
           </div>
@@ -81,7 +83,11 @@ export default async function Home() {
       <Section eyebrow={t.home.eyebrowServices} accent={t.home.pickerAccent} title={t.home.pickerRest} id="picker" center>
         <div className="grid gap-5 sm:grid-cols-3">
           {cards.map((c) => (
-            <Link key={c.id} href={c.href} className="ts-card ts-glow group flex flex-col p-7 transition hover:-translate-y-0.5 hover:border-gold" data-testid={`pick-${c.id}`}>
+            <Link key={c.id} href={c.href} className="ts-card ts-glow group flex flex-col overflow-hidden transition hover:-translate-y-0.5 hover:border-gold" data-testid={`pick-${c.id}`}>
+              <span className="block aspect-[4/3] overflow-hidden" aria-hidden="true">
+                <c.Art className="h-full w-full transition duration-300 group-hover:scale-105" />
+              </span>
+              <span className="flex flex-col p-7">
               <span className="flex items-start justify-between gap-3">
                 <span className="flex h-14 w-14 items-center justify-center rounded-full bg-raised text-warm">
                   <c.Icon className="h-7 w-7" />
@@ -91,6 +97,7 @@ export default async function Home() {
               <span className="mt-5 font-heading text-2xl">{c.title}</span>
               <span className="mt-2 text-muted">{c.text}</span>
               <span className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-warm">{t.common.learnMore} →</span>
+              </span>
             </Link>
           ))}
         </div>
