@@ -2,16 +2,24 @@ import { expect, type Page, type TestInfo } from "@playwright/test";
 
 export const isOpen = (info: TestInfo) => info.project.name === "gate-open";
 
-/** Pick a date `offset` days after the first bookable date shown by the date input. */
+/**
+ * Pick a date at least `offset` days after the first bookable date that still
+ * has a free slot. Tests share a database across runs, so earlier days fill up.
+ */
 export async function chooseDate(page: Page, offset: number) {
   const input = page.getByTestId("date-input");
-  const min = await input.getAttribute("min");
-  const d = new Date(`${min}T12:00:00+05:30`);
-  d.setUTCDate(d.getUTCDate() + offset);
-  const iso = d.toISOString().slice(0, 10);
-  await input.fill(iso);
-  await expect(page.locator('[data-testid="slot"]').first()).toBeVisible();
-  return iso;
+  const min = (await input.getAttribute("min"))!;
+  const max = (await input.getAttribute("max"))!;
+  for (let k = offset; ; k += 9) {
+    const d = new Date(`${min}T12:00:00+05:30`);
+    d.setUTCDate(d.getUTCDate() + k);
+    const iso = d.toISOString().slice(0, 10);
+    if (iso > max) throw new Error("No free date left in the booking window; use a fresh test database");
+    await input.fill(iso);
+    await expect(page.locator('[data-testid="slot"]').first().or(page.getByText(/No slots left|slot khaali nahi/))).toBeVisible();
+    await page.waitForLoadState("networkidle");
+    if ((await page.locator('[data-testid="slot"][data-status="available"]').count()) > 0) return iso;
+  }
 }
 
 export async function firstAvailableSlot(page: Page) {

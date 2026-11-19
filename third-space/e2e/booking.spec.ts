@@ -12,6 +12,7 @@ test("booking happy path: podcast, advance paid, booking ID shown", async ({ pag
   await (await firstAvailableSlot(page)).click();
   await expect(page.getByTestId("hold-banner")).toBeVisible();
   await expect(page.getByTestId("hold-countdown")).toHaveText(/^1[45]:\d\d$/);
+  await expect(page.getByTestId("hold-time")).toContainText("–");
   await fillDetailsAndVerify(page);
   // Refund tiers and venue rules are visible before the pay button.
   await expect(page.getByTestId("refund-tiers")).toBeVisible();

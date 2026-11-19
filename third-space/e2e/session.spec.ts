@@ -4,14 +4,16 @@ test("podcast time follows episodes; creator time follows reels; space is ₹799
   await page.goto("/book?package=podcast");
   await page.getByTestId("episode-length").selectOption("45");
   await page.getByTestId("episodes").selectOption("3");
-  // 3 × 45 = 135 + 30 setup = 165 → 3h. 3 × ₹950 = ₹2,850.
-  await expect(page.getByTestId("session-summary")).toContainText("3h");
-  await expect(page.getByTestId("session-summary")).toContainText("₹2,850");
+  // 3 × 45 = 135 min recording + 30 min setup = 2h 45m (no rounding). 2.75 × ₹950 = ₹2,613.
+  await expect(page.getByTestId("work-time")).toHaveText("2h 15m");
+  await expect(page.getByTestId("setup-time")).toHaveText("+ 30m");
+  await expect(page.getByTestId("session-summary")).toContainText("2h 45m · ₹2,613");
+  await expect(page.getByTestId("gap-note")).toContainText("30 minutes free");
 
   await page.getByLabel(/Creator Studio Shoot/).check();
   await page.getByTestId("reels").selectOption("4");
   await page.getByTestId("long-videos").selectOption("1");
-  // 4 × 15 + 1 × 30 + 30 setup = 120 → 2h at ₹950/hr = ₹1,900.
+  // 4 × 15 + 1 × 30 = 90 min shoot + 30 min setup = 2h at ₹950/hr = ₹1,900.
   await expect(page.getByTestId("session-summary")).toContainText("2h");
   await expect(page.getByTestId("session-summary")).toContainText("₹1,900");
   await page.getByTestId("reels").selectOption("0");
@@ -21,6 +23,7 @@ test("podcast time follows episodes; creator time follows reels; space is ₹799
   await page.getByLabel(/Studio Space Only/).check();
   await page.getByTestId("hours").selectOption("3");
   await expect(page.getByTestId("session-summary")).toContainText("₹2,397");
+  await expect(page.getByTestId("setup-time")).toHaveCount(0); // space only: no setup added
   await expect(page.getByTestId("quote-total")).toHaveText("₹2,828"); // 2,397 + 18% GST
 });
 
@@ -58,5 +61,20 @@ test("server prices the session itself and rejects a mismatched hold", async ({ 
     },
   });
   expect(r.status()).toBe(409);
-  expect((await request.post("/api/holds", { data: { packageId: "podcast", start, durationMinutes: 45 } })).status()).toBe(400);
+  expect((await request.post("/api/holds", { data: { packageId: "podcast", start, durationMinutes: 20 } })).status()).toBe(400);
+});
+
+test("every booking keeps a 30-minute gap before the next one", async ({ request }, info) => {
+  const day = new Date(Date.now() + (52 + (info.project.name === "gate-open" ? 1 : 0)) * 86400_000).toISOString().slice(0, 10);
+  const get = async () =>
+    (await (await request.get(`/api/availability?date=${day}&packageId=podcast&duration=90`)).json()).slots as { start: string; status: string }[];
+  const before = await get();
+  const first = before.find((s) => s.status === "available")!;
+  const r = await request.post("/api/holds", { data: { packageId: "podcast", start: first.start, durationMinutes: 90 } });
+  expect(r.status()).toBe(201);
+  const startMs = Date.parse(first.start);
+  const after = await get();
+  const at = (mins: number) => after.find((s) => Date.parse(s.start) === startMs + mins * 60_000)?.status;
+  expect(at(90)).toBe("held"); // ends at +90; the next 30 minutes stay free
+  expect(at(120)).toBe("available"); // +90 session + 30 gap
 });

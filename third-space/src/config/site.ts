@@ -137,12 +137,11 @@ export const hours = {
 
 /** Rules the session resolver (src/lib/session.ts) uses to decide time automatically. */
 export const sessionRules = {
-  /** Sessions are rounded up to this many minutes. */
-  roundToMinutes: 30,
+  /** Owner's rule: booking time = the work itself + 30 minutes setup. No rounding. */
+  setupMinutes: 30,
   maxSessionMinutes: 480,
-  theatre: { setupMinutes: 15 },
-  podcast: { setupMinutes: 30, minMinutes: 60, episodeLengths: [15, 30, 45, 60, 90], maxEpisodes: 4 },
-  creator: { setupMinutes: 30, minMinutes: 60, reelMinutes: 15, longVideoMinutes: 30, maxReels: 10, maxLongVideos: 4 },
+  podcast: { episodeLengths: [15, 30, 45, 60, 90], maxEpisodes: 4 },
+  creator: { reelMinutes: 15, longVideoMinutes: 30, maxReels: 10, maxLongVideos: 4 },
   space: { minHours: 1, maxHours: 6 },
 };
 

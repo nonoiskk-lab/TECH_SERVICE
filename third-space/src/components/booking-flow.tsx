@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { addOnsFor, sessionRules, booking as bookingCfg, recordingConsent, refundTiers, venueRules, type Locale, type Mode, type Package, type Theme } from "@/config/site";
+import { addOnsFor, hours as hoursCfg, sessionRules, booking as bookingCfg, recordingConsent, refundTiers, venueRules, type Locale, type Mode, type Package, type Theme } from "@/config/site";
 import { tl, type Dict } from "@/i18n";
 import { buildQuote, formatINR } from "@/lib/pricing";
 import { defaultInput, durationText, hourlyRate, resolveSession, type SessionInput, type TitleInfo } from "@/lib/session";
@@ -336,7 +336,10 @@ export function BookingFlow(props: BookingFlowProps) {
             data-testid="hold-banner"
           >
             <span className="text-sm">
-              {t.book.holdLabel}: <strong>{dateLabel(hold.start.slice(0, 10), locale)}, {timeLabel(hold.start)}</strong>
+              {t.book.holdLabel}:{" "}
+              <strong data-testid="hold-time">
+                {dateLabel(hold.start.slice(0, 10), locale)}, {timeLabel(hold.start)} – {timeLabel(hold.end)}
+              </strong>
             </span>
             <span className="font-heading text-xl font-extrabold tabular-nums text-warm" data-testid="hold-countdown" aria-label={`${mm}:${String(ss).padStart(2, "0")}`}>
               {mm}:{String(ss).padStart(2, "0")}
@@ -473,10 +476,29 @@ export function BookingFlow(props: BookingFlowProps) {
               </label>
             )}
             {session ? (
-              <p className="rounded-xl bg-raised px-4 py-3 text-sm" data-testid="session-summary">
-                {t.book.sessionTime}: <strong>{durationText(session.durationMinutes)}</strong> · {formatINR(session.basePrice)}
-                <span className="mt-1 block text-xs text-faint">{t.book.sessionHint[pkg.pricing.kind]}</span>
-              </p>
+              <div className="rounded-xl bg-raised px-4 py-3 text-sm" data-testid="session-summary">
+                <dl className="space-y-1">
+                  <div className="flex justify-between gap-3">
+                    <dt className="text-muted">{t.book.workLabel[pkg.pricing.kind]}</dt>
+                    <dd data-testid="work-time">{durationText(session.workMinutes)}</dd>
+                  </div>
+                  {session.setupMinutes > 0 && (
+                    <div className="flex justify-between gap-3">
+                      <dt className="text-muted">{t.book.setupLabel}</dt>
+                      <dd data-testid="setup-time">+ {durationText(session.setupMinutes)}</dd>
+                    </div>
+                  )}
+                  <div className="flex justify-between gap-3 border-t border-line pt-1 font-semibold">
+                    <dt>{t.book.sessionTime}</dt>
+                    <dd>
+                      {durationText(session.durationMinutes)} · {formatINR(session.basePrice)}
+                    </dd>
+                  </div>
+                </dl>
+                <p className="mt-2 text-xs text-faint" data-testid="gap-note">
+                  {t.book.gapNote.replace("{gap}", String(hoursCfg.bufferMinutes))}
+                </p>
+              </div>
             ) : (
               resolved &&
               !resolved.ok &&
@@ -548,6 +570,9 @@ export function BookingFlow(props: BookingFlowProps) {
                   }`}
                 >
                   {timeLabel(s.start)}
+                  <span className="block text-[11px] font-normal opacity-75">
+                    {t.book.until.replace("{time}", timeLabel(s.end))}
+                  </span>
                   {disabled && <span className="sr-only"> ({s.status === "booked" ? t.book.booked : t.book.held})</span>}
                 </button>
               );
