@@ -64,3 +64,11 @@ export function HideOn({ prefixes, children }: { prefixes: string[]; children: R
   if (prefixes.some((p) => pathname.startsWith(p))) return null;
   return <>{children}</>;
 }
+
+export function PrintButton({ label }: { label: string }) {
+  return (
+    <button type="button" className="ts-btn ts-btn-primary w-full text-sm print:hidden" onClick={() => window.print()}>
+      {label}
+    </button>
+  );
+}

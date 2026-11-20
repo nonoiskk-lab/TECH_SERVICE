@@ -84,9 +84,14 @@ export default async function ConfirmationPage({ params, searchParams }: PagePro
               </a>
             </div>
           )}
-          <Link href="/" className="ts-btn ts-btn-ghost mt-6">
-            {t.confirmation.home}
-          </Link>
+          <div className="mt-6 flex flex-wrap gap-3">
+            <Link href={`/my-booking/${b.id}?t=${token}`} className="ts-btn ts-btn-primary" data-testid="manage-booking">
+              {t.nav.myBooking} · {t.myBooking.receipt}
+            </Link>
+            <Link href="/" className="ts-btn ts-btn-ghost">
+              {t.confirmation.home}
+            </Link>
+          </div>
         </div>
       </Section>
     </>

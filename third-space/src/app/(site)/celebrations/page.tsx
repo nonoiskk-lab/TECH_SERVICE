@@ -12,7 +12,7 @@ import { BookingFlow } from "@/components/booking-flow";
 
 export async function generateMetadata(): Promise<Metadata> {
   const { t } = await getDict();
-  return { title: t.celebrate.metaTitle, description: t.celebrate.metaDescription, alternates: { canonical: "/celebrate" } };
+  return { title: t.celebrate.metaTitle, description: t.celebrate.metaDescription, alternates: { canonical: "/celebrations" } };
 }
 
 export default async function CelebratePage() {

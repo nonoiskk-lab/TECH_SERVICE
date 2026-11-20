@@ -20,7 +20,7 @@ export default async function PodcastSeoPage() {
       intro={t.create.intro}
       copy={podcastSeo(locale)}
       pkgs={packages.filter((p) => p.mode === "create")}
-      ctaHref="/create#estimator"
+      ctaHref="/podcast-studio#estimator"
       hoursLabel={publicBusiness(locale).hoursLabel}
     />
   );

@@ -26,7 +26,7 @@ export function WhatsAppButton({ href, label }: { href: string | null; label: st
 /** Mobile-only sticky bar: "From ₹X · Book now". Price comes from config via props. */
 export function StickyBookBar({ t, fromPrice }: { t: Dict; fromPrice: number }) {
   return (
-    <div className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-white/95 px-4 py-3 backdrop-blur sm:hidden" data-testid="sticky-bar">
+    <div className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-bg/95 px-4 py-3 backdrop-blur sm:hidden" data-testid="sticky-bar">
       <div className="flex items-center justify-between gap-3">
         <p className="text-sm text-muted">
           {t.common.from} <strong className="text-lg text-text" data-testid="from-price">{formatINR(fromPrice)}</strong>

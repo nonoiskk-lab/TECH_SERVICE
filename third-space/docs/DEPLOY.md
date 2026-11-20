@@ -43,3 +43,17 @@ Leave these empty for now:
   - Razorpay keys turn on the online advance.
   - An SMS provider plus `OTP_MODE=sms` turns on OTP.
   - Add the domain in Vercel → Domains.
+
+## 4. Integrations (master prompt) — add when ready
+
+| Variable | Turns on | Where to get it |
+|---|---|---|
+| `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET` | Online advance / full payment (Razorpay Checkout) | Razorpay Dashboard → API Keys |
+| `RAZORPAY_WEBHOOK_SECRET` | Webhook confirmation `/api/webhooks/razorpay` (events: payment.captured, payment.failed, refund.processed) | Razorpay Dashboard → Webhooks |
+| `WHATSAPP_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID`, `WHATSAPP_TEMPLATE_<KIND>`, `WHATSAPP_TEMPLATE_LANG` | WhatsApp Cloud API messages (confirmation, reminders, cancellation, feedback) | Meta Business → WhatsApp → API setup; templates must be approved by Meta |
+| `RESEND_API_KEY`, `EMAIL_FROM` | Email copies of booking messages | resend.com, with a verified sending domain |
+| `CRON_SECRET` | `/api/cron/run` (reminders, expiry of unpaid bookings, feedback, retention). Vercel Hobby runs it daily; for 24 h / 2 h reminders, call it every 15 min from an external cron with `Authorization: Bearer <CRON_SECRET>` | any random 32+ char string |
+| `OTP_MODE=sms` + SMS provider | Phone OTP | MSG91 / Gupshup account (provider code not wired yet) |
+| `THIRD_SPACE_MAP_URL` | Exact Google Maps pin | Google Maps → Share |
+
+Old URLs `/watch`, `/create`, `/celebrate` permanently redirect to `/private-theatre`, `/podcast-studio`, `/celebrations`.

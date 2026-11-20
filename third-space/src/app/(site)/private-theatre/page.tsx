@@ -17,7 +17,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: open ? t.watch.metaTitle : t.watch.metaTitleClosed,
     description: open ? t.watch.metaDescription : t.watch.metaDescriptionClosed,
-    alternates: { canonical: "/watch" },
+    alternates: { canonical: "/private-theatre" },
     robots: open ? undefined : { index: false, follow: true },
   };
 }
@@ -33,7 +33,7 @@ export default async function WatchPage() {
         <PageHeader title={t.watch.closedTitle} intro={t.watch.closedText} eyebrow={t.common.comingSoon} />
         <Section>
           <div className="ts-card flex flex-col gap-3 p-6 sm:flex-row" data-testid="watch-closed">
-            <Link href="/create" className="ts-btn ts-btn-primary">
+            <Link href="/podcast-studio" className="ts-btn ts-btn-primary">
               {t.watch.closedCta}
             </Link>
             <Link href="/contact?purpose=other" className="ts-btn ts-btn-ghost">

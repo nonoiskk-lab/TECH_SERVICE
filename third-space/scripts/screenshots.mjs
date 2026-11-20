@@ -8,7 +8,7 @@ import { mkdirSync } from "node:fs";
 import pw from "@playwright/test";
 
 const { chromium } = pw;
-const pages = ["/", "/watch", "/create", "/celebrate", "/book", "/visit", "/policies", "/contact", "/podcast-studio-in-dhanbad", "/private-theatre-in-dhanbad"];
+const pages = ["/", "/private-theatre", "/podcast-studio", "/celebrations", "/book", "/visit", "/policies", "/contact", "/podcast-studio-in-dhanbad", "/private-theatre-in-dhanbad"];
 const browser = await chromium.launch();
 for (const [gate, port] of [["gate-closed", 3100], ["gate-open", 3101]]) {
   mkdirSync(`docs/screenshots/${gate}`, { recursive: true });

@@ -42,12 +42,16 @@ export function SiteFooter({ t, biz, gateOpen }: { t: Dict; biz: PublicBusiness;
           <h2 className="mb-3 text-xs font-semibold uppercase tracking-widest text-faint">{t.footer.explore}</h2>
           <ul className="space-y-1">
             {[
-              ["/watch", t.nav.watch],
-              ["/create", t.nav.create],
-              ["/celebrate", t.nav.celebrate],
+              ["/private-theatre", t.nav.watch],
+              ["/podcast-studio", t.nav.create],
+              ["/celebrations", t.nav.celebrate],
+              ["/creator-plans", t.nav.plans],
+              ["/gallery", t.nav.gallery],
               ["/visit", t.nav.visit],
               ["/book", t.nav.book],
-              ["/policies", t.nav.policies],
+              ["/my-booking", t.nav.myBooking],
+              ["/about", t.nav.about],
+              ["/faqs", t.nav.faqs],
               ["/contact", t.nav.contact],
             ].map(([href, label]) => (
               <li key={href}>
@@ -61,6 +65,18 @@ export function SiteFooter({ t, biz, gateOpen }: { t: Dict; biz: PublicBusiness;
         <nav aria-label={t.footer.local} className="text-sm">
           <h2 className="mb-3 text-xs font-semibold uppercase tracking-widest text-faint">{t.footer.local}</h2>
           <ul className="space-y-1">
+            {[
+              ["/terms", t.nav.terms],
+              ["/privacy", t.nav.privacy],
+              ["/cancellation-refund", t.nav.refunds],
+              ["/policies", t.nav.policies],
+            ].map(([href, label]) => (
+              <li key={href}>
+                <Link href={href} className="inline-flex min-h-11 items-center text-muted hover:text-text">
+                  {label}
+                </Link>
+              </li>
+            ))}
             <li>
               <Link href="/podcast-studio-in-dhanbad" className="inline-flex min-h-11 items-center text-muted hover:text-text">
                 {t.seo.podcastTitle}
@@ -76,7 +92,7 @@ export function SiteFooter({ t, biz, gateOpen }: { t: Dict; biz: PublicBusiness;
           </ul>
         </nav>
       </div>
-      <p className="mx-auto max-w-[var(--ts-maxw)] px-4 text-xs text-faint">© 2026 {t.footer.rights}</p>
+      <p className="mx-auto max-w-[var(--ts-maxw)] px-4 text-xs text-faint">© 2026 {t.footer.rights} · {t.pages.endorsement}</p>
     </footer>
   );
 }

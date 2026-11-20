@@ -25,7 +25,7 @@ export default async function TheatreSeoPage() {
       intro={t.watch.intro}
       copy={theatreSeo(locale)}
       pkgs={packages.filter((p) => p.mode === "watch")}
-      ctaHref="/watch"
+      ctaHref="/private-theatre"
       hoursLabel={publicBusiness(locale).hoursLabel}
     />
   );

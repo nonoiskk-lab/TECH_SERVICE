@@ -28,15 +28,22 @@ export function Wordmark({ className = "" }: { className?: string }) {
 
 export function SiteHeader({ t, locale }: { t: Dict; locale: Locale }) {
   const links = [
-    { href: "/watch", label: t.nav.watch },
-    { href: "/create", label: t.nav.create },
-    { href: "/celebrate", label: t.nav.celebrate },
-    { href: "/visit", label: t.nav.visit },
-    { href: "/policies", label: t.nav.policies },
+    { href: "/private-theatre", label: t.nav.watch },
+    { href: "/podcast-studio", label: t.nav.create },
+    { href: "/celebrations", label: t.nav.celebrate },
+    { href: "/creator-plans", label: t.nav.plans },
+    { href: "/gallery", label: t.nav.gallery },
     { href: "/contact", label: t.nav.contact },
   ];
+  const more = [
+    { href: "/visit", label: t.nav.visit },
+    { href: "/about", label: t.nav.about },
+    { href: "/faqs", label: t.nav.faqs },
+    { href: "/my-booking", label: t.nav.myBooking },
+    { href: "/policies", label: t.nav.policies },
+  ];
   return (
-    <header className="sticky top-0 z-40 border-b border-line bg-white/90 backdrop-blur">
+    <header className="sticky top-0 z-40 border-b border-line bg-bg/85 backdrop-blur">
       <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-2 focus:rounded focus:bg-warm focus:px-3 focus:py-2 focus:text-warm-ink">
         {t.nav.skip}
       </a>
@@ -64,7 +71,7 @@ export function SiteHeader({ t, locale }: { t: Dict; locale: Locale }) {
               {t.nav.menu}
             </summary>
             <nav aria-label="Mobile" className="ts-card absolute right-0 mt-2 flex w-60 flex-col p-2 shadow-2xl">
-              {[{ href: "/", label: t.nav.home }, ...links].map((l) => (
+              {[{ href: "/", label: t.nav.home }, ...links, ...more].map((l) => (
                 <Link key={l.href} href={l.href} className="flex min-h-11 items-center rounded-lg px-3 hover:bg-raised">
                   {l.label}
                 </Link>

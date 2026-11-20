@@ -3,13 +3,20 @@ import { contact, isLegalGateOpen } from "@/config/site";
 import { missingLegalFields, policyStatus } from "@/config/policies";
 import { db } from "@/server/db";
 import { otpMode } from "@/server/otp";
+import { providerStatus } from "@/server/notify";
+import { dashboardMetrics } from "@/server/admin/metrics";
+import { requireRole } from "@/server/admin/auth";
+import { formatINR } from "@/lib/pricing";
 import { paymentMode } from "@/server/payments";
 import { addDays, istDateTime, istToday } from "@/server/slots/time";
 import { BookingTable } from "@/components/admin/booking-table";
 import { Card, H1 } from "@/components/admin/ui";
 
 export default async function AdminHome({ searchParams }: PageProps<"/admin">) {
+  await requireRole("dashboard");
   const sp = await searchParams;
+  const m = await dashboardMetrics();
+  const prov = providerStatus();
   const date = typeof sp.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(sp.date) ? sp.date : istToday();
   const from = istDateTime(date, "00:00");
   const to = istDateTime(addDays(date, 1), "00:00");
@@ -31,6 +38,10 @@ export default async function AdminHome({ searchParams }: PageProps<"/admin">) {
       ok: paymentMode() === "razorpay",
       note: { razorpay: "Razorpay keys set", mock: "Mock: no money is collected (test mode)", venue: "Pay at venue: no online advance until Razorpay keys are set" }[paymentMode()],
     },
+    { label: "WhatsApp Business API", ok: prov.whatsapp, note: prov.whatsapp ? "Connected" : "Not connected: messages wait in Messages" },
+    { label: "Email provider", ok: prov.email, note: prov.email ? "Connected" : "Not connected: messages wait in Messages" },
+    { label: "Razorpay webhook", ok: !!process.env.RAZORPAY_WEBHOOK_SECRET, note: process.env.RAZORPAY_WEBHOOK_SECRET ? "Secret set" : "RAZORPAY_WEBHOOK_SECRET missing" },
+    { label: "Scheduled jobs (reminders)", ok: !!process.env.CRON_SECRET, note: process.env.CRON_SECRET ? "CRON_SECRET set" : "CRON_SECRET missing" },
     {
       label: "OTP delivery",
       ok: otpMode() === "sms",
@@ -46,6 +57,24 @@ export default async function AdminHome({ searchParams }: PageProps<"/admin">) {
           <input type="date" name="date" defaultValue={date} className="ts-input w-auto" aria-label="Date" />
           <button className="ts-btn ts-btn-ghost text-sm">Show</button>
         </form>
+      </div>
+      {typeof sp.denied === "string" && <p className="ts-card mb-4 p-3 text-sm text-danger">Your role cannot open that page.</p>}
+      <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4" data-testid="kpis">
+        {[
+          ["Revenue this month", formatINR(m.revenueMonth)],
+          ["Revenue all time", formatINR(m.revenueAll)],
+          ["Upcoming 7 days", String(m.upcoming7)],
+          ["Pending payments", `${m.pendingPayments} · due ${formatINR(m.balanceDue)}`],
+          ["Theatre utilisation (7 days)", `${m.theatreUtil}%`],
+          ["Podcast utilisation (7 days)", `${m.studioUtil}%`],
+          ["New customers this month", String(m.newCustomers)],
+          ["Cancellations this month", `${m.cancelledMonth} of ${m.bookingsMonth} (${m.cancellationRate}%)`],
+        ].map(([k, v]) => (
+          <div key={k} className="ts-card p-4">
+            <p className="text-xs text-muted">{k}</p>
+            <p className="mt-1 font-heading text-2xl">{v}</p>
+          </div>
+        ))}
       </div>
       <div className="mb-6 grid gap-3 sm:grid-cols-3">
         <Link href="/admin/incidents" className="ts-card p-4 hover:border-warm">

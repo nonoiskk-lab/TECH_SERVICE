@@ -32,7 +32,7 @@ test("WhatsApp button opens wa.me with prefilled text", async ({ page }) => {
 });
 
 test("no horizontal scroll and 44px tap targets on key pages", async ({ page }) => {
-  for (const path of ["/", "/create", "/book", "/contact"]) {
+  for (const path of ["/", "/podcast-studio", "/book", "/contact"]) {
     await page.goto(path);
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
     expect(overflow, `${path} overflows`).toBeLessThanOrEqual(0);

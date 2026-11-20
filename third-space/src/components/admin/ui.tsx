@@ -11,6 +11,15 @@ export function fmtTime(d: Date) {
 
 const STATUS_COLORS: Record<string, string> = {
   confirmed: "border-warm text-warm",
+  pending_payment: "border-danger text-danger",
+  in_progress: "border-ok text-ok",
+  refund_pending: "border-danger text-danger",
+  refunded: "border-line text-muted",
+  rescheduling: "border-line text-muted",
+  captured: "border-ok text-ok",
+  created: "border-warm text-warm",
+  failed: "border-danger text-danger",
+  pending: "border-warm text-warm",
   checked_in: "border-ok text-ok",
   completed: "border-line text-muted",
   cancelled: "border-line text-faint line-through",
@@ -57,4 +66,8 @@ export const inputCls = "ts-input";
 /** Hours from now until `d` (negative if past). Server-side helper. */
 export function hoursUntil(d: Date) {
   return (d.getTime() - Date.now()) / 3600_000;
+}
+
+export function minutesAgo(n: number) {
+  return new Date(Date.now() - n * 60_000);
 }

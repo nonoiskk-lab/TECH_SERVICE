@@ -21,7 +21,7 @@ export function PriceList({ pkgs, t, locale }: { pkgs: Package[]; t: Dict; local
           {rows.map((p) => (
             <tr key={p.id} className="border-t border-line/60 align-top">
               <td className="px-4 py-3">
-                <Link href={p.mode === "celebrate" ? "/celebrate" : p.mode === "watch" ? "/watch" : `/book?package=${p.id}`} className="font-semibold hover:text-warm">
+                <Link href={p.mode === "celebrate" ? "/celebrations" : p.mode === "watch" ? "/private-theatre" : `/book?package=${p.id}`} className="font-semibold hover:text-warm">
                   {tl(p.priceList!.label, locale)}
                 </Link>
                 <span className="block text-muted">{tl(p.priceList!.includes, locale)}</span>

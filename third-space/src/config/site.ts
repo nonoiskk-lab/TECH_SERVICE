@@ -79,7 +79,7 @@ function env(name: string): string {
 
 export const site = {
   brand: "THIRD SPACE",
-  tagline: "THINK • SPEAK • INSPIRE",
+  tagline: "Your Voice. Your Space. Your Story.",
   city: "Dhanbad",
   region: "Jharkhand",
   country: "IN",

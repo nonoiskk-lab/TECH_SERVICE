@@ -100,7 +100,7 @@ export function BookingCalendar({
                 isSel
                   ? "bg-gold font-semibold text-on-gold"
                   : status === "available"
-                    ? "border border-line bg-white text-text hover:border-gold"
+                    ? "border border-line bg-card text-text hover:border-gold"
                     : status === "full"
                       ? "bg-raised text-faint line-through"
                       : "text-faint/60"
@@ -113,7 +113,7 @@ export function BookingCalendar({
       </div>
       <div className="mt-3 flex flex-wrap gap-4 text-xs text-muted">
         <span className="inline-flex items-center gap-1.5">
-          <span className="h-3 w-3 rounded border border-line bg-white" />
+          <span className="h-3 w-3 rounded border border-line bg-card" />
           {t.book.calendarLegend.available}
         </span>
         <span className="inline-flex items-center gap-1.5">

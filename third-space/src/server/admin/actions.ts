@@ -5,21 +5,37 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { db } from "@/server/db";
 import { audit } from "@/server/audit";
-import { checkPassword, endSession, requireStaff, startSession } from "./auth";
+import { notifyBooking } from "@/server/notify";
+import { checkPassword, endSession, requireStaff, startSession, verifyPassword, type Role } from "./auth";
+import { clientKey, rateLimit } from "@/server/rate-limit";
 
 export type ActionState = { error?: string; ok?: string } | undefined;
 
 const str = (f: FormData, k: string) => String(f.get(k) ?? "").trim();
 
 export async function loginAction(_: ActionState, f: FormData): Promise<ActionState> {
-  const name = str(f, "name");
-  if (name.length < 2) return { error: "Enter your name." };
-  if (!checkPassword(str(f, "password"))) {
-    await audit(null, name.slice(0, 40), "admin.login_failed", "Admin");
+  const id = str(f, "name");
+  const password = str(f, "password");
+  if (id.length < 2) return { error: "Enter your email (or your name for the owner login)." };
+  if (!(await rateLimit(await clientKey("login"), 10, 900))) return { error: "Too many attempts. Wait 15 minutes." };
+  if (id.includes("@")) {
+    const u = await db.staffUser.findUnique({ where: { email: id.toLowerCase() } });
+    if (!u || !u.active || !(await verifyPassword(password, u.passwordHash))) {
+      await audit(null, id.slice(0, 60), "admin.login_failed", "Admin");
+      return { error: "Wrong email or password." };
+    }
+    await db.staffUser.update({ where: { id: u.id }, data: { lastLoginAt: new Date() } });
+    await startSession({ id: u.id, name: u.name, role: u.role as Role });
+    await audit(null, u.name, "admin.login", "Admin", u.id, { role: u.role });
+    redirect("/admin");
+  }
+  // Bootstrap owner login: shared ADMIN_PASSWORD + a name (Super Admin).
+  if (!checkPassword(password)) {
+    await audit(null, id.slice(0, 40), "admin.login_failed", "Admin");
     return { error: "Wrong password." };
   }
-  await startSession(name.slice(0, 40));
-  await audit(null, name.slice(0, 40), "admin.login", "Admin");
+  await startSession({ id: "bootstrap", name: id.slice(0, 40), role: "super_admin" });
+  await audit(null, id.slice(0, 40), "admin.login", "Admin", null, { role: "super_admin", via: "owner password" });
   redirect("/admin");
 }
 
@@ -37,7 +53,7 @@ function refresh(id?: string) {
 
 /** Check-in with the minimal age record from policy section 1: a count, never ID numbers or images. */
 export async function checkInAction(_: ActionState, f: FormData): Promise<ActionState> {
-  const who = await requireStaff();
+  const who = await requireStaff("checkin");
   const id = str(f, "bookingId");
   const b = await db.booking.findUnique({ where: { id } });
   if (!b) return { error: "Booking not found." };
@@ -52,7 +68,7 @@ export async function checkInAction(_: ActionState, f: FormData): Promise<Action
 }
 
 export async function balancePaidAction(f: FormData) {
-  const who = await requireStaff();
+  const who = await requireStaff("checkin");
   const id = str(f, "bookingId");
   await db.booking.update({ where: { id }, data: { balancePaidAt: new Date() } });
   await audit(null, who, "booking.balance_paid", "Booking", id, { method: str(f, "method") || "venue" });
@@ -60,7 +76,7 @@ export async function balancePaidAction(f: FormData) {
 }
 
 export async function setStatusAction(f: FormData) {
-  const who = await requireStaff();
+  const who = await requireStaff("checkin");
   const id = str(f, "bookingId");
   const status = z.enum(["completed", "no_show"]).parse(str(f, "status"));
   await db.booking.update({ where: { id }, data: { status } });
@@ -69,23 +85,26 @@ export async function setStatusAction(f: FormData) {
 }
 
 export async function cancelAction(_: ActionState, f: FormData): Promise<ActionState> {
-  const who = await requireStaff();
+  const who = await requireStaff("bookings.manage");
   const id = str(f, "bookingId");
   const b = await db.booking.findUnique({ where: { id } });
-  if (!b || ["cancelled", "stopped"].includes(b.status)) return { error: "Booking cannot be cancelled." };
+  if (!b || ["cancelled", "stopped", "refund_pending", "refunded", "completed"].includes(b.status)) return { error: "Booking cannot be cancelled." };
   const reason = str(f, "reason");
   const refund = Number(str(f, "refundAmount"));
   if (reason.length < 3) return { error: "Write a short reason." };
   if (!Number.isInteger(refund) || refund < 0 || refund > b.advancePaid) return { error: `Refund must be between 0 and ${b.advancePaid}.` };
-  await db.booking.update({ where: { id }, data: { status: "cancelled", cancelledAt: new Date(), cancelReason: reason, refundAmount: refund } });
+  const status = refund > 0 ? "refund_pending" : "cancelled";
+  await db.booking.update({ where: { id }, data: { status, cancelledAt: new Date(), cancelReason: reason, refundAmount: refund, holdId: null } });
+  await db.hold.deleteMany({ where: { id: b.holdId ?? "" } });
   await audit(null, who, "booking.cancelled", "Booking", id, { reason, refundAmount: refund, suggested: str(f, "suggested") });
+  await notifyBooking(id, "cancelled");
   refresh(id);
-  return { ok: `Cancelled. Refund ₹${refund} through the payment provider.` };
+  return { ok: refund > 0 ? `Cancelled. Refund ₹${refund} is pending: pay it in Razorpay, then mark it refunded.` : "Cancelled." };
 }
 
 /** Stop a session for a rule breach (policy sections 7 and 8). Always opens an incident. */
 export async function stopSessionAction(_: ActionState, f: FormData): Promise<ActionState> {
-  const who = await requireStaff();
+  const who = await requireStaff("checkin");
   const id = str(f, "bookingId");
   const b = await db.booking.findUnique({ where: { id } });
   if (!b) return { error: "Booking not found." };
@@ -125,7 +144,7 @@ const IncidentForm = z.object({
 });
 
 export async function createIncidentAction(_: ActionState, f: FormData): Promise<ActionState> {
-  const who = await requireStaff();
+  const who = await requireStaff("incidents");
   const parsed = IncidentForm.safeParse({
     bookingId: str(f, "bookingId") || undefined,
     occurredAt: str(f, "occurredAt"),
@@ -155,7 +174,7 @@ export async function createIncidentAction(_: ActionState, f: FormData): Promise
 }
 
 export async function updateIncidentAction(_: ActionState, f: FormData): Promise<ActionState> {
-  const who = await requireStaff();
+  const who = await requireStaff("incidents");
   const id = str(f, "incidentId");
   const inc = await db.incident.findUnique({ where: { id } });
   if (!inc) return { error: "Incident not found." };
@@ -178,7 +197,7 @@ export async function updateIncidentAction(_: ActionState, f: FormData): Promise
 }
 
 export async function createBlockAction(_: ActionState, f: FormData): Promise<ActionState> {
-  const who = await requireStaff();
+  const who = await requireStaff("calendar");
   const resource = z.enum(["room", "studio"]).safeParse(str(f, "resource"));
   const date = str(f, "date");
   const from = str(f, "from");
@@ -198,7 +217,7 @@ export async function createBlockAction(_: ActionState, f: FormData): Promise<Ac
 }
 
 export async function deleteBlockAction(f: FormData) {
-  const who = await requireStaff();
+  const who = await requireStaff("calendar");
   const id = str(f, "blockId");
   await db.slotBlock.delete({ where: { id } });
   await audit(null, who, "slot.unblocked", "SlotBlock", id);
@@ -206,7 +225,7 @@ export async function deleteBlockAction(f: FormData) {
 }
 
 export async function leadStatusAction(f: FormData) {
-  const who = await requireStaff();
+  const who = await requireStaff("leads");
   const id = str(f, "leadId");
   const status = z.enum(["new", "contacted", "closed"]).parse(str(f, "status"));
   await db.lead.update({ where: { id }, data: { status } });
@@ -215,7 +234,7 @@ export async function leadStatusAction(f: FormData) {
 }
 
 export async function notificationSentAction(f: FormData) {
-  const who = await requireStaff();
+  const who = await requireStaff("notifications");
   const id = str(f, "notificationId");
   await db.notification.update({ where: { id }, data: { status: "sent", sentAt: new Date() } });
   await audit(null, who, "notification.sent_manually", "Notification", id);
@@ -224,7 +243,7 @@ export async function notificationSentAction(f: FormData) {
 
 /** Add a licensed title. A licence reference is mandatory (Private Theatre addendum). */
 export async function createTitleAction(_: ActionState, f: FormData): Promise<ActionState> {
-  const who = await requireStaff();
+  const who = await requireStaff("packages");
   const name = str(f, "name");
   const runtime = Number(str(f, "runtimeMinutes"));
   const licenceRef = str(f, "licenceRef");
@@ -241,7 +260,7 @@ export async function createTitleAction(_: ActionState, f: FormData): Promise<Ac
 }
 
 export async function toggleTitleAction(f: FormData) {
-  const who = await requireStaff();
+  const who = await requireStaff("packages");
   const id = str(f, "titleId");
   const t = await db.title.findUnique({ where: { id } });
   if (!t) return;

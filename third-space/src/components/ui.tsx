@@ -44,7 +44,7 @@ export function PageHeader({
           {intro && <p className="mt-5 max-w-2xl text-lg text-muted">{intro}</p>}
         </div>
         {art && (
-          <div aria-hidden="true" className="hidden aspect-[4/3] overflow-hidden rounded-[var(--ts-radius)] shadow-xl ring-8 ring-white md:block">
+          <div aria-hidden="true" className="hidden aspect-[4/3] overflow-hidden rounded-[var(--ts-radius)] shadow-xl ring-8 ring-[var(--ts-bg)] md:block">
             {art}
           </div>
         )}

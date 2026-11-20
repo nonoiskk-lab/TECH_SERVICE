@@ -116,7 +116,7 @@ test("server refuses a booking without the mandatory declaration", async ({ requ
 });
 
 test("birthday/anniversary experience books in the room with a theme and add-ons", async ({ page }, info) => {
-  await page.goto("/celebrate");
+  await page.goto("/celebrations");
   await page.getByRole("radio", { name: "Anniversary", exact: true }).check();
   await chooseDate(page, 3 + (isOpen(info) ? 10 : 0));
   await page.getByTestId("addon-fog-entry").check();

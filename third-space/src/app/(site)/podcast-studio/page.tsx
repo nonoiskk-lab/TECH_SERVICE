@@ -11,7 +11,7 @@ import { BookingFlow } from "@/components/booking-flow";
 
 export async function generateMetadata(): Promise<Metadata> {
   const { t } = await getDict();
-  return { title: t.create.metaTitle, description: t.create.metaDescription, alternates: { canonical: "/create" } };
+  return { title: t.create.metaTitle, description: t.create.metaDescription, alternates: { canonical: "/podcast-studio" } };
 }
 
 export default async function CreatePage() {

@@ -15,16 +15,16 @@ export default async function LoginPage() {
       {adminEnabled() ? (
         <ActionForm action={loginAction} submit="Log in" testId="admin-login">
           <label className="block">
-            <span className="mb-1 block text-sm text-muted">Your name</span>
-            <input name="name" className="ts-input" autoComplete="name" required data-testid="admin-name" />
+            <span className="mb-1 block text-sm text-muted">Email (or your name with the owner password)</span>
+            <input name="name" className="ts-input" autoComplete="username" required data-testid="admin-name" />
           </label>
           <label className="block">
-            <span className="mb-1 block text-sm text-muted">Staff password</span>
+            <span className="mb-1 block text-sm text-muted">Password</span>
             <input name="password" type="password" className="ts-input" autoComplete="current-password" required data-testid="admin-password" />
           </label>
         </ActionForm>
       ) : (
-        <p className="ts-card p-4 text-sm text-muted">The admin panel is off. Set ADMIN_PASSWORD and AUTH_SECRET on the server to turn it on.</p>
+        <p className="ts-card p-4 text-sm text-muted">The admin panel is off. Set AUTH_SECRET (and ADMIN_PASSWORD for the first owner login) on the server.</p>
       )}
     </main>
   );

@@ -87,7 +87,7 @@ const sitemapPaths = [...sitemap.body.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) 
 if (gate === "closed" && SCREENING.test(sitemap.body + sitemapPaths.join(" "))) fail("sitemap.xml", "mentions screenings while gate is closed");
 if (gate === "closed" && sitemapPaths.some((p) => /watch|theatre/.test(p))) fail("sitemap.xml", "lists a Theatre page while gate is closed");
 
-const queue = [...new Set(["/", ...sitemapPaths, "/watch", "/celebrate", "/visit", "/book", "/policies", "/policies/safety", "/policies/podcast", "/policies/creator", "/contact"])];
+const queue = [...new Set(["/", ...sitemapPaths, "/private-theatre", "/celebrations", "/visit", "/book", "/policies", "/policies/safety", "/policies/podcast", "/policies/creator", "/contact"])];
 const seen = new Set();
 const consistency = { phone: new Set(), address: new Set(), hours: new Set(), email: new Set() };
 

@@ -15,6 +15,7 @@ const contactEnv = {
   PAYMENTS_MODE: "mock",
   RATE_LIMIT_DISABLED: "1",
   OTP_MODE: "mock",
+  RAZORPAY_WEBHOOK_SECRET: "test-webhook-secret",
 };
 
 const use = { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, deviceScaleFactor: 2 };

@@ -1,47 +1,36 @@
 /*
- * THIRD SPACE brand tokens (v2, light studio look).
- * Light grey page, white cards, warm gold accent, near-black headings,
- * dark footer. Components use only these variables.
- *
- * Gold has two roles: --ts-gold is the fill for buttons and highlights
- * (with dark text on it); --ts-warm is the darker gold used for text so it
- * stays readable (≥4.5:1 on white).
+ * THIRD SPACE brand tokens (v3, cinematic, per the master project prompt).
+ *   Midnight Black #11100F · Deep Espresso #201A17 · Champagne Gold #C69B55 · Warm Ivory #F3E9D8
+ * Gold text on midnight black is 7.4:1; ivory text is 15:1.
  */
 :root {
-  --ts-bg: #f6f6f6;
-  --ts-bg-card: #ffffff;
-  --ts-bg-raised: #f7f1e6;      /* warm tint for selected rows and highlights */
-  --ts-line: #e3e0da;
-  --ts-text: #1c1c1d;
-  --ts-text-muted: #55545a;
-  --ts-text-faint: #6b6970;
-  --ts-gold: #caa05c;           /* fills */
-  --ts-gold-strong: #b98d47;
-  --ts-warm: #8a6428;           /* gold text */
-  --ts-warm-strong: #6f4f1c;
-  --ts-warm-ink: #ffffff;       /* text on --ts-warm fills */
-  --ts-on-gold: #1c1c1d;        /* text on --ts-gold fills */
-  --ts-ok: #23704a;
-  --ts-danger: #b3261e;
-  --ts-glow: 0 1px 2px rgba(28, 28, 29, 0.04), 0 12px 32px -16px rgba(28, 28, 29, 0.18);
-  --ts-radius: 24px;
-  --ts-radius-sm: 14px;
+  --ts-bg: #11100f;            /* Midnight Black */
+  --ts-bg-card: #201a17;       /* Deep Espresso */
+  --ts-bg-raised: #2a221d;     /* espresso, one step up (selected rows, inputs) */
+  --ts-line: #3a302a;
+  --ts-text: #f3e9d8;          /* Warm Ivory */
+  --ts-text-muted: #d4c7b3;
+  --ts-text-faint: #a89a86;
+  --ts-gold: #c69b55;          /* Champagne Gold: fills */
+  --ts-gold-strong: #d6ad6a;
+  --ts-warm: #d2a965;          /* gold text */
+  --ts-warm-strong: #e2bf86;
+  --ts-warm-ink: #11100f;
+  --ts-on-gold: #11100f;
+  --ts-ok: #8fd19e;
+  --ts-danger: #ff9b8c;
+  --ts-glow: 0 0 0 1px rgba(198, 155, 85, 0.16), 0 20px 50px -24px rgba(198, 155, 85, 0.35);
+  --ts-radius: 22px;
+  --ts-radius-sm: 12px;
   --ts-tap: 44px;
-  --ts-maxw: 1180px;
+  --ts-maxw: 1200px;
 }
 
-/* Dark surfaces (footer, banners): the same tokens, inverted. */
+/* Sections that sit one step deeper (footer, feature bands). */
 .ts-dark {
-  --ts-bg: #1c1c1d;
-  --ts-bg-card: #262628;
-  --ts-bg-raised: #2d2c2a;
-  --ts-line: #3b3a37;
-  --ts-text: #f4f2ee;
-  --ts-text-muted: #cfcbc4;
-  --ts-text-faint: #aeaaa2;
-  --ts-warm: #e0bd84;
-  --ts-warm-strong: #ecd0a3;
-  --ts-warm-ink: #1c1c1d;
+  --ts-bg: #0b0a09;
+  --ts-bg-card: #1a1512;
+  --ts-bg-raised: #241d18;
   background: var(--ts-bg);
   color: var(--ts-text);
 }

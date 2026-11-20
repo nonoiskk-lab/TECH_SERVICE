@@ -12,7 +12,7 @@ test.describe("Legal Gate closed", () => {
   });
 
   test("watch page shows coming soon, no packages, noindex", async ({ page }) => {
-    await page.goto("/watch");
+    await page.goto("/private-theatre");
     await expect(page.getByTestId("watch-closed")).toBeVisible();
     await expect(page.locator('[data-testid^="package-theatre"]')).toHaveCount(0);
     await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
@@ -26,12 +26,12 @@ test.describe("Legal Gate closed", () => {
     expect((await request.get("/private-theatre-in-dhanbad")).status()).toBe(404);
     expect((await request.get("/policies/theatre")).status()).toBe(404);
     const sitemap = await (await request.get("/sitemap.xml")).text();
-    expect(sitemap).not.toContain("/watch");
+    expect(sitemap).not.toContain("/private-theatre");
     expect(sitemap).not.toContain("theatre");
   });
 
   test("celebrations stay bookable without any screening", async ({ page }) => {
-    await page.goto("/celebrate");
+    await page.goto("/celebrations");
     await expect(page.getByTestId("booking-flow")).toBeVisible();
     await expect(page.getByTestId("title-select")).toHaveCount(0);
     await expect(page.getByTestId("price-list")).toHaveCount(0); // price list lives on the home page
@@ -52,7 +52,7 @@ test.describe("Legal Gate open", () => {
     await page.goto("/");
     await expect(page.getByTestId("gate-banner")).toHaveCount(0);
     await expect(page.getByTestId("from-price")).toHaveText("₹799"); // minimum booking price
-    await page.goto("/watch");
+    await page.goto("/private-theatre");
     await expect(page.getByTestId("package-theatre-classic").getByTestId("package-price")).toHaveText("₹1,699");
     await expect(page.getByTestId("package-theatre-premium").getByTestId("package-price")).toHaveText("₹2,699");
     await expect(page.getByTestId("package-family").getByTestId("package-price")).toHaveText("₹6,999");
@@ -69,13 +69,13 @@ test.describe("Legal Gate open", () => {
     ]) {
       await expect(list.locator("tr", { hasText: label })).toContainText(price);
     }
-    await page.goto("/watch");
+    await page.goto("/private-theatre");
     await expect(page.getByTestId("content-rule")).toBeVisible();
   });
 
   test("movie length decides theatre time and price; theatre books with a title", async ({ page }) => {
     const name = await addTitle(page, 120);
-    await page.goto("/watch");
+    await page.goto("/private-theatre");
     // 120 min + 30 setup = 2h 30m. Cinema ₹850/hr → ₹2,125; Premium ₹1,350/hr → ₹3,375 (both above their starting prices).
     const card = page.getByTestId("title-list").locator("li", { hasText: name }).first();
     await expect(card).toContainText("2h 30m");
