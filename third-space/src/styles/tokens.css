@@ -1,0 +1,83 @@
+/*
+ * THIRD SPACE brand tokens (v3, cinematic, per the master project prompt).
+ *   Midnight Black #11100F · Deep Espresso #201A17 · Champagne Gold #C69B55 · Warm Ivory #F3E9D8
+ * Gold text on midnight black is 7.4:1; ivory text is 15:1.
+ */
+:root {
+  /* v5 — light, Perfect-Venue-style structure in THIRD SPACE colours (docs/audit DOCUMENT 11). */
+  --ts-bg: #ffffff;
+  --ts-bg-card: #ffffff;
+  --ts-bg-raised: #f7f2ea;     /* inputs, selected rows */
+  --ts-line: #e8e0d4;
+  --ts-text: #222222;
+  --ts-text-muted: #585858;
+  --ts-text-faint: #7a7a7a;
+  --ts-gold: #c69b55;          /* Champagne Gold: primary fill */
+  --ts-gold-strong: #b5883f;   /* primary hover */
+  --ts-warm: #8a6428;          /* gold text on white, 5.4:1 */
+  --ts-warm-strong: #6f4f1d;
+  --ts-warm-ink: #11100f;
+  --ts-on-gold: #11100f;
+  --ts-espresso: #201a17;      /* dark bands (title banners, feature band, form panel) */
+  --ts-ivory: #f7efe4;         /* alternating light band */
+  --ts-ok: #2f7a43;
+  --ts-danger: #b3261e;
+  --ts-glow: 0 1px 10px rgba(32, 26, 23, 0.10);
+  --ts-radius: 14px;
+  --ts-radius-sm: 8px;
+  --ts-tap: 44px;
+  --ts-maxw: 1200px;
+
+  --ts-btn-radius: 6px;
+  --ts-btn-h: 44px;          /* nav + default */
+  --ts-btn-h-lg: 60px;       /* hero + section CTA */
+  --ts-section-y: 64px;
+  --ts-section-y-lg: 110px;
+  --ts-ease: cubic-bezier(.2, .7, .2, 1);
+  --ts-dur: 400ms;
+  --ts-shadow-card: 0 1px 10px rgba(179, 168, 153, 0.35);
+  --ts-shadow-nav: 0 0 20px rgba(0, 0, 0, 0.08);
+}
+
+
+/* Ivory band (alternating light section). */
+.ts-band-light {
+  --ts-bg: #f7efe4;
+  background: var(--ts-bg);
+  color: var(--ts-text);
+}
+
+/* Dark espresso band: title banners, feature band, form panels. Cards inside it stay white. */
+.ts-band-dark, .ts-dark {
+  --ts-bg: #201a17;
+  --ts-bg-raised: #2c2420;
+  --ts-line: rgba(243, 233, 216, 0.18);
+  --ts-text: #f3e9d8;
+  --ts-text-muted: #e0d4c1;
+  --ts-text-faint: #bfb19c;
+  --ts-warm: #d6ad6a;
+  --ts-warm-strong: #e2bf86;
+  background: var(--ts-bg);
+  color: var(--ts-text);
+}
+.ts-band-dark .ts-card, .ts-dark .ts-card {
+  --ts-bg-card: #ffffff;
+  --ts-bg-raised: #f7f2ea;
+  --ts-line: #e8e0d4;
+  --ts-text: #222222;
+  --ts-text-muted: #585858;
+  --ts-text-faint: #7a7a7a;
+  --ts-warm: #8a6428;
+  color: var(--ts-text);
+}
+
+/* Gold statement band. */
+.ts-band-gold {
+  --ts-bg: #c69b55;
+  --ts-text: #11100f;
+  --ts-text-muted: #2a221d;
+  --ts-warm: #11100f;
+  --ts-line: rgba(17, 16, 15, .25);
+  background: var(--ts-bg);
+  color: var(--ts-text);
+}

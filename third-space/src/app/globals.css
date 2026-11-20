@@ -1,0 +1,129 @@
+@import "tailwindcss";
+@import "../styles/tokens.css";
+
+@theme inline {
+  --font-heading: var(--font-serif), ui-serif, Georgia, serif;
+  --font-sans: var(--font-inter), var(--font-devanagari), ui-sans-serif, system-ui, sans-serif;
+  --color-bg: var(--ts-bg);
+  --color-raised: var(--ts-bg-raised);
+  --color-card: var(--ts-bg-card);
+  --color-line: var(--ts-line);
+  --color-text: var(--ts-text);
+  --color-muted: var(--ts-text-muted);
+  --color-faint: var(--ts-text-faint);
+  --color-warm: var(--ts-warm);
+  --color-warm-strong: var(--ts-warm-strong);
+  --color-warm-ink: var(--ts-warm-ink);
+  --color-gold: var(--ts-gold);
+  --color-on-gold: var(--ts-on-gold);
+  --color-ok: var(--ts-ok);
+  --color-danger: var(--ts-danger);
+}
+
+html {
+  color-scheme: light;
+  background: var(--ts-bg);
+}
+body {
+  background: var(--ts-bg);
+  color: var(--ts-text);
+  -webkit-font-smoothing: antialiased;
+}
+h1, h2, h3 {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  line-height: 1.1;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+
+:focus-visible {
+  outline: 2px solid var(--ts-warm);
+  outline-offset: 2px;
+}
+@layer components {
+.ts-glow { box-shadow: var(--ts-glow); }
+h1 { font-weight: 800; }
+.ts-hero-bg { background: var(--ts-bg); }
+/* Buttons: 6px radius; filled gold + outlined gold pair; colour transitions 0.4s, no movement on hover. */
+.ts-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: .5rem;
+  min-height: var(--ts-btn-h); padding: 0 1.1rem; border-radius: var(--ts-btn-radius);
+  font-family: var(--font-sans); font-weight: 500; font-size: 1rem; line-height: 1.2; text-align: center;
+  border: 2px solid transparent;
+  transition: background-color var(--ts-dur), border-color var(--ts-dur), color var(--ts-dur), box-shadow var(--ts-dur);
+}
+.ts-btn-primary { background: var(--ts-gold); color: var(--ts-on-gold); }
+.ts-btn-primary:hover { background: var(--ts-gold-strong); }
+.ts-btn-ghost { border-color: var(--ts-gold); color: var(--ts-warm); background: transparent; }
+.ts-btn-ghost:hover { background: color-mix(in srgb, var(--ts-gold) 15%, transparent); }
+.ts-btn-dark { border-color: var(--ts-text); color: var(--ts-text); background: transparent; border-width: 1px; }
+.ts-btn-dark:hover { background: var(--ts-gold); border-color: var(--ts-gold); color: var(--ts-on-gold); }
+.ts-btn-white { background: #fff; color: var(--ts-warm-strong); }
+.ts-btn-white:hover { background: #fffaf2; }
+.ts-btn:active:not([disabled]) { transform: translateY(1px); }
+.ts-btn:focus-visible { outline: 2px solid var(--ts-gold); outline-offset: 3px; }
+.ts-btn-lg { min-height: var(--ts-btn-h-lg); padding: 0 1.85rem; font-size: 1.125rem; }
+.ts-btn-text { min-height: var(--ts-tap); padding: 0; border: 0; color: var(--ts-warm); background: none; font-weight: 700; }
+.ts-btn-text:hover { color: var(--ts-warm-strong); text-decoration: underline; text-underline-offset: 4px; }
+.ts-band-gold .ts-btn-primary { background: #fff; color: var(--ts-warm-strong); }
+.ts-band-gold .ts-btn-primary:hover { background: #fffaf2; }
+.ts-band-dark .ts-btn-ghost, .ts-dark .ts-btn-ghost { border-color: var(--ts-warm); color: var(--ts-text); }
+.ts-btn-arrow::after { content: none; }
+.ts-btn[disabled], .ts-btn[aria-disabled="true"] { opacity: .5; cursor: not-allowed; }
+/* White cards with a soft shadow (borderless look). */
+.ts-card { background: var(--ts-bg-card); border: 1px solid var(--ts-line); border-radius: var(--ts-radius); box-shadow: var(--ts-shadow-card); }
+.ts-card-hover { transition: box-shadow var(--ts-dur), border-color var(--ts-dur); }
+.ts-card-hover:hover { box-shadow: 0 10px 30px -12px rgba(32, 26, 23, .35); border-color: var(--ts-gold); }
+/* Round icon disc with a soft tint. */
+.ts-icon {
+  display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
+  width: 56px; height: 56px; border-radius: 999px;
+  background: color-mix(in srgb, var(--ts-gold) 18%, #fff); color: var(--ts-warm);
+}
+.ts-section { padding-block: var(--ts-section-y); }
+@media (min-width: 1024px) { .ts-section { padding-block: var(--ts-section-y-lg); } }
+.ts-num { font-family: var(--font-heading); font-weight: 800; font-size: 2.5rem; line-height: 1; color: var(--ts-warm); }
+.ts-badge {
+  display: inline-flex; align-items: center; gap: .35rem; min-height: 24px; padding: 0 .6rem; border-radius: 6px;
+  font-size: .68rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase;
+  background: var(--ts-gold); color: var(--ts-on-gold);
+}
+/* Short accent rule under centred headings. */
+.ts-divider { display: block; width: 56px; height: 2px; margin: 1.25rem auto 0; background: var(--ts-gold); border-radius: 2px; }
+/* Organic image frame with a gold outline. */
+.ts-blob { border-radius: 58% 42% 55% 45% / 46% 56% 44% 54%; overflow: hidden; box-shadow: 0 0 0 6px #fff, 0 0 0 8px var(--ts-gold); }
+/* Gold highlight behind a key phrase. */
+.ts-mark { background: linear-gradient(transparent 62%, color-mix(in srgb, var(--ts-gold) 45%, transparent) 62%); }
+.ts-table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+.ts-table th, .ts-table td { padding: .8rem .9rem; border-bottom: 1px solid var(--ts-line); text-align: left; vertical-align: top; }
+.ts-table thead th { font-size: .72rem; letter-spacing: .14em; text-transform: uppercase; color: var(--ts-text-faint); font-weight: 700; }
+.ts-input {
+  width: 100%; min-height: var(--ts-tap); padding: .5rem .875rem; border-radius: var(--ts-radius-sm);
+  background: #fff; border: 1px solid var(--ts-line); color: #222;
+}
+.ts-input:focus { border-color: var(--ts-gold); outline: none; box-shadow: 0 0 0 3px rgba(198, 155, 85, .3); }
+.ts-prose p + p { margin-top: .75rem; }
+/* Eyebrow label with the gold dot. */
+/* Small uppercase label above headings. */
+.ts-eyebrow {
+  display: inline-flex; align-items: center; gap: .5rem;
+  font-size: .72rem; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; color: var(--ts-text-faint);
+}
+}
+
+/* Scroll reveal: a small rise only (never opacity), so content is visible without JS, in print and in captures. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .ts-reveal { animation: ts-reveal linear both; animation-timeline: view(); animation-range: entry 0% entry 40%; }
+    @keyframes ts-reveal { from { transform: translateY(18px); } to { transform: none; } }
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .ts-pulse { animation: ts-pulse 3s ease-in-out infinite; }
+  @keyframes ts-pulse { 50% { opacity: .65; } }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+}

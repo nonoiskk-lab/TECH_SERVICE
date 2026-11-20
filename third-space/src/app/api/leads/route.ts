@@ -1,0 +1,25 @@
+import { z } from "zod";
+import { enquiryPurposes, isLegalGateOpen } from "@/config/site";
+import { db } from "@/server/db";
+import { json } from "@/lib/api";
+import { notifyEnquiry } from "@/server/notify";
+
+const Body = z.object({
+  purpose: z.string(),
+  name: z.string().trim().min(2).max(80),
+  phone: z.string().regex(/^[6-9]\d{9}$/),
+  message: z.string().trim().max(1000).default(""),
+  source: z.string().max(60).default("contact"),
+  utm: z.record(z.string(), z.string().max(120)).default({}),
+});
+
+export async function POST(req: Request) {
+  const parsed = Body.safeParse(await req.json().catch(() => null));
+  if (!parsed.success) return json({ error: "BAD_REQUEST" }, 400);
+  const purpose = enquiryPurposes.find((p) => p.id === parsed.data.purpose && (!p.gated || isLegalGateOpen()));
+  if (!purpose) return json({ error: "BAD_PURPOSE" }, 400);
+  const lead = await db.lead.create({ data: parsed.data });
+  // Acknowledge on WhatsApp when a provider is configured; never blocks the response on failure.
+  await notifyEnquiry(parsed.data.phone, parsed.data.name).catch(() => undefined);
+  return json({ ok: true, id: lead.id }, 201);
+}
