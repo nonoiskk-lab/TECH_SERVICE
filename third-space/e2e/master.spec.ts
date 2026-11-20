@@ -6,7 +6,7 @@ const WEBHOOK_SECRET = "test-webhook-secret";
 
 /** Creates a pending (online, mock-provider) podcast booking through the public API. */
 async function pendingBooking(request: APIRequestContext, dayOffset: number, phone: string) {
-  for (let k = dayOffset; k < dayOffset + 40; k += 3) {
+  for (let k = dayOffset; k < dayOffset + 12; k++) {
     const day = new Date(Date.now() + k * 86400_000).toISOString().slice(0, 10);
     const slots = (await (await request.get(`/api/availability?date=${day}&packageId=podcast&duration=90`)).json()).slots as { start: string; status: string }[];
     const free = slots.find((s) => s.status === "available");
@@ -160,5 +160,87 @@ test.describe("Payments, My Booking and admin controls", () => {
     await expect(page.getByText("Your role cannot open that page.")).toBeVisible();
     const denied = await page.request.get("/admin/export/payments", { maxRedirects: 0 });
     expect(denied.status()).toBe(403);
+  });
+});
+
+test.describe("Customer account, dashboard and self-service reschedule", () => {
+  test.beforeEach(({}, info) => test.skip(isOpen(info), "runs once, on the gate-closed server"));
+
+  test("signup claims booking history only with the matching email; guest moves the booking", async ({ page, request }) => {
+    const phone = `98765${String(Date.now()).slice(-5)}`;
+    const b = await pendingBooking(request, 54, phone);
+    const evt = { event: "payment.captured", payload: { payment: { entity: { id: `pay_acc_${Date.now()}`, order_id: b.orderId } } } };
+    const { raw, sig } = signed(evt);
+    expect((await request.post("/api/webhooks/razorpay", { data: raw, headers: { "content-type": "application/json", "x-razorpay-signature": sig, "x-razorpay-event-id": `evt_acc_${Date.now()}` } })).status()).toBe(200);
+
+    // Wrong email cannot take over this phone's history.
+    await page.goto("/account/signup");
+    const f = page.getByTestId("account-signup");
+    await f.getByTestId("signup-name").fill("Account Guest");
+    await f.getByTestId("signup-phone").fill(phone);
+    await f.getByTestId("signup-email").fill("someone-else@thirdspace.in");
+    await f.getByTestId("signup-password").fill("guest-pass-123");
+    await f.getByTestId("signup-age").check();
+    await f.getByRole("button").click();
+    await expect(page.getByTestId("account-signup").getByRole("alert")).toContainText(/different email/);
+
+    const f2 = page.getByTestId("account-signup");
+    await f2.getByTestId("signup-email").fill("webhook@thirdspace.in");
+    await f2.getByTestId("signup-password").fill("guest-pass-123");
+    await f2.getByTestId("signup-age").check();
+    await f2.getByRole("button").click();
+    await expect(page).toHaveURL(/\/account$/);
+    const row = page.getByTestId("account-upcoming").getByTestId("account-booking").filter({ hasText: b.bookingId });
+    await expect(row).toBeVisible();
+
+    // Manage → reschedule to another free slot of the same length.
+    await row.getByRole("link").click();
+    await expect(page.getByTestId("reschedule-card")).toBeVisible();
+    const before = (await page.getByTestId("receipt").innerText()).replace(/\s+/g, " ");
+    const day = new Date(Date.now() + 57 * 86400_000).toISOString().slice(0, 10);
+    await page.getByTestId("reschedule-date").fill(day);
+    await page.getByTestId("reschedule-slot").first().click();
+    await page.getByTestId("reschedule-submit").click();
+    await expect(page.getByTestId("moved-done")).toBeVisible();
+    expect((await page.getByTestId("receipt").innerText()).replace(/\s+/g, " ")).not.toBe(before);
+    // Allowed once per booking (default rule): the card is gone now.
+    await expect(page.getByTestId("reschedule-card")).toHaveCount(0);
+
+    // Log out, then log in with the mobile number.
+    await page.goto("/account");
+    await page.getByTestId("account-logout").click();
+    await expect(page).toHaveURL(/\/account\/login/);
+    await page.getByTestId("login-id").fill(phone);
+    await page.getByTestId("login-password").fill("wrong-password");
+    await page.getByRole("button", { name: "Log in" }).click();
+    await expect(page.getByTestId("account-login").getByRole("alert")).toContainText(/Wrong/);
+    await page.getByTestId("login-password").fill("guest-pass-123");
+    await page.getByRole("button", { name: "Log in" }).click();
+    await expect(page).toHaveURL(/\/account$/);
+
+    // Signed-in guests get their details prefilled on the booking page.
+    await page.goto("/book?package=podcast");
+    await expect(page.getByTestId("guest-name")).toHaveValue("Account Guest");
+  });
+
+  test("account pages need a login", async ({ page }) => {
+    await page.goto("/account");
+    await expect(page).toHaveURL(/\/account\/login/);
+  });
+});
+
+test.describe("Pricing and Creative Studio pages", () => {
+  test("pricing compares every bookable package from the catalogue", async ({ page }, info) => {
+    await page.goto("/pricing");
+    await expect(page.getByTestId("compare-podcast")).toContainText("₹1,899");
+    await expect(page.getByTestId("compare-creator-shoot")).toBeVisible();
+    await expect(page.getByTestId("compare-theatre-classic")).toHaveCount(isOpen(info) ? 1 : 0);
+    await expect(page.getByTestId("pricing-notes")).toContainText("₹799");
+  });
+
+  test("creative studio has a working booking flow and enquiry form", async ({ page }) => {
+    await page.goto("/creative-studio");
+    await expect(page.locator("#book").getByTestId("session-step")).toBeVisible();
+    await expect(page.locator("#custom form")).toBeVisible();
   });
 });

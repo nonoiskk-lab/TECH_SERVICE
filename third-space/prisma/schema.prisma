@@ -26,6 +26,7 @@ model Booking {
   source           String    @default("web") // web | admin
   holdId           String?
   rescheduledFrom  DateTime?
+  rescheduleCount  Int       @default(0)
   accessToken      String    @unique // secret for the guest's confirmation link
   packageId        String
   service          String // theatre | podcast | creator | visit
@@ -340,6 +341,9 @@ model Customer {
   marketingConsent  Boolean             @default(false)
   notes             String              @default("")
   deletionRequested DateTime?
+  /// Set when the guest creates an online account (scrypt hash). Null = no account.
+  passwordHash      String?
+  lastLoginAt       DateTime?
   createdAt         DateTime            @default(now())
   bookings          Booking[]
   memberships       CreatorMembership[]

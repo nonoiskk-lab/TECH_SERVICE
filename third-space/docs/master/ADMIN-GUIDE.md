@@ -29,3 +29,8 @@ A page a role cannot open sends them back to the dashboard with "Your role canno
 
 ## Guests
 Guests manage bookings at `/my-booking` (booking ID + phone + email), print the receipt, download the declaration and cancel online; refunds follow the published tiers.
+
+## Customer accounts and self-service rescheduling (new)
+- Guests can create an account at `/account/signup` (mobile + email + password, 18+). If that mobile already has bookings, the account only links them when the email matches the one used to book.
+- **Customers** shows an "online account" badge for guests who have one.
+- **Settings → Guest self-service rescheduling**: switch on/off, minimum notice in hours (default 24) and how many times one booking can be moved (default 1). These defaults are an assumption until the owner confirms the rule. Moves go through the same slot engine, so they can never double-book; every move is in the audit log and the guest gets a "rescheduled" message.

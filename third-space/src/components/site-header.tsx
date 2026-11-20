@@ -30,20 +30,23 @@ export function SiteHeader({ t, locale }: { t: Dict; locale: Locale }) {
   const links = [
     { href: "/private-theatre", label: t.nav.watch },
     { href: "/podcast-studio", label: t.nav.create },
+    { href: "/creative-studio", label: t.nav.creative },
     { href: "/celebrations", label: t.nav.celebrate },
+    { href: "/pricing", label: t.nav.pricing },
+  ];
+  const more = [
     { href: "/creator-plans", label: t.nav.plans },
     { href: "/gallery", label: t.nav.gallery },
     { href: "/contact", label: t.nav.contact },
-  ];
-  const more = [
     { href: "/visit", label: t.nav.visit },
+    { href: "/account", label: t.nav.account },
     { href: "/about", label: t.nav.about },
     { href: "/faqs", label: t.nav.faqs },
     { href: "/my-booking", label: t.nav.myBooking },
     { href: "/policies", label: t.nav.policies },
   ];
   return (
-    <header className="sticky top-0 z-40 border-b border-line bg-bg/85 backdrop-blur">
+    <header className="sticky top-0 z-40 border-b border-line bg-bg/90 shadow-[var(--ts-shadow-nav)] backdrop-blur">
       <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-2 focus:rounded focus:bg-warm focus:px-3 focus:py-2 focus:text-warm-ink">
         {t.nav.skip}
       </a>
@@ -51,26 +54,29 @@ export function SiteHeader({ t, locale }: { t: Dict; locale: Locale }) {
         <Link href="/" aria-label="THIRD SPACE home" className="flex min-h-11 items-center">
           <Wordmark />
         </Link>
-        <nav aria-label="Main" className="hidden items-center gap-1 lg:flex">
+        <nav aria-label="Main" className="hidden items-center gap-0.5 xl:flex">
           {links.map((l) => (
-            <Link key={l.href} href={l.href} className="rounded-full px-3 py-2 text-[15px] text-text hover:text-warm">
+            <Link key={l.href} href={l.href} className="whitespace-nowrap rounded-md px-2 py-2 text-[14px] text-text transition-colors hover:text-warm">
               {l.label}
             </Link>
           ))}
         </nav>
         <div className="flex items-center gap-2">
           <LocaleToggle next={locale === "en" ? "hi" : "en"} label={locale === "en" ? "Hinglish" : "English"} />
-          <Link href="/visit" className="ts-btn ts-btn-ghost hidden text-sm xl:inline-flex">
+          <Link href="/account" className="hidden min-h-11 items-center whitespace-nowrap px-2 text-[14px] hover:text-warm xl:inline-flex" data-testid="nav-account">
+            {t.nav.account}
+          </Link>
+          <Link href="/visit" className="ts-btn ts-btn-ghost hidden text-sm 2xl:inline-flex">
             {t.nav.visit}
           </Link>
-          <Link href="/book" className="ts-btn ts-btn-primary hidden text-sm sm:inline-flex">
+          <Link href="/book" className="ts-btn ts-btn-primary hidden whitespace-nowrap text-sm sm:inline-flex">
             {t.nav.book}
           </Link>
-          <details className="relative lg:hidden">
+          <details className="relative xl:hidden">
             <summary className="flex min-h-11 min-w-11 cursor-pointer list-none items-center justify-center rounded-full border border-line px-3 text-sm">
               {t.nav.menu}
             </summary>
-            <nav aria-label="Mobile" className="ts-card absolute right-0 mt-2 flex w-60 flex-col p-2 shadow-2xl">
+            <nav aria-label="Mobile" className="ts-card absolute right-0 mt-2 flex max-h-[75vh] w-64 flex-col overflow-y-auto p-2 shadow-2xl">
               {[{ href: "/", label: t.nav.home }, ...links, ...more].map((l) => (
                 <Link key={l.href} href={l.href} className="flex min-h-11 items-center rounded-lg px-3 hover:bg-raised">
                   {l.label}

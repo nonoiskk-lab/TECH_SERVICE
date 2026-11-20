@@ -7,6 +7,7 @@ import { notifyBooking } from "@/server/notify";
 import { clientKey, rateLimit } from "@/server/rate-limit";
 import { refundFor } from "@/lib/pricing";
 import { ensureCatalog } from "@/server/catalog";
+import { guestRescheduleBlock, moveBooking } from "@/server/reschedule";
 
 export type GuestState = { error?: string; ok?: string; values?: Record<string, string> } | undefined;
 const str = (f: FormData, k: string) => String(f.get(k) ?? "").trim();
@@ -42,4 +43,27 @@ export async function guestCancelAction(_: GuestState, f: FormData): Promise<Gue
   await audit(null, "guest", "booking.cancelled_by_guest", "Booking", id, { hoursBefore: Math.round(hoursBefore), refund });
   await notifyBooking(id, "cancelled");
   redirect(`/my-booking/${id}?t=${token}&cancelled=${refund}`);
+}
+
+/**
+ * Guest moves their own booking to another free slot (same package and length).
+ * Rules (on/off, notice, times) come from Admin → Settings; the engine prevents double booking.
+ */
+export async function guestRescheduleAction(_: GuestState, f: FormData): Promise<GuestState> {
+  await ensureCatalog();
+  if (!(await rateLimit(await clientKey("reschedule"), 10, 900))) return { error: "Too many attempts. Try again in 15 minutes." };
+  const id = str(f, "bookingId");
+  const token = str(f, "token");
+  const start = str(f, "start");
+  const b = await db.booking.findUnique({ where: { id } });
+  if (!b || b.accessToken !== token) return { error: "Not allowed." };
+  const block = guestRescheduleBlock(b);
+  if (block) return { error: block };
+  if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(start) || Number.isNaN(Date.parse(start))) return { error: "Pick a new time." };
+  if (Date.parse(start) === b.start.getTime()) return { error: "That is the current time. Pick a different slot." };
+  const moved = await moveBooking(id, start);
+  if (!moved.ok) return { error: moved.error };
+  await audit(null, "guest", "booking.rescheduled_by_guest", "Booking", id, { from: b.start, to: moved.start });
+  await notifyBooking(id, "rescheduled");
+  redirect(`/my-booking/${id}?t=${token}&moved=1`);
 }

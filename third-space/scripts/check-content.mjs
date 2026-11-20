@@ -53,7 +53,7 @@ function decode(s) {
 
 async function get(path) {
   const r = await fetch(BASE + path, { redirect: "manual" });
-  return { status: r.status, body: await r.text() };
+  return { status: r.status, body: await r.text(), location: r.headers.get("location") };
 }
 
 // ---- 4a. Claims in copy files -------------------------------------------
@@ -95,7 +95,15 @@ while (queue.length && seen.size < 150) {
   const path = queue.shift();
   if (seen.has(path)) continue;
   seen.add(path);
-  const { status, body } = await get(path);
+  const { status, body, location } = await get(path);
+  // A same-site redirect (e.g. /account → /account/login when logged out) is not a dead link: check its target instead.
+  if (status >= 300 && status < 400 && location) {
+    const target = new URL(location, BASE);
+    if (target.origin === new URL(BASE).origin) {
+      if (!seen.has(target.pathname + target.search)) queue.push(target.pathname + target.search);
+      continue;
+    }
+  }
   if (status !== 200) {
     fail(path, `HTTP ${status} (dead internal link)`);
     continue;

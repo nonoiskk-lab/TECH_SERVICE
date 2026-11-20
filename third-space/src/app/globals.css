@@ -53,7 +53,8 @@ h1, h2, h3 {
 /* Pill buttons. Add .ts-btn-arrow for the round gold arrow on the right. */
 .ts-btn {
   display: inline-flex; align-items: center; justify-content: center; gap: .6rem;
-  min-height: var(--ts-tap); padding: 0 1.4rem; border-radius: 999px;
+  min-height: var(--ts-btn-h); padding: 0 1.4rem; border-radius: var(--ts-btn-radius);
+  transition: background-color var(--ts-dur) var(--ts-ease), border-color var(--ts-dur) var(--ts-ease), color var(--ts-dur) var(--ts-ease), transform var(--ts-dur) var(--ts-ease);
   font-family: var(--font-sans); font-weight: 600; letter-spacing: .01em;
   transition: background-color .15s, border-color .15s, transform .15s;
 }
@@ -61,14 +62,39 @@ h1, h2, h3 {
 .ts-btn-primary:hover { background: var(--ts-gold-strong); }
 .ts-btn-ghost { border: 1px solid var(--ts-line); color: var(--ts-text); background: transparent; }
 .ts-btn-ghost:hover { border-color: var(--ts-gold); }
+.ts-btn:active:not([disabled]) { transform: translateY(1px); }
+.ts-btn:focus-visible { outline: 2px solid var(--ts-gold); outline-offset: 3px; }
+.ts-btn-lg { min-height: var(--ts-btn-h-lg); padding: 0 1.75rem; font-size: 1.0625rem; }
+.ts-btn-text { min-height: var(--ts-tap); padding: 0; color: var(--ts-warm); background: none; }
+.ts-btn-text:hover { color: var(--ts-warm-strong); text-decoration: underline; text-underline-offset: 4px; }
+.ts-band-gold .ts-btn-primary { background: #11100f; color: #f3e9d8; }
+.ts-band-gold .ts-btn-primary:hover { background: #2a221d; }
 .ts-btn-arrow { padding-right: .35rem; }
 .ts-btn-arrow::after {
-  content: ""; width: 34px; height: 34px; border-radius: 999px; flex-shrink: 0;
+  content: ""; width: 34px; height: 34px; border-radius: calc(var(--ts-btn-radius) - 3px); flex-shrink: 0;
   background: var(--ts-gold) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2311100F' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M7 17 17 7M8 7h9v9'/%3E%3C/svg%3E") center / 16px no-repeat;
 }
 .ts-btn-primary.ts-btn-arrow::after { background-color: var(--ts-on-gold); background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23C69B55' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M7 17 17 7M8 7h9v9'/%3E%3C/svg%3E"); }
 .ts-btn[disabled], .ts-btn[aria-disabled="true"] { opacity: .5; cursor: not-allowed; }
 .ts-card { background: var(--ts-bg-card); border: 1px solid var(--ts-line); border-radius: var(--ts-radius); }
+.ts-card-hover { transition: transform var(--ts-dur) var(--ts-ease), border-color var(--ts-dur) var(--ts-ease); }
+.ts-card-hover:hover { transform: translateY(-3px); border-color: var(--ts-gold); }
+.ts-icon {
+  display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
+  width: 52px; height: 52px; border-radius: 14px;
+  background: color-mix(in srgb, var(--ts-gold) 16%, transparent); color: var(--ts-warm);
+}
+.ts-section { padding-block: var(--ts-section-y); }
+@media (min-width: 1024px) { .ts-section { padding-block: var(--ts-section-y-lg); } }
+.ts-num { font-family: var(--font-heading); font-size: 3rem; line-height: 1; color: var(--ts-warm); }
+.ts-badge {
+  display: inline-flex; align-items: center; gap: .35rem; min-height: 24px; padding: 0 .6rem; border-radius: 6px;
+  font-size: .68rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase;
+  background: var(--ts-gold); color: var(--ts-on-gold);
+}
+.ts-table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+.ts-table th, .ts-table td { padding: .8rem .9rem; border-bottom: 1px solid var(--ts-line); text-align: left; vertical-align: top; }
+.ts-table thead th { font-size: .72rem; letter-spacing: .14em; text-transform: uppercase; color: var(--ts-text-faint); font-weight: 600; }
 .ts-input {
   width: 100%; min-height: var(--ts-tap); padding: .5rem .875rem; border-radius: var(--ts-radius-sm);
   background: var(--ts-bg-raised); border: 1px solid var(--ts-line); color: var(--ts-text);
@@ -83,6 +109,13 @@ h1, h2, h3 {
 .ts-eyebrow::before { content: ""; width: 6px; height: 6px; border-radius: 999px; background: var(--ts-gold); }
 }
 
+/* Scroll reveal: a small rise only (never opacity), so content is visible without JS, in print and in captures. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .ts-reveal { animation: ts-reveal linear both; animation-timeline: view(); animation-range: entry 0% entry 40%; }
+    @keyframes ts-reveal { from { transform: translateY(18px); } to { transform: none; } }
+  }
+}
 @media (prefers-reduced-motion: no-preference) {
   .ts-pulse { animation: ts-pulse 3s ease-in-out infinite; }
   @keyframes ts-pulse { 50% { opacity: .65; } }

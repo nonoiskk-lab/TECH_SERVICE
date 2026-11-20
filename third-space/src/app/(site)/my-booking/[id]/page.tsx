@@ -7,6 +7,12 @@ import { BookingReceipt } from "@/components/booking-receipt";
 import { CancelBookingForm } from "@/components/guest-forms";
 import { PrintButton } from "@/components/client-bits";
 import { formatINR } from "@/lib/pricing";
+import { RescheduleForm } from "@/components/reschedule-form";
+import { guestRescheduleBlock } from "@/server/reschedule";
+import { bookingDates } from "@/lib/booking-dates";
+import { booking as rules } from "@/config/site";
+import { ensureCatalog } from "@/server/catalog";
+import { bookablePackage } from "@/lib/api";
 
 export async function generateMetadata(): Promise<Metadata> {
   const { t } = await getDict();
@@ -33,10 +39,18 @@ export default async function ManageBooking({ params, searchParams }: PageProps<
     );
   }
   const canCancel = ["confirmed", "pending_payment"].includes(b.status) && b.start > new Date();
+  await ensureCatalog();
+  const canMove = !guestRescheduleBlock(b) && !!bookablePackage(b.packageId);
+  const { minDate, maxDate } = bookingDates();
   return (
     <>
       <PageHeader title={m.title} />
       <Section>
+        {sp.moved === "1" && (
+          <p role="status" className="ts-card mb-5 p-4 text-sm" data-testid="moved-done">
+            {m.movedDone}
+          </p>
+        )}
         {typeof sp.cancelled === "string" && (
           <p role="status" className="ts-card mb-5 p-4 text-sm" data-testid="cancel-done">
             {m.cancelDone}{" "}
@@ -51,8 +65,27 @@ export default async function ManageBooking({ params, searchParams }: PageProps<
               <a href={`/book/confirmation/${b.id}/declaration?t=${token}`} className="ts-btn ts-btn-ghost w-full text-sm" download>
                 {t.confirmation.download}
               </a>
-              <p className="text-sm text-muted">{m.reschedule}</p>
+              {!canMove && <p className="text-sm text-muted">{m.reschedule}</p>}
             </div>
+            {canMove && (
+              <div className="ts-card p-5" data-testid="reschedule-card">
+                <h2 className="text-lg">{m.rescheduleTitle}</h2>
+                <p className="mt-1 text-sm text-muted">
+                  {m.rescheduleInfo.replace("{hours}", String(rules.rescheduleMinHours)).replace("{times}", String(rules.rescheduleMaxTimes))}
+                </p>
+                <div className="mt-3">
+                  <RescheduleForm
+                    bookingId={b.id}
+                    token={token}
+                    packageId={b.packageId}
+                    duration={Math.round((b.end.getTime() - b.start.getTime()) / 60_000)}
+                    minDate={minDate}
+                    maxDate={maxDate}
+                    labels={{ date: m.rescheduleDate, pick: m.reschedulePick, none: m.rescheduleNone, submit: m.rescheduleSubmit, loading: m.loading }}
+                  />
+                </div>
+              </div>
+            )}
             {canCancel && (
               <div className="ts-card p-5">
                 <h2 className="text-lg">{m.cancelTitle}</h2>

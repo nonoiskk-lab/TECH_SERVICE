@@ -24,6 +24,50 @@
   --ts-radius-sm: 12px;
   --ts-tap: 44px;
   --ts-maxw: 1200px;
+
+  /* v4 additions (design-system audit, docs/audit): structure scale */
+  --ts-btn-radius: 10px;
+  --ts-btn-h: 48px;          /* default + nav CTA */
+  --ts-btn-h-lg: 56px;       /* hero / section CTA */
+  --ts-section-y: 64px;      /* mobile section padding */
+  --ts-section-y-lg: 112px;  /* desktop section padding */
+  --ts-ease: cubic-bezier(.2, .7, .2, 1);
+  --ts-dur: 300ms;
+  --ts-shadow-card: 0 1px 0 rgba(255, 255, 255, .03) inset, 0 18px 40px -28px rgba(0, 0, 0, .8);
+  --ts-shadow-nav: 0 8px 24px -16px rgba(0, 0, 0, .9);
+}
+
+/*
+ * Light "ivory" band: re-maps the same tokens so every component works on it.
+ * Gold text darkens to #7d5a22 for 5.6:1 contrast on ivory.
+ */
+.ts-band-light {
+  --ts-bg: #f3e9d8;
+  --ts-bg-card: #fffaf2;
+  --ts-bg-raised: #ece0cb;
+  --ts-line: #dccbb0;
+  --ts-text: #201a17;
+  --ts-text-muted: #4b3f35;
+  --ts-text-faint: #6d5f50;
+  --ts-warm: #7d5a22;
+  --ts-warm-strong: #6a4b1a;
+  --ts-ok: #2f7a43;
+  --ts-danger: #b3261e;
+  --ts-glow: 0 0 0 1px rgba(125, 90, 34, .12), 0 20px 40px -28px rgba(32, 26, 23, .35);
+  background: var(--ts-bg);
+  color: var(--ts-text);
+  color-scheme: light;
+}
+
+/* Gold statement band (one per page at most). */
+.ts-band-gold {
+  --ts-bg: #c69b55;
+  --ts-text: #11100f;
+  --ts-text-muted: #2a221d;
+  --ts-warm: #11100f;
+  --ts-line: rgba(17, 16, 15, .25);
+  background: var(--ts-bg);
+  color: var(--ts-text);
 }
 
 /* Sections that sit one step deeper (footer, feature bands). */

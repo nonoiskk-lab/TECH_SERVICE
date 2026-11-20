@@ -161,6 +161,14 @@ export const booking = {
   taxLabel: { en: "GST", hi: "GST" } as L,
   /** How many days ahead a guest can book. */
   bookingWindowDays: 60,
+  /**
+   * Self-service rescheduling by the guest (My Booking / account). ASSUMPTION
+   * pending owner confirmation: allowed once, at least 24 h before the start,
+   * to a free slot of the same package and length. Editable in Admin → Settings.
+   */
+  selfReschedule: true,
+  rescheduleMinHours: 24,
+  rescheduleMaxTimes: 1,
 };
 
 export const themes: Theme[] = [

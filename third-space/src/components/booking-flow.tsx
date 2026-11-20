@@ -33,6 +33,8 @@ export type BookingFlowProps = {
   advancePercent: number;
   /** Add-ons, tax, hold time and refund tiers from the admin-edited catalogue. */
   catalog: ClientCatalog;
+  /** Details of the signed-in customer, used to prefill the form. */
+  prefill?: { name: string; phone: string; email: string };
 };
 
 type Category = "theatre" | "podcast" | "celebration" | "creator" | "visit";
@@ -75,6 +77,9 @@ function StepTitle({ n, title, done }: { n: number; title: string; done?: boolea
 
 export function BookingFlow(props: BookingFlowProps) {
   const { t, locale, themes, minDate, maxDate, otpMode, advancePercent, catalog } = props;
+  // Price exactly like the server: apply the admin-set minimum charge to the shared session rules.
+  // eslint-disable-next-line react-hooks/immutability -- module-level config mirror, idempotent
+  sessionRules.minimumCharge = catalog.minimumCharge;
   const categories = useMemo(() => [...new Set(props.packages.map(categoryOf))].filter((c) => c !== "visit"), [props.packages]);
   const initialCategory = props.packages.find((p) => p.id === props.initialPackageId) ?? props.packages[0];
   const [category, setCategory] = useState<Category | null>(initialCategory ? categoryOf(initialCategory) : null);
@@ -102,9 +107,9 @@ export function BookingFlow(props: BookingFlowProps) {
   /** Wall clock, updated by a 1-second interval (0 until the first tick). */
   const [now, setNow] = useState(0);
   const [error, setError] = useState<string | null>(null);
-  const [name, setName] = useState("");
-  const [phone, setPhone] = useState("");
-  const [email, setEmail] = useState("");
+  const [name, setName] = useState(props.prefill?.name ?? "");
+  const [phone, setPhone] = useState(props.prefill?.phone ?? "");
+  const [email, setEmail] = useState(props.prefill?.email ?? "");
   const [otpSent, setOtpSent] = useState(false);
   const [otp, setOtp] = useState("");
   const [otpOk, setOtpOk] = useState(false);

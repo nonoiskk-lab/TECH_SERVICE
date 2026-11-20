@@ -35,6 +35,18 @@ export default async function SettingsPage() {
                 <input name="minimumCharge" type="number" min={0} defaultValue={b.minimumCharge ?? 799} className="ts-input" />
               </Field>
             </div>
+            <p className="mt-2 text-sm font-semibold">Guest self-service rescheduling</p>
+            <label className="flex min-h-11 items-center gap-3 text-sm">
+              <input type="checkbox" name="selfReschedule" defaultChecked={b.selfReschedule ?? true} className="h-5 w-5" /> Guests can move their own booking online
+            </label>
+            <div className="grid grid-cols-2 gap-2">
+              <Field label="At least … hours before start">
+                <input name="rescheduleMinHours" type="number" min={0} max={720} defaultValue={b.rescheduleMinHours ?? 24} className="ts-input" />
+              </Field>
+              <Field label="Times per booking">
+                <input name="rescheduleMaxTimes" type="number" min={0} max={10} defaultValue={b.rescheduleMaxTimes ?? 1} className="ts-input" />
+              </Field>
+            </div>
             <p className="mt-2 text-sm font-semibold">Refund tiers (share of the advance)</p>
             {tiers.map((t, i) => (
               <div key={i} className="grid grid-cols-2 gap-2">

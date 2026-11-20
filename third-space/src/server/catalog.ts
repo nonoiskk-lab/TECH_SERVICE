@@ -1,5 +1,5 @@
 import "server-only";
-import { addOns as addOnsList, booking as bookingRules, hours, refundTiers as refundTierList, type AddOn, type L, type Package, type Pricing } from "@/config/site";
+import { addOns as addOnsList, booking as bookingRules, hours, refundTiers as refundTierList, sessionRules, type AddOn, type L, type Package, type Pricing } from "@/config/site";
 import { packages as packageList } from "@/config/packages";
 import { db } from "@/server/db";
 
@@ -45,6 +45,9 @@ export type BusinessRules = {
   holdMinutes: number;
   minimumCharge: number;
   refundTiers: { minHoursBefore: number; refundPercentOfAdvance: number }[];
+  selfReschedule?: boolean;
+  rescheduleMinHours?: number;
+  rescheduleMaxTimes?: number;
 };
 
 function toPricing(kind: string, rate: number, start: number): Pricing {
@@ -122,6 +125,10 @@ async function load() {
     if (typeof b.taxPercent === "number") bookingRules.taxPercent = b.taxPercent;
     if (typeof b.advancePercent === "number") bookingRules.advancePercent = b.advancePercent;
     if (typeof b.holdMinutes === "number") bookingRules.holdMinutes = b.holdMinutes;
+    if (typeof b.minimumCharge === "number") sessionRules.minimumCharge = b.minimumCharge;
+    if (typeof b.selfReschedule === "boolean") bookingRules.selfReschedule = b.selfReschedule;
+    if (typeof b.rescheduleMinHours === "number") bookingRules.rescheduleMinHours = b.rescheduleMinHours;
+    if (typeof b.rescheduleMaxTimes === "number") bookingRules.rescheduleMaxTimes = b.rescheduleMaxTimes;
     if (Array.isArray(b.refundTiers) && b.refundTiers.length === refundTierList.length) {
       b.refundTiers.forEach((t, i) => {
         refundTierList[i].minHoursBefore = t.minHoursBefore;
@@ -153,6 +160,7 @@ export function clientCatalog() {
     addOns: addOnsList.map((a) => ({ ...a })),
     taxPercent: bookingRules.taxPercent,
     holdMinutes: bookingRules.holdMinutes,
+    minimumCharge: sessionRules.minimumCharge,
     refundTiers: refundTierList.map((r) => ({ ...r })),
   };
 }

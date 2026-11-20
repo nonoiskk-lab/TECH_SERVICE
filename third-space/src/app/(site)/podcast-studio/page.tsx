@@ -16,7 +16,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function CreatePage() {
   const { t, locale } = await getDict();
-  const createPkgs = packages.filter((p) => p.mode === "create");
+  const createPkgs = packages.filter((p) => p.mode === "create" && p.id !== "creator-shoot");
   return (
     <>
       <PageHeader title={t.create.title} intro={t.create.intro} art={<CreatorScene className="h-full w-full" />} />

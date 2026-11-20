@@ -33,6 +33,7 @@ export default async function CustomersPage({ searchParams }: PageProps<"/admin/
               <Link href={`/admin/customers/${c.id}`} className="flex min-h-11 flex-wrap items-center justify-between gap-2 py-2 hover:bg-raised">
                 <span>
                   <strong>{c.name}</strong> · {c.phone} · {c.email}
+                  {c.passwordHash ? <span className="ml-2 rounded border border-line px-1.5 text-xs text-ok">online account</span> : null}
                 </span>
                 <span className="text-muted">
                   {c._count.bookings} booking(s){c.memberships.length ? " · Creator Plan" : ""} · since {fmtDateTime(c.createdAt)}

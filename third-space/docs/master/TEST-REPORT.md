@@ -15,3 +15,19 @@ Covered:
 **Content checker** (`scripts/check-content.mjs`): 27 pages, gate closed — no placeholders, dead links, unverifiable claims, inconsistent contact data or screening wording.
 
 Not tested automatically: real Razorpay checkout popup, real WhatsApp / email delivery, SMS OTP (need live credentials).
+
+## Update — design-system audit release (2026-11-20, later)
+
+Build OK · `tsc` OK · `eslint` OK. **Playwright: 57 passed, 0 failed, 16 skipped by design.**
+
+New tests:
+- Customer account: signup with a phone that has bookings is refused under a different email; with the matching email it claims the history; the dashboard lists the booking.
+- Self-service reschedule from the account → My Booking: pick a date, choose a live free slot, booking moves, "moved" notice, card disappears after the allowed one move.
+- Logout; login with wrong password refused; login with mobile number works; booking form is prefilled for a signed-in guest.
+- `/account` requires login.
+- `/pricing` comparison table lists every bookable package from the catalogue (theatre rows only when the gate is open) and the ₹799 minimum note.
+- `/creative-studio` shows a working booking flow and the custom-package enquiry form.
+
+Content checker: 34 pages, gate closed, all passed (it now follows same-site redirects such as `/account` → `/account/login` instead of reporting them as dead links). It caught and blocked a copy leak ("movie" in a feature card while the film-licence gate is closed), fixed before release.
+
+Fixed during this release: the admin "Minimum booking price" setting was saved but never applied to pricing; it now drives both server and browser prices.

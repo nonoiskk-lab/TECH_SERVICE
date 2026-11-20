@@ -73,10 +73,10 @@ export function Section({
   center?: boolean;
 }) {
   return (
-    <section id={id} className={`py-12 sm:py-16 ${className}`} aria-labelledby={title && id ? `${id}-h` : undefined}>
+    <section id={id} className={`ts-section ${className}`} aria-labelledby={title && id ? `${id}-h` : undefined}>
       <Container>
         {(eyebrow || title) && (
-          <div className={`mb-8 ${center ? "mx-auto max-w-3xl text-center" : ""}`}>
+          <div className={`mb-10 sm:mb-14 ${center ? "mx-auto max-w-3xl text-center" : ""}`}>
             {eyebrow && <p className="ts-eyebrow mb-3">{eyebrow}</p>}
             {title && (
               <h2 id={id ? `${id}-h` : undefined} className="text-3xl leading-tight sm:text-5xl">

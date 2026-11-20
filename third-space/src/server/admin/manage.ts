@@ -1,5 +1,6 @@
 "use server";
 
+import { moveBooking } from "@/server/reschedule";
 import { randomBytes } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -203,8 +204,20 @@ export async function saveBusinessSettingsAction(_: ActionState, f: FormData): P
   const hold = n("holdMinutes", 5, 60);
   const min = n("minimumCharge", 0, 100000);
   const tiers = [0, 1, 2].map((i) => ({ minHoursBefore: n(`tierHours${i}`, 0, 720), refundPercentOfAdvance: n(`tierPct${i}`, 0, 100) }));
-  if ([tax, adv, hold, min].some((v) => v === null) || tiers.some((t) => t.minHoursBefore === null || t.refundPercentOfAdvance === null)) return { error: "Check the numbers." };
-  const value = { taxPercent: tax, taxLabel: "GST", advancePercent: adv, holdMinutes: hold, minimumCharge: min, refundTiers: tiers };
+  const rsHours = n("rescheduleMinHours", 0, 720);
+  const rsTimes = n("rescheduleMaxTimes", 0, 10);
+  if ([tax, adv, hold, min, rsHours, rsTimes].some((v) => v === null) || tiers.some((t) => t.minHoursBefore === null || t.refundPercentOfAdvance === null)) return { error: "Check the numbers." };
+  const value = {
+    taxPercent: tax,
+    taxLabel: "GST",
+    advancePercent: adv,
+    holdMinutes: hold,
+    minimumCharge: min,
+    refundTiers: tiers,
+    selfReschedule: bool(f, "selfReschedule"),
+    rescheduleMinHours: rsHours,
+    rescheduleMaxTimes: rsTimes,
+  };
   await db.setting.upsert({ where: { key: "business" }, create: { key: "business", value, updatedBy: who }, update: { value, updatedBy: who } });
   invalidateCatalog();
   await audit(null, who, "settings.business", "Setting", "business", value);
@@ -309,19 +322,8 @@ export async function rescheduleAction(_: ActionState, f: FormData): Promise<Act
   const date = str(f, "date");
   const time = str(f, "time");
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || !/^\d{2}:\d{2}$/.test(time)) return { error: "Pick the new date and time." };
-  const minutes = (b.end.getTime() - b.start.getTime()) / 60_000;
-  // Free the old time inside the same lock by marking the booking as moving, then hold the new time.
-  await db.booking.update({ where: { id }, data: { status: "rescheduling" } });
-  try {
-    const hold = await holds.create(b.packageId, `${date}T${time}:00+05:30`, minutes);
-    await db.$transaction([
-      db.booking.update({ where: { id }, data: { start: new Date(hold.start), end: new Date(hold.end), status: b.status, rescheduledFrom: b.start } }),
-      db.hold.delete({ where: { id: hold.id } }),
-    ]);
-  } catch (e) {
-    await db.booking.update({ where: { id }, data: { status: b.status } });
-    return { error: e instanceof SlotTakenError ? "The new time is not free." : "The new time is outside hours or off the slot grid." };
-  }
+  const moved = await moveBooking(id, `${date}T${time}:00+05:30`);
+  if (!moved.ok) return { error: moved.error };
   await audit(null, who, "booking.rescheduled", "Booking", id, { from: b.start, to: `${date}T${time}` });
   if (bool(f, "notify")) await notifyBooking(id, "rescheduled");
   return done([`/admin/bookings/${id}`], "Moved.");
