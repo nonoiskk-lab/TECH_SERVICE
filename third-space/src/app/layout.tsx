@@ -1,11 +1,12 @@
 import type { Metadata, Viewport } from "next";
-import { Cormorant_Garamond, Inter, Noto_Sans_Devanagari } from "next/font/google";
+import { DM_Sans, Fraunces, Noto_Sans_Devanagari } from "next/font/google";
 import "./globals.css";
 import { isLegalGateOpen, siteUrl } from "@/config/site";
 import { getDict } from "@/lib/locale";
 
-const serif = Cormorant_Garamond({ variable: "--font-serif", subsets: ["latin"], weight: ["500", "600"], display: "swap" });
-const inter = Inter({ variable: "--font-inter", subsets: ["latin"], display: "swap" });
+// Display: a heavy, soft serif (Fraunces) for headlines; UI/body: a geometric sans (DM Sans). Both free (OFL).
+const serif = Fraunces({ variable: "--font-serif", subsets: ["latin"], weight: ["500", "600", "800", "900"], display: "swap" });
+const inter = DM_Sans({ variable: "--font-inter", subsets: ["latin"], weight: ["400", "500", "700"], display: "swap" });
 const devanagari = Noto_Sans_Devanagari({
   variable: "--font-devanagari",
   subsets: ["devanagari"],
@@ -24,7 +25,7 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export const viewport: Viewport = { themeColor: "#11100f", width: "device-width", initialScale: 1 };
+export const viewport: Viewport = { themeColor: "#ffffff", width: "device-width", initialScale: 1 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const { locale } = await getDict();

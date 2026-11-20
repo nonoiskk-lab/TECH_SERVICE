@@ -17,7 +17,7 @@ export function LogoMark({ className = "h-9 w-9" }: { className?: string }) {
 
 export function Wordmark({ className = "" }: { className?: string }) {
   return (
-    <span className={`inline-flex items-center gap-2 whitespace-nowrap font-heading text-base tracking-[0.1em] sm:text-xl ${className}`}>
+    <span className={`inline-flex items-center gap-2 whitespace-nowrap font-sans text-base font-medium tracking-[0.08em] sm:text-lg ${className}`}>
       <LogoMark className="h-8 w-8 sm:h-9 sm:w-9" />
       <span>
         THIRD<span className="text-warm"> SPACE</span>
@@ -46,34 +46,34 @@ export function SiteHeader({ t, locale }: { t: Dict; locale: Locale }) {
     { href: "/policies", label: t.nav.policies },
   ];
   return (
-    <header className="sticky top-0 z-40 border-b border-line bg-bg/90 shadow-[var(--ts-shadow-nav)] backdrop-blur">
+    <header className="sticky top-0 z-40 bg-white shadow-[var(--ts-shadow-nav)]">
       <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-2 focus:rounded focus:bg-warm focus:px-3 focus:py-2 focus:text-warm-ink">
         {t.nav.skip}
       </a>
-      <div className="mx-auto flex h-[72px] max-w-[var(--ts-maxw)] items-center justify-between gap-3 px-4">
+      <div className="mx-auto flex h-20 max-w-[1320px] items-center justify-between gap-3 px-4 lg:px-6">
         <Link href="/" aria-label="THIRD SPACE home" className="flex min-h-11 items-center">
           <Wordmark />
         </Link>
         <nav aria-label="Main" className="hidden items-center gap-0.5 xl:flex">
           {links.map((l) => (
-            <Link key={l.href} href={l.href} className="whitespace-nowrap rounded-md px-2 py-2 text-[14px] text-text transition-colors hover:text-warm">
+            <Link key={l.href} href={l.href} className="whitespace-nowrap px-2.5 py-5 text-[15px] tracking-[0.02em] text-text transition-colors hover:text-warm">
               {l.label}
             </Link>
           ))}
         </nav>
         <div className="flex items-center gap-2">
           <LocaleToggle next={locale === "en" ? "hi" : "en"} label={locale === "en" ? "Hinglish" : "English"} />
-          <Link href="/account" className="hidden min-h-11 items-center whitespace-nowrap px-2 text-[14px] hover:text-warm xl:inline-flex" data-testid="nav-account">
+          <Link href="/account" className="hidden min-h-11 items-center whitespace-nowrap px-2.5 text-[15px] hover:text-warm xl:inline-flex" data-testid="nav-account">
             {t.nav.account}
           </Link>
-          <Link href="/visit" className="ts-btn ts-btn-ghost hidden text-sm 2xl:inline-flex">
+          <Link href="/visit" className="ts-btn ts-btn-ghost hidden whitespace-nowrap md:inline-flex">
             {t.nav.visit}
           </Link>
-          <Link href="/book" className="ts-btn ts-btn-primary hidden whitespace-nowrap text-sm sm:inline-flex">
+          <Link href="/book" className="ts-btn ts-btn-primary hidden whitespace-nowrap sm:inline-flex">
             {t.nav.book}
           </Link>
           <details className="relative xl:hidden">
-            <summary className="flex min-h-11 min-w-11 cursor-pointer list-none items-center justify-center rounded-full border border-line px-3 text-sm">
+            <summary className="flex min-h-11 min-w-11 cursor-pointer list-none items-center justify-center rounded-md border border-line px-3 text-sm">
               {t.nav.menu}
             </summary>
             <nav aria-label="Mobile" className="ts-card absolute right-0 mt-2 flex max-h-[75vh] w-64 flex-col overflow-y-auto p-2 shadow-2xl">

@@ -58,7 +58,7 @@ test.describe("Master prompt: pages and routes", () => {
     await expect(page.locator("h1")).toContainText("Your Voice. Your Space.");
     await expect(page.getByTestId("endorsement")).toHaveText(/LovBites Hospitality Group/i);
     await expect(page.locator("#location iframe")).toHaveCount(1);
-    await expect(page.locator("#faq details").first()).toBeVisible();
+    await expect(page.locator("#faq h3").first()).toBeVisible();
     await expect(page.locator("#popular [data-testid^=package-]").first()).toBeVisible();
   });
 

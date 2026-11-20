@@ -21,7 +21,7 @@
 }
 
 html {
-  color-scheme: dark;
+  color-scheme: light;
   background: var(--ts-bg);
 }
 body {
@@ -31,9 +31,9 @@ body {
 }
 h1, h2, h3 {
   font-family: var(--font-heading);
-  font-weight: 500;
-  letter-spacing: -0.01em;
-  line-height: 1.05;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  line-height: 1.1;
   text-wrap: balance;
   overflow-wrap: anywhere;
 }
@@ -44,69 +44,73 @@ h1, h2, h3 {
 }
 @layer components {
 .ts-glow { box-shadow: var(--ts-glow); }
-.ts-hero-bg {
-  background:
-    radial-gradient(60% 70% at 80% 10%, rgba(198, 155, 85, 0.20), transparent 65%),
-    radial-gradient(50% 60% at 0% 100%, rgba(198, 155, 85, 0.07), transparent 70%),
-    linear-gradient(180deg, #17130f 0%, var(--ts-bg) 100%);
-}
-/* Pill buttons. Add .ts-btn-arrow for the round gold arrow on the right. */
+h1 { font-weight: 800; }
+.ts-hero-bg { background: var(--ts-bg); }
+/* Buttons: 6px radius; filled gold + outlined gold pair; colour transitions 0.4s, no movement on hover. */
 .ts-btn {
-  display: inline-flex; align-items: center; justify-content: center; gap: .6rem;
-  min-height: var(--ts-btn-h); padding: 0 1.4rem; border-radius: var(--ts-btn-radius);
-  transition: background-color var(--ts-dur) var(--ts-ease), border-color var(--ts-dur) var(--ts-ease), color var(--ts-dur) var(--ts-ease), transform var(--ts-dur) var(--ts-ease);
-  font-family: var(--font-sans); font-weight: 600; letter-spacing: .01em;
-  transition: background-color .15s, border-color .15s, transform .15s;
+  display: inline-flex; align-items: center; justify-content: center; gap: .5rem;
+  min-height: var(--ts-btn-h); padding: 0 1.1rem; border-radius: var(--ts-btn-radius);
+  font-family: var(--font-sans); font-weight: 500; font-size: 1rem; line-height: 1.2; text-align: center;
+  border: 2px solid transparent;
+  transition: background-color var(--ts-dur), border-color var(--ts-dur), color var(--ts-dur), box-shadow var(--ts-dur);
 }
 .ts-btn-primary { background: var(--ts-gold); color: var(--ts-on-gold); }
 .ts-btn-primary:hover { background: var(--ts-gold-strong); }
-.ts-btn-ghost { border: 1px solid var(--ts-line); color: var(--ts-text); background: transparent; }
-.ts-btn-ghost:hover { border-color: var(--ts-gold); }
+.ts-btn-ghost { border-color: var(--ts-gold); color: var(--ts-warm); background: transparent; }
+.ts-btn-ghost:hover { background: color-mix(in srgb, var(--ts-gold) 15%, transparent); }
+.ts-btn-dark { border-color: var(--ts-text); color: var(--ts-text); background: transparent; border-width: 1px; }
+.ts-btn-dark:hover { background: var(--ts-gold); border-color: var(--ts-gold); color: var(--ts-on-gold); }
+.ts-btn-white { background: #fff; color: var(--ts-warm-strong); }
+.ts-btn-white:hover { background: #fffaf2; }
 .ts-btn:active:not([disabled]) { transform: translateY(1px); }
 .ts-btn:focus-visible { outline: 2px solid var(--ts-gold); outline-offset: 3px; }
-.ts-btn-lg { min-height: var(--ts-btn-h-lg); padding: 0 1.75rem; font-size: 1.0625rem; }
-.ts-btn-text { min-height: var(--ts-tap); padding: 0; color: var(--ts-warm); background: none; }
+.ts-btn-lg { min-height: var(--ts-btn-h-lg); padding: 0 1.85rem; font-size: 1.125rem; }
+.ts-btn-text { min-height: var(--ts-tap); padding: 0; border: 0; color: var(--ts-warm); background: none; font-weight: 700; }
 .ts-btn-text:hover { color: var(--ts-warm-strong); text-decoration: underline; text-underline-offset: 4px; }
-.ts-band-gold .ts-btn-primary { background: #11100f; color: #f3e9d8; }
-.ts-band-gold .ts-btn-primary:hover { background: #2a221d; }
-.ts-btn-arrow { padding-right: .35rem; }
-.ts-btn-arrow::after {
-  content: ""; width: 34px; height: 34px; border-radius: calc(var(--ts-btn-radius) - 3px); flex-shrink: 0;
-  background: var(--ts-gold) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2311100F' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M7 17 17 7M8 7h9v9'/%3E%3C/svg%3E") center / 16px no-repeat;
-}
-.ts-btn-primary.ts-btn-arrow::after { background-color: var(--ts-on-gold); background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23C69B55' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M7 17 17 7M8 7h9v9'/%3E%3C/svg%3E"); }
+.ts-band-gold .ts-btn-primary { background: #fff; color: var(--ts-warm-strong); }
+.ts-band-gold .ts-btn-primary:hover { background: #fffaf2; }
+.ts-band-dark .ts-btn-ghost, .ts-dark .ts-btn-ghost { border-color: var(--ts-warm); color: var(--ts-text); }
+.ts-btn-arrow::after { content: none; }
 .ts-btn[disabled], .ts-btn[aria-disabled="true"] { opacity: .5; cursor: not-allowed; }
-.ts-card { background: var(--ts-bg-card); border: 1px solid var(--ts-line); border-radius: var(--ts-radius); }
-.ts-card-hover { transition: transform var(--ts-dur) var(--ts-ease), border-color var(--ts-dur) var(--ts-ease); }
-.ts-card-hover:hover { transform: translateY(-3px); border-color: var(--ts-gold); }
+/* White cards with a soft shadow (borderless look). */
+.ts-card { background: var(--ts-bg-card); border: 1px solid var(--ts-line); border-radius: var(--ts-radius); box-shadow: var(--ts-shadow-card); }
+.ts-card-hover { transition: box-shadow var(--ts-dur), border-color var(--ts-dur); }
+.ts-card-hover:hover { box-shadow: 0 10px 30px -12px rgba(32, 26, 23, .35); border-color: var(--ts-gold); }
+/* Round icon disc with a soft tint. */
 .ts-icon {
   display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
-  width: 52px; height: 52px; border-radius: 14px;
-  background: color-mix(in srgb, var(--ts-gold) 16%, transparent); color: var(--ts-warm);
+  width: 56px; height: 56px; border-radius: 999px;
+  background: color-mix(in srgb, var(--ts-gold) 18%, #fff); color: var(--ts-warm);
 }
 .ts-section { padding-block: var(--ts-section-y); }
 @media (min-width: 1024px) { .ts-section { padding-block: var(--ts-section-y-lg); } }
-.ts-num { font-family: var(--font-heading); font-size: 3rem; line-height: 1; color: var(--ts-warm); }
+.ts-num { font-family: var(--font-heading); font-weight: 800; font-size: 2.5rem; line-height: 1; color: var(--ts-warm); }
 .ts-badge {
   display: inline-flex; align-items: center; gap: .35rem; min-height: 24px; padding: 0 .6rem; border-radius: 6px;
   font-size: .68rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase;
   background: var(--ts-gold); color: var(--ts-on-gold);
 }
+/* Short accent rule under centred headings. */
+.ts-divider { display: block; width: 56px; height: 2px; margin: 1.25rem auto 0; background: var(--ts-gold); border-radius: 2px; }
+/* Organic image frame with a gold outline. */
+.ts-blob { border-radius: 58% 42% 55% 45% / 46% 56% 44% 54%; overflow: hidden; box-shadow: 0 0 0 6px #fff, 0 0 0 8px var(--ts-gold); }
+/* Gold highlight behind a key phrase. */
+.ts-mark { background: linear-gradient(transparent 62%, color-mix(in srgb, var(--ts-gold) 45%, transparent) 62%); }
 .ts-table { width: 100%; border-collapse: collapse; font-size: .9rem; }
 .ts-table th, .ts-table td { padding: .8rem .9rem; border-bottom: 1px solid var(--ts-line); text-align: left; vertical-align: top; }
-.ts-table thead th { font-size: .72rem; letter-spacing: .14em; text-transform: uppercase; color: var(--ts-text-faint); font-weight: 600; }
+.ts-table thead th { font-size: .72rem; letter-spacing: .14em; text-transform: uppercase; color: var(--ts-text-faint); font-weight: 700; }
 .ts-input {
   width: 100%; min-height: var(--ts-tap); padding: .5rem .875rem; border-radius: var(--ts-radius-sm);
-  background: var(--ts-bg-raised); border: 1px solid var(--ts-line); color: var(--ts-text);
+  background: #fff; border: 1px solid var(--ts-line); color: #222;
 }
 .ts-input:focus { border-color: var(--ts-gold); outline: none; box-shadow: 0 0 0 3px rgba(198, 155, 85, .3); }
 .ts-prose p + p { margin-top: .75rem; }
 /* Eyebrow label with the gold dot. */
+/* Small uppercase label above headings. */
 .ts-eyebrow {
   display: inline-flex; align-items: center; gap: .5rem;
-  font-size: .72rem; font-weight: 600; letter-spacing: .22em; text-transform: uppercase; color: var(--ts-warm);
+  font-size: .72rem; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; color: var(--ts-text-faint);
 }
-.ts-eyebrow::before { content: ""; width: 6px; height: 6px; border-radius: 999px; background: var(--ts-gold); }
 }
 
 /* Scroll reveal: a small rise only (never opacity), so content is visible without JS, in print and in captures. */

@@ -1,12 +1,12 @@
 import Link from "next/link";
-import { isLegalGateOpen } from "@/config/site";
+import { enquiryPurposes, isLegalGateOpen } from "@/config/site";
 import { bookablePackages, fromPrice } from "@/config/packages";
 import { PriceList } from "@/components/price-list";
 import { getDict } from "@/lib/locale";
 import { faqItems } from "@/lib/faq";
 import { formatINR } from "@/lib/pricing";
 import { tl } from "@/i18n";
-import { Container, Faq, PackageCard, Section, TwoTone } from "@/components/ui";
+import { Container, Faq, PackageCard, Section, Sparkle } from "@/components/ui";
 import { JsonLd, faqLd } from "@/components/json-ld";
 import { CakeIcon, CalendarIcon, CameraIcon, ClockIcon, LockIcon, MicIcon, ScreenIcon, ShieldIcon, UserIcon, WalletIcon } from "@/components/icons";
 import { CelebrationScene, CreatorScene, PodcastScene, RoomScene } from "@/components/illustrations";
@@ -15,10 +15,12 @@ import { publicBusiness } from "@/lib/business";
 import { ensureCatalog } from "@/server/catalog";
 import { galleryImages, testimonials } from "@/server/content";
 import { GalleryGrid, MapEmbed, Testimonials } from "@/components/site-sections";
+import { EnquiryForm } from "@/components/enquiry-form";
 
 /**
- * Home. Section order follows docs/audit DOCUMENT 10 (hero → trust → experiences →
- * packages → features → steps → statement band → prices → gallery → proof → visit → location → FAQ).
+ * Home, laid out on the reference structure (docs/audit DOCUMENT 03 → 10):
+ * split hero → trust row → proof → dark/light split feature rows → dark feature-card band →
+ * packages → steps → gold statement band → prices → gallery → "see it first" split form → location → open FAQ.
  */
 export default async function Home() {
   await ensureCatalog();
@@ -36,228 +38,240 @@ export default async function Home() {
     .filter((p): p is NonNullable<typeof p> => Boolean(p))
     .slice(0, 3);
   const [photos, reviews] = await Promise.all([galleryImages(6), testimonials(6)]);
-
-  const experiences = [
-    { ...h.exp[0], href: "/private-theatre", id: "watch", Icon: ScreenIcon, Art: RoomScene, soon: !gateOpen, text: gateOpen ? h.exp[0].text : t.home.pickWatchClosed },
-    { ...h.exp[1], href: "/podcast-studio", id: "create", Icon: MicIcon, Art: PodcastScene, soon: false, text: h.exp[1].text },
-    { ...h.exp[2], href: "/creative-studio", id: "creative", Icon: CameraIcon, Art: CreatorScene, soon: false, text: h.exp[2].text },
-  ];
   const featIcons = [CalendarIcon, LockIcon, ClockIcon, UserIcon, WalletIcon, ShieldIcon];
   const feats = h.feats.map((f) => ({ ...f, d: f.d.replace("{payments}", advancePercent > 0 ? h.payOnline : h.payVenue) }));
+  const purposes = enquiryPurposes.filter((p) => !p.gated || gateOpen).map((p) => ({ id: p.id, label: tl(p.label, locale) }));
 
   return (
     <>
-      {/* 1. Hero: headline + value line + two CTAs + helper facts; illustration collage on the right. */}
-      <div className="ts-hero-bg border-b border-line">
-        <Container className="grid items-center gap-10 pb-16 pt-12 sm:pt-20 lg:grid-cols-[1.1fr_1fr] lg:pb-24">
+      {/* 1. Hero: heavy serif headline, value line, filled + outlined CTA pair, helper facts; framed illustration right. */}
+      <section className="relative overflow-hidden bg-white">
+        <Container className="grid items-center gap-12 pb-16 pt-12 sm:pt-16 lg:grid-cols-[1.05fr_1fr] lg:pb-24 lg:pt-20">
           <div>
             <p className="flex flex-wrap items-center gap-3" data-testid="launch">
               <span className="ts-eyebrow">{t.home.launch}</span>
-              <span className="rounded-md border border-gold px-2.5 py-0.5 text-xs font-semibold text-warm" data-testid="adults-only">
+              <span className="rounded-md border border-gold px-2 py-0.5 text-xs font-bold text-warm" data-testid="adults-only">
                 {t.home.adultsOnly}
               </span>
             </p>
-            <h1 className="mt-5 text-5xl leading-[1.02] sm:text-7xl">
-              <TwoTone accent={t.home.heroAccent} rest={t.home.heroRest} />
+            <h1 className="mt-5 text-[2.75rem] leading-[1.08] sm:text-[4.375rem] sm:leading-[1.1]" style={{ fontWeight: 900 }}>
+              {t.home.heroAccent} <span className="ts-mark">{t.home.heroRest}</span>
             </h1>
-            <p className="mt-6 max-w-xl text-lg text-muted">{t.home.heroLine}</p>
-            <p className="mt-3 text-xs uppercase tracking-[0.25em] text-faint" data-testid="endorsement">
+            <p className="mt-6 max-w-xl text-lg leading-[1.7] text-text sm:text-xl">{t.home.heroLine}</p>
+            <p className="mt-3 text-xs uppercase tracking-[0.2em] text-faint" data-testid="endorsement">
               {t.pages.endorsement}
             </p>
             {!gateOpen && (
-              <p className="ts-card ts-glow mt-6 inline-block px-4 py-3 text-sm font-semibold" data-testid="gate-banner">
+              <p className="ts-card mt-6 inline-block px-4 py-3 text-sm font-medium" data-testid="gate-banner">
                 {t.home.gateClosedBanner}
               </p>
             )}
             <div className="mt-8 flex flex-wrap gap-3">
-              <Link href="/book" className="ts-btn ts-btn-primary ts-btn-lg ts-btn-arrow" data-testid="hero-book">
+              <Link href="/book" className="ts-btn ts-btn-primary ts-btn-lg" data-testid="hero-book">
                 {t.home.heroCtaBook} · {t.common.from} {from}
               </Link>
               <Link href="/visit" className="ts-btn ts-btn-ghost ts-btn-lg">
                 {h.ctaVisit}
               </Link>
             </div>
-            <p className="mt-4 text-sm text-faint">{h.helper}</p>
+            <p className="mt-4 text-[13px] text-faint">{h.helper}</p>
           </div>
-          <div aria-hidden="true" className="relative mx-auto h-[300px] w-full max-w-[460px] sm:h-[400px]">
-            <div className="absolute left-0 top-4 h-48 w-48 overflow-hidden rounded-full shadow-xl ring-8 ring-[var(--ts-bg)] sm:h-60 sm:w-60">
+          <div aria-hidden="true" className="relative mx-auto w-full max-w-[520px]">
+            <Sparkle className="absolute -top-2 right-10 z-10 h-14 w-14 text-gold" />
+            <Sparkle className="absolute right-0 top-16 z-10 h-7 w-7 text-gold/70" />
+            <div className="ts-blob aspect-[5/4] w-full">
               <RoomScene className="h-full w-full" />
             </div>
-            <div className="absolute right-0 top-0 h-36 w-36 overflow-hidden rounded-full shadow-xl ring-8 ring-[var(--ts-bg)] sm:h-44 sm:w-44">
-              <PodcastScene className="h-full w-full" />
-            </div>
-            <div className="absolute bottom-0 right-6 h-44 w-44 overflow-hidden rounded-full shadow-xl ring-8 ring-[var(--ts-bg)] sm:h-56 sm:w-56">
-              <CreatorScene className="h-full w-full" />
-            </div>
-            <div className="absolute bottom-6 left-6 rounded-xl bg-card px-4 py-2 text-sm shadow-lg">
-              {t.common.from} <strong className="font-heading text-warm">{from}</strong>
-            </div>
+            <span className="absolute -bottom-3 left-6 h-4 w-4 rounded-full border-2 border-text bg-white" />
           </div>
         </Container>
-      </div>
+      </section>
 
-      {/* 2. Trust strip: factual promises only (no invented ratings or logos). */}
-      <div className="border-b border-line bg-card">
+      {/* 2. Trust row (the reference's logo strip); factual promises only. */}
+      <div className="border-y border-line bg-white">
         <Container>
-          <ul className="grid grid-cols-2 gap-x-6 gap-y-3 py-6 text-sm text-muted lg:grid-cols-4" data-testid="trust-strip">
-            {h.trust.map((x) => (
-              <li key={x} className="flex items-center gap-2">
-                <span aria-hidden="true" className="text-warm">
-                  ✦
-                </span>
-                {x}
-              </li>
-            ))}
+          <ul className="grid grid-cols-2 gap-x-6 gap-y-4 py-8 text-[15px] text-muted lg:grid-cols-4" data-testid="trust-strip">
+            {h.trust.map((x, i) => {
+              const Icon = [ShieldIcon, CalendarIcon, ClockIcon, UserIcon][i] ?? ShieldIcon;
+              return (
+                <li key={x} className="flex items-center gap-3">
+                  <Icon className="h-6 w-6 shrink-0 text-warm" />
+                  {x}
+                </li>
+              );
+            })}
           </ul>
         </Container>
       </div>
 
-      {/* 3. Three experiences. */}
-      <Section eyebrow={h.eyebrow} title={h.expTitle} intro={h.expIntro} id="picker" center>
-        <div className="grid gap-5 md:grid-cols-3">
-          {experiences.map((c) => (
-            <Link key={c.id} href={c.href} className="ts-card ts-card-hover ts-reveal group flex flex-col overflow-hidden" data-testid={`pick-${c.id}`}>
-              <span className="block aspect-[4/3] overflow-hidden" aria-hidden="true">
-                <c.Art className="h-full w-full transition duration-500 group-hover:scale-105" />
-              </span>
-              <span className="flex flex-1 flex-col p-7">
-                <span className="flex items-start justify-between gap-3">
-                  <span className="ts-num">{c.n}</span>
-                  {c.soon && <span className="rounded-md border border-line px-2.5 py-1 text-xs text-faint">{t.common.comingSoon}</span>}
-                </span>
-                <span className="mt-4 flex items-center gap-3">
-                  <span className="ts-icon">
-                    <c.Icon className="h-6 w-6" />
-                  </span>
-                  <span className="font-heading text-2xl">{c.title}</span>
-                </span>
-                <span className="mt-3 text-muted">{c.text}</span>
-                <span className="mt-auto pt-6 text-sm font-semibold text-warm">{t.common.learnMore} →</span>
-              </span>
-            </Link>
-          ))}
-        </div>
-        <Link href="/celebrations" className="ts-card ts-card-hover mt-5 flex items-center gap-4 p-5" data-testid="pick-celebrate">
-          <span className="ts-icon">
-            <CakeIcon className="h-6 w-6" />
-          </span>
-          <span className="flex-1">
-            <span className="block font-heading text-xl">{h.celebrateTitle}</span>
-            <span className="block text-sm text-muted">{h.celebrateText}</span>
-          </span>
-          <span className="text-warm" aria-hidden="true">
-            →
-          </span>
-        </Link>
-      </Section>
+      {/* 3. Social proof right after the hero, only when real reviews exist. */}
+      {reviews.length > 0 && (
+        <section className="ts-band-light ts-section" id="testimonials">
+          <Container>
+            <h2 className="mb-10 text-center text-3xl sm:text-[3.25rem]">{t.pages.testimonialsTitle}</h2>
+            <Testimonials items={reviews} />
+          </Container>
+        </section>
+      )}
 
-      {/* 4. Popular packages. */}
+      {/* 4. Experience rows: illustration + dark panel, alternating sides (the reference's split feature rows). */}
+      <div id="picker">
+        {[
+          { id: "watch", n: h.exp[0].n, title: h.exp[0].title, text: gateOpen ? h.exp[0].text : t.home.pickWatchClosed, href: "/private-theatre", Art: RoomScene, Icon: ScreenIcon, soon: !gateOpen },
+          { id: "create", n: h.exp[1].n, title: h.exp[1].title, text: h.exp[1].text, href: "/podcast-studio", Art: PodcastScene, Icon: MicIcon, soon: false },
+          { id: "creative", n: h.exp[2].n, title: h.exp[2].title, text: h.exp[2].text, href: "/creative-studio", Art: CreatorScene, Icon: CameraIcon, soon: false },
+        ].map((x, i) => (
+          <section key={x.id} className="grid md:grid-cols-2" data-testid={`pick-${x.id}`}>
+            <div aria-hidden="true" className={`min-h-[280px] overflow-hidden md:min-h-[460px] ${i % 2 === 1 ? "md:order-2" : ""}`}>
+              <x.Art className="h-full w-full object-cover" />
+            </div>
+            <div className="ts-band-dark relative flex flex-col justify-center gap-5 px-6 py-14 sm:px-12 lg:px-20">
+              <span className="ts-icon !bg-white/10 !text-gold">
+                <x.Icon className="h-7 w-7" />
+              </span>
+              <p className="ts-eyebrow !text-faint">
+                Experience {x.n}
+                {x.soon && <span className="ml-2 rounded-md border border-line px-2 py-0.5 normal-case tracking-normal">{t.common.comingSoon}</span>}
+              </p>
+              <h2 className="text-4xl leading-[1.1] sm:text-[3.5rem]">{x.title}</h2>
+              <p className="max-w-md text-lg text-muted">{x.text}</p>
+              <div>
+                <Link href={x.href} className="ts-btn ts-btn-primary ts-btn-lg">
+                  {t.common.learnMore}
+                </Link>
+              </div>
+            </div>
+          </section>
+        ))}
+        <Container>
+          <Link href="/celebrations" className="ts-card ts-card-hover my-10 flex items-center gap-4 p-6" data-testid="pick-celebrate">
+            <span className="ts-icon">
+              <CakeIcon className="h-6 w-6" />
+            </span>
+            <span className="flex-1">
+              <span className="block text-2xl font-semibold" style={{ fontFamily: "var(--font-heading)" }}>
+                {h.celebrateTitle}
+              </span>
+              <span className="block text-muted">{h.celebrateText}</span>
+            </span>
+            <span className="ts-btn ts-btn-ghost hidden sm:inline-flex">{t.common.learnMore}</span>
+          </Link>
+        </Container>
+      </div>
+
+      {/* 5. Dark feature band: eyebrow, centred heading, divider, two-column white cards with icon discs. */}
+      <section className="ts-band-dark ts-section" id="features">
+        <Container>
+          <div className="mx-auto mb-12 max-w-3xl text-center">
+            <p className="ts-eyebrow justify-center !text-faint">{h.eyebrow}</p>
+            <h2 className="mt-3 text-3xl leading-tight sm:text-[3.25rem]">{h.featTitle}</h2>
+            <span className="ts-divider" aria-hidden="true" />
+            <p className="mt-5 text-lg text-muted">{h.featIntro}</p>
+          </div>
+          <div className="mx-auto grid max-w-4xl gap-5 md:grid-cols-2" data-testid="features">
+            {feats.map((f, i) => {
+              const Icon = featIcons[i];
+              return (
+                <div key={f.t} className="ts-card flex items-start gap-4 p-6">
+                  <span className="ts-icon">
+                    <Icon className="h-6 w-6" />
+                  </span>
+                  <span>
+                    <h3 className="font-sans text-lg font-bold">{f.t}</h3>
+                    <p className="mt-1 text-[15px] text-muted">{f.d}</p>
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+          <div className="mt-12 text-center">
+            <Link href="/book" className="ts-btn ts-btn-primary ts-btn-lg">
+              {t.nav.book}
+            </Link>
+          </div>
+        </Container>
+      </section>
+
+      {/* 6. Popular packages on ivory. */}
       {popular.length > 0 && (
-        <Section title={t.pages.popularTitle} id="popular" className="ts-band-light">
-          <div className="grid gap-5 md:grid-cols-3">
+        <Section title={t.pages.popularTitle} id="popular" className="ts-band-light" center>
+          <div className="grid gap-6 md:grid-cols-3">
             {popular.map((p) => (
               <PackageCard key={p.id} pkg={p} t={t} locale={locale} bookable bookHref={`/book?package=${p.id}`} />
             ))}
           </div>
-          <Link href="/pricing" className="ts-btn ts-btn-ghost mt-8">
-            {h.pricingCta}
-          </Link>
+          <div className="mt-10 text-center">
+            <Link href="/pricing" className="ts-btn ts-btn-dark ts-btn-lg">
+              {h.pricingCta}
+            </Link>
+          </div>
         </Section>
       )}
 
-      {/* 5. Feature grid: what the booking system does for the guest. */}
-      <Section title={h.featTitle} intro={h.featIntro} id="features" center>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" data-testid="features">
-          {feats.map((f, i) => {
-            const Icon = featIcons[i];
-            return (
-              <div key={f.t} className="ts-card ts-reveal flex gap-4 p-6">
-                <span className="ts-icon">
-                  <Icon className="h-6 w-6" />
-                </span>
-                <span>
-                  <h3 className="text-xl">{f.t}</h3>
-                  <p className="mt-1 text-sm text-muted">{f.d}</p>
-                </span>
-              </div>
-            );
-          })}
-        </div>
-      </Section>
-
-      {/* 6. How booking works. */}
-      <Section eyebrow={t.home.eyebrowProcess} accent={t.home.stepsAccent} title={t.home.stepsRest} id="steps" className="bg-card">
-        <ol className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      {/* 7. How booking works: four centred step cards. */}
+      <Section eyebrow={t.home.eyebrowProcess} title={`${t.home.stepsAccent} ${t.home.stepsRest}`} id="steps" center>
+        <ol className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {steps.map((s, i) => (
-            <li key={s.t} className="ts-card ts-reveal p-6">
+            <li key={s.t} className="ts-card p-7 text-center">
               <span className="ts-num">{String(i + 1).padStart(2, "0")}</span>
-              <h3 className="mt-3 text-xl">{s.t}</h3>
-              <p className="mt-2 text-sm text-muted">{s.d}</p>
+              <h3 className="mt-4 font-sans text-lg font-bold">{s.t}</h3>
+              <p className="mt-2 text-[15px] text-muted">{s.d}</p>
             </li>
           ))}
         </ol>
       </Section>
 
-      {/* 7. Statement band (facts from config). */}
-      <section className="ts-band-gold ts-section" data-testid="statement-band">
-        <Container className="flex flex-col items-start gap-6 lg:flex-row lg:items-center lg:justify-between">
-          <div>
-            <p className="font-heading text-4xl sm:text-6xl">{h.bandFrom.replace("{price}", from)}</p>
-            <p className="mt-3 max-w-2xl text-lg text-muted">{h.bandLine}</p>
-          </div>
-          <Link href="/book" className="ts-btn ts-btn-primary ts-btn-lg">
+      {/* 8. Gold statement band: one large serif sentence and a white CTA. */}
+      <section className="ts-band-gold ts-section relative overflow-hidden" data-testid="statement-band">
+        <Sparkle className="absolute right-[6%] top-8 h-16 w-16 text-white/70" />
+        <Container>
+          <p className="max-w-4xl text-3xl leading-[1.25] sm:text-[3.25rem]" style={{ fontFamily: "var(--font-heading)", fontWeight: 600 }}>
+            {h.bandFrom.replace("{price}", from)}. <span className="opacity-80">{h.bandLine}.</span>
+          </p>
+          <Link href="/book" className="ts-btn ts-btn-primary ts-btn-lg mt-8">
             {t.nav.book}
           </Link>
         </Container>
       </section>
 
-      {/* 8. Price list (all bookable packages). */}
-      <Section eyebrow={t.home.eyebrowPrices} accent={t.home.pricesAccent} title={t.home.pricesRest} id="prices">
+      {/* 9. Full price list. */}
+      <Section eyebrow={t.home.eyebrowPrices} title={`${t.home.pricesAccent} ${t.home.pricesRest}`} id="prices" center>
         <PriceList pkgs={bookable} t={t} locale={locale} />
       </Section>
 
-      {/* 9. Gallery. */}
-      <Section title={t.pages.galleryHome} id="gallery" className="ts-band-light">
+      {/* 10. Gallery. */}
+      <Section title={t.pages.galleryHome} id="gallery" className="ts-band-light" center>
         <GalleryGrid images={photos} t={t} limit={6} />
-        <Link href="/gallery" className="ts-btn ts-btn-text mt-5">
-          {t.nav.gallery} →
-        </Link>
+        <div className="mt-8 text-center">
+          <Link href="/gallery" className="ts-btn ts-btn-dark">
+            {t.nav.gallery}
+          </Link>
+        </div>
       </Section>
 
-      {/* 10. Social proof: only real testimonials entered by staff. */}
-      {reviews.length > 0 && (
-        <Section title={t.pages.testimonialsTitle} id="testimonials">
-          <Testimonials items={reviews} />
-        </Section>
-      )}
-
-      {/* 11. "See it first" split CTA. */}
-      <section className="ts-section" id="visit">
-        <Container>
-          <div className="ts-card grid overflow-hidden md:grid-cols-2">
-            <div aria-hidden="true" className="aspect-[4/3] md:aspect-auto">
-              <CelebrationScene className="h-full w-full" />
-            </div>
-            <div className="flex flex-col justify-center gap-4 p-8 sm:p-12">
-              <h2 className="text-3xl sm:text-5xl">{h.visitTitle}</h2>
-              <p className="text-muted">{h.visitText}</p>
-              <div className="flex flex-wrap gap-3">
-                <Link href="/visit" className="ts-btn ts-btn-primary ts-btn-lg">
-                  {h.ctaVisit}
-                </Link>
-                <Link href="/contact" className="ts-btn ts-btn-ghost ts-btn-lg">
-                  {t.nav.contact}
-                </Link>
-              </div>
-            </div>
+      {/* 11. "See it first" split: illustration left, dark form panel right (real enquiry form). */}
+      <section className="grid md:grid-cols-2" id="visit">
+        <div aria-hidden="true" className="min-h-[280px] overflow-hidden">
+          <CelebrationScene className="h-full w-full" />
+        </div>
+        <div className="ts-band-dark flex flex-col justify-center gap-4 px-6 py-14 sm:px-12 lg:px-20">
+          <h2 className="text-4xl sm:text-5xl">{h.visitTitle}</h2>
+          <p className="text-muted">{h.visitText}</p>
+          <div className="flex flex-wrap gap-3">
+            <Link href="/visit" className="ts-btn ts-btn-primary">
+              {h.ctaVisit}
+            </Link>
           </div>
-        </Container>
+          <div className="mt-2">
+            <EnquiryForm t={t} purposes={purposes} />
+          </div>
+        </div>
       </section>
 
       {/* 12. Location. */}
-      <Section title={t.pages.locationTitle} id="location" className="bg-card">
+      <Section title={t.pages.locationTitle} id="location" center>
         <div className="grid gap-6 lg:grid-cols-[1fr_1.4fr]">
-          <div className="ts-card space-y-3 p-6">
+          <div className="ts-card space-y-3 p-7">
             <p className="text-muted">
               {t.common.address}: <span data-consistency="address">{biz.address}</span>
             </p>
@@ -268,7 +282,7 @@ export default async function Home() {
               <a href={biz.mapUrl} target="_blank" rel="noopener noreferrer" className="ts-btn ts-btn-ghost">
                 {t.common.openMap}
               </a>
-              <Link href="/contact" className="ts-btn ts-btn-ghost">
+              <Link href="/contact" className="ts-btn ts-btn-dark">
                 {t.nav.contact}
               </Link>
             </div>
@@ -277,20 +291,27 @@ export default async function Home() {
         </div>
       </Section>
 
-      {/* 13. FAQ accordion + sticky price card. */}
-      <Section eyebrow={t.home.eyebrowFaq} accent={t.home.faqAccent} title={t.home.faqRest} id="faq">
-        <div className="grid gap-8 lg:grid-cols-[2fr_1fr]">
-          <Faq items={faqs} />
-          <div className="ts-card ts-glow h-fit p-7 lg:sticky lg:top-24">
-            <p className="text-sm text-muted">{t.common.from}</p>
-            <p className="font-heading text-5xl text-warm">{from}</p>
-            <p className="mt-2 text-sm text-faint">{tl({ en: "Before GST. Exact price shown before you pay.", hi: "GST se pehle. Payment se pehle exact price dikhega." }, locale)}</p>
-            <Link href="/book" className="ts-btn ts-btn-primary ts-btn-arrow mt-5 w-full">
-              {t.nav.book}
-            </Link>
+      {/* 13. FAQ as an open question list, plus a price card. */}
+      <section className="ts-section border-t border-line" id="faq">
+        <Container>
+          <h2 className="mb-10 text-3xl sm:text-[2.5rem]">
+            {t.home.faqAccent} {t.home.faqRest}
+          </h2>
+          <div className="grid gap-10 lg:grid-cols-[2fr_1fr]">
+            <Faq items={faqs} open />
+            <div className="ts-card h-fit p-7 lg:sticky lg:top-28">
+              <p className="text-sm text-muted">{t.common.from}</p>
+              <p className="text-5xl text-warm" style={{ fontFamily: "var(--font-heading)", fontWeight: 800 }}>
+                {from}
+              </p>
+              <p className="mt-2 text-sm text-faint">{tl({ en: "Before GST. Exact price shown before you pay.", hi: "GST se pehle. Payment se pehle exact price dikhega." }, locale)}</p>
+              <Link href="/book" className="ts-btn ts-btn-primary mt-5 w-full">
+                {t.nav.book}
+              </Link>
+            </div>
           </div>
-        </div>
-      </Section>
+        </Container>
+      </section>
       <JsonLd data={faqLd(faqs)} />
     </>
   );

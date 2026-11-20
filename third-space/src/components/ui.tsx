@@ -19,35 +19,42 @@ export function TwoTone({ accent, rest }: { accent?: string; rest: string }) {
   );
 }
 
+/** Gold sparkle ornament (decorative). */
+export function Sparkle({ className = "" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 40 40" className={className} aria-hidden="true">
+      <path d="M20 2c1.6 9.4 4.4 13.4 18 18-13.6 4.6-16.4 8.6-18 18-1.6-9.4-4.4-13.4-18-18C15.6 15.4 18.4 11.4 20 2z" fill="currentColor" />
+    </svg>
+  );
+}
+
+/**
+ * Inner-page title banner: a dark espresso band with a centred heavy serif title,
+ * short intro and gold ornaments. `art` is accepted for older callers and ignored.
+ */
 export function PageHeader({
   title,
   intro,
   eyebrow,
   accent,
-  art,
 }: {
   title: string;
   intro?: string;
   eyebrow?: string;
   accent?: string;
-  /** Decorative illustration shown on the right on larger screens. */
   art?: React.ReactNode;
 }) {
   return (
-    <div className="ts-hero-bg border-b border-line">
-      <Container className={`py-12 sm:py-16 ${art ? "grid items-center gap-8 md:grid-cols-[1.3fr_1fr]" : ""}`}>
-        <div>
-          {eyebrow && <p className="ts-eyebrow mb-4">{eyebrow}</p>}
-          <h1 className="text-4xl leading-[1.05] sm:text-6xl">
-            <TwoTone accent={accent} rest={title} />
-          </h1>
-          {intro && <p className="mt-5 max-w-2xl text-lg text-muted">{intro}</p>}
-        </div>
-        {art && (
-          <div aria-hidden="true" className="hidden aspect-[4/3] overflow-hidden rounded-[var(--ts-radius)] shadow-xl ring-8 ring-[var(--ts-bg)] md:block">
-            {art}
-          </div>
-        )}
+    <div className="ts-band-dark relative overflow-hidden">
+      <Sparkle className="absolute right-[8%] top-6 h-10 w-10 text-gold sm:h-14 sm:w-14" />
+      <Sparkle className="absolute bottom-6 left-[6%] h-6 w-6 text-gold/70" />
+      <span aria-hidden="true" className="absolute -right-16 -bottom-20 h-56 w-56 rounded-full bg-gold/15 blur-0" />
+      <Container className="relative py-14 text-center sm:py-20">
+        {eyebrow && <p className="ts-eyebrow mb-4 justify-center">{eyebrow}</p>}
+        <h1 className="mx-auto max-w-4xl text-4xl leading-[1.08] sm:text-6xl">
+          <TwoTone accent={accent} rest={title} />
+        </h1>
+        {intro && <p className="mx-auto mt-5 max-w-2xl text-lg text-muted">{intro}</p>}
       </Container>
     </div>
   );
@@ -79,11 +86,12 @@ export function Section({
           <div className={`mb-10 sm:mb-14 ${center ? "mx-auto max-w-3xl text-center" : ""}`}>
             {eyebrow && <p className="ts-eyebrow mb-3">{eyebrow}</p>}
             {title && (
-              <h2 id={id ? `${id}-h` : undefined} className="text-3xl leading-tight sm:text-5xl">
+              <h2 id={id ? `${id}-h` : undefined} className="text-3xl leading-tight sm:text-[3.25rem]">
                 <TwoTone accent={accent} rest={title} />
               </h2>
             )}
-            {intro && <p className="mt-4 text-muted">{intro}</p>}
+            {center && <span className="ts-divider" aria-hidden="true" />}
+            {intro && <p className={`mt-4 text-lg text-muted ${center ? "mx-auto max-w-2xl" : "max-w-2xl"}`}>{intro}</p>}
           </div>
         )}
         {children}
@@ -110,9 +118,9 @@ export function PackageCard({
   bookHref: string;
 }) {
   return (
-    <article className="ts-card flex flex-col p-5" data-testid={`package-${pkg.id}`}>
+    <article className="ts-card flex flex-col border-t-[6px] border-t-[var(--ts-espresso)] p-6" data-testid={`package-${pkg.id}`}>
       <div className="flex items-start justify-between gap-3">
-        <h3 className="text-xl font-bold">{tl(pkg.name, locale)}</h3>
+        <h3 className="text-2xl">{tl(pkg.name, locale)}</h3>
         <p className="shrink-0 text-right">
           <span className="block text-2xl font-extrabold text-warm" data-testid="package-price">
             {priceLabel(pkg, formatINR, t.common.free)}
@@ -152,7 +160,19 @@ export function PackageCard({
   );
 }
 
-export function Faq({ items, title }: { items: { q: string; a: string }[]; title?: string }) {
+export function Faq({ items, title, open = false }: { items: { q: string; a: string }[]; title?: string; open?: boolean }) {
+  if (open)
+    return (
+      <div className="space-y-7" data-testid="faq-list">
+        {title && <h2 className="mb-2 text-3xl">{title}</h2>}
+        {items.map((f) => (
+          <div key={f.q}>
+            <h3 className="text-2xl">{f.q}</h3>
+            <p className="mt-2 max-w-3xl text-muted">{f.a}</p>
+          </div>
+        ))}
+      </div>
+    );
   return (
     <div>
       {title && <h2 className="mb-4 text-3xl">{title}</h2>}

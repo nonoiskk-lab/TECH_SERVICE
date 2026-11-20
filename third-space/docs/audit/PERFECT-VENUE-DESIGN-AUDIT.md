@@ -711,3 +711,28 @@ Devanagari falls back to Noto Sans Devanagari.
 | Testimonials and ratings | Feedback form, consent and one-click publish now built | Weaker social proof until guests respond | Turn on WhatsApp/email so the feedback link reaches guests | Medium |
 | SMS OTP | Off in production | Phone not verified | Connect MSG91 or Gupshup | Medium |
 | Theatre launch | Legal Gate closed | Theatre packages hidden | Open once titles are licensed | Per legal |
+
+---
+
+## Addendum: v5, the site now follows the reference UX/UI (owner request, 2026-11-20)
+
+The owner asked for THIRD SPACE to look and work like perfectvenue.com. The site now uses the reference's measured structure. Brand colours and content stay THIRD SPACE's own, and no reference assets, copy or licensed fonts are used.
+
+| Reference (measured) | THIRD SPACE v5 |
+|---|---|
+| White site; ivory `#F7F0ED` and navy `#3B396C` bands; coral `#FE6257` accent | White site; ivory `#F7EFE4` and espresso `#201A17` bands; gold `#C69B55` accent (gold text `#8A6428`, 5.4:1 on white) |
+| Gazpacho 900 display / Circular body (licensed) | Fraunces 800–900 display / DM Sans body (free, OFL) |
+| Sticky white nav, 80px, shadow `0 0 20px rgba(0,0,0,.1)`; text links, "Log In", outline + filled CTA | Same: 80px white sticky nav with soft shadow, links, "Account", outline "Visit the room" + filled "Book now" |
+| Buttons 6px radius, 44px (nav) / 60px (hero), 2px outline, colour transitions 0.4s | Same scale and timing (`--ts-btn-*`, `--ts-dur: 400ms`) |
+| Hero: heavy serif H1 70/78px, 20px lead, CTA pair, helper line, image in a blob mask with ornaments | Same composition; illustration in a gold-outlined blob with sparkle ornaments; highlighted phrase |
+| Logo strip | Trust row of 4 factual promises with icons (no invented logos) |
+| Split rows: image + navy panel with large serif heading and CTA | Three experience rows: illustration + espresso panel, alternating sides |
+| Navy feature band, centred heading + accent divider, 2-column white cards with icon discs | Same, with the 6 booking-system features |
+| Coral statistic band with one large serif sentence and a white button | Gold band: "From ₹799. 30-minute setup included · 30-minute gap…" with a white button |
+| "Want a taste test?" photo + navy demo form | "Want to see it first?" illustration + espresso panel with the real enquiry form and the free-visit CTA |
+| FAQ as an open question list | Same (`Faq open`), plus FAQ JSON-LD |
+| Navy title banner on inner pages | `PageHeader` is now an espresso banner with centred title and ornaments |
+| Pricing cards with a coloured top bar | `PackageCard` has a 6px espresso top bar |
+| White 4-column footer and a legal row | Same: brand, Explore, Policies & guides, Contact; legal row |
+
+Kept from the audit's "avoid" list: no opacity-0 entrance animations, every CTA label matches its destination, inline nav from 1280px, a mobile menu capped at 75vh, two font families only.
