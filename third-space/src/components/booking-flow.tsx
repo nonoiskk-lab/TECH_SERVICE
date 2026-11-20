@@ -2,11 +2,14 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { addOnsFor, hours as hoursCfg, sessionRules, booking as bookingCfg, recordingConsent, refundTiers, venueRules, type Locale, type Mode, type Package, type Theme } from "@/config/site";
+import { hours as hoursCfg, sessionRules, booking as bookingCfg, recordingConsent, refundTiers, venueRules, type Locale, type Mode, type Package, type Theme } from "@/config/site";
 import { tl, type Dict } from "@/i18n";
 import { buildQuote, formatINR } from "@/lib/pricing";
 import { defaultInput, durationText, priceLabel, resolveSession, type SessionInput, type TitleInfo } from "@/lib/session";
 import { getFirstTouch, track } from "@/lib/analytics";
+import type { ClientCatalog } from "@/server/catalog";
+import type { CouponRule } from "@/lib/pricing";
+import { BookingCalendar } from "./booking-calendar";
 import { DECLARATION_CLOSING, DECLARATION_INTRO, DECLARATION_POINTS, DECLARATION_TITLE, EASY_SUMMARY, POLICY_DOCS, POLICY_PACK_VERSION } from "@/config/policies";
 
 type Slot = { start: string; end: string; status: "available" | "held" | "booked" | "past" };
@@ -28,7 +31,18 @@ export type BookingFlowProps = {
   otpMode: "sms" | "mock" | "off";
   /** 0 when the site takes no online payment (whole amount paid at the venue). */
   advancePercent: number;
+  /** Add-ons, tax, hold time and refund tiers from the admin-edited catalogue. */
+  catalog: ClientCatalog;
 };
+
+type Category = "theatre" | "podcast" | "celebration" | "creator" | "visit";
+function categoryOf(p: Package): Category {
+  if (p.mode === "visit") return "visit";
+  if (p.service === "theatre") return "theatre";
+  if (p.mode === "celebrate") return "celebration";
+  if (p.prepaidHours) return "creator";
+  return "podcast";
+}
 
 function timeLabel(iso: string) {
   const hh = Number(iso.slice(11, 13));
@@ -60,7 +74,19 @@ function StepTitle({ n, title, done }: { n: number; title: string; done?: boolea
 }
 
 export function BookingFlow(props: BookingFlowProps) {
-  const { t, locale, packages, themes, minDate, maxDate, otpMode, advancePercent } = props;
+  const { t, locale, themes, minDate, maxDate, otpMode, advancePercent, catalog } = props;
+  const categories = useMemo(() => [...new Set(props.packages.map(categoryOf))].filter((c) => c !== "visit"), [props.packages]);
+  const initialCategory = props.packages.find((p) => p.id === props.initialPackageId) ?? props.packages[0];
+  const [category, setCategory] = useState<Category | null>(initialCategory ? categoryOf(initialCategory) : null);
+  const packages = useMemo(
+    () => (props.mode === "any" && category ? props.packages.filter((p) => categoryOf(p) === category) : props.packages),
+    [props.packages, props.mode, category],
+  );
+  const [couponInput, setCouponInput] = useState("");
+  const [coupon, setCoupon] = useState<CouponRule | null>(null);
+  const [couponMsg, setCouponMsg] = useState<string | null>(null);
+  const [specialRequests, setSpecialRequests] = useState("");
+  const [payPlan, setPayPlan] = useState<"advance" | "full">("advance");
   const otpIsMock = otpMode === "mock";
   const otpRequired = otpMode !== "off";
   const router = useRouter();
@@ -95,7 +121,7 @@ export function BookingFlow(props: BookingFlowProps) {
     holdRef.current = hold;
   }, [hold]);
 
-  const availableAddOns = useMemo(() => addOnsFor(flowMode), [flowMode]);
+  const availableAddOns = useMemo(() => catalog.addOns.filter((a) => a.modes.includes(flowMode)), [catalog.addOns, flowMode]);
   const titles = useMemo(() => props.titles ?? [], [props.titles]);
   const [inputs, setInputs] = useState<Record<string, SessionInput>>({});
   const inputFor = useCallback(
@@ -110,7 +136,9 @@ export function BookingFlow(props: BookingFlowProps) {
   const resolved = useMemo(() => (pkg ? resolveSession(pkg, sessionInput, titles) : null), [pkg, sessionInput, titles]);
   const session = resolved?.ok ? resolved.session : null;
   const duration = session?.durationMinutes ?? 0;
-  const quote = useMemo(() => (pkg ? buildQuote(pkg, addOnIds, flowMode, session, advancePercent) : null), [pkg, addOnIds, flowMode, session, advancePercent]);
+  const quote = useMemo(() => (pkg ? buildQuote(pkg, addOnIds, flowMode, session, advancePercent > 0 && payPlan === "full" ? 100 : advancePercent, { addOns: catalog.addOns, taxPercent: catalog.taxPercent, coupon }) : null),
+    [pkg, addOnIds, flowMode, session, advancePercent, payPlan, catalog.addOns, catalog.taxPercent, coupon],
+  );
   const needsRecordingConsent = pkg?.service === "podcast" || pkg?.service === "creator";
   const addendum = pkg && pkg.service !== "visit" && pkg.service !== "celebration" ? POLICY_DOCS[pkg.service] : null;
   const capacity = pkg?.capacity ?? 1;
@@ -164,7 +192,7 @@ export function BookingFlow(props: BookingFlowProps) {
     return () => clearInterval(id);
   }, [releaseHold, loadSlots, t.book.holdExpired]);
 
-  const remainingMs = hold ? (now === 0 ? bookingCfg.holdMinutes * 60_000 : Date.parse(hold.expiresAt) - now) : 0;
+  const remainingMs = hold ? (now === 0 ? catalog.holdMinutes * 60_000 : Date.parse(hold.expiresAt) - now) : 0;
 
   // Release the hold if the guest leaves the page.
   useEffect(() => {
@@ -218,7 +246,7 @@ export function BookingFlow(props: BookingFlowProps) {
     const h = (await r.json()) as Hold;
     holdRef.current = h;
     setHold(h);
-    track("hold_started", { packageId, minutes: bookingCfg.holdMinutes });
+    track("hold_started", { packageId, minutes: catalog.holdMinutes });
   }
 
   async function sendOtp() {
@@ -249,6 +277,23 @@ export function BookingFlow(props: BookingFlowProps) {
   const consentOk = agreeDeclaration && agreeVenue && (!needsRecordingConsent || agreeRecording);
   const canPay = !!hold && remainingMs > 0 && detailsOk && consentOk && !paying;
 
+  async function applyCoupon() {
+    if (!pkg) return;
+    const r = await fetch("/api/coupons", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ code: couponInput.trim().toUpperCase(), packageId: pkg.id }),
+    }).catch(() => null);
+    if (r?.ok) {
+      const j = (await r.json()) as { rule: CouponRule };
+      setCoupon(j.rule);
+      setCouponMsg(t.book.couponApplied.replace("{code}", j.rule.code));
+    } else {
+      setCoupon(null);
+      setCouponMsg(t.book.couponInvalid);
+    }
+  }
+
   async function pay() {
     if (!hold || !pkg) return;
     setPaying(true);
@@ -269,6 +314,9 @@ export function BookingFlow(props: BookingFlowProps) {
           guest: { name, phone, email },
           guestCount: Math.min(guestCount, capacity),
           locale,
+          couponCode: coupon?.code,
+          specialRequests,
+          payPlan,
           consent: {
             declaration: agreeDeclaration,
             venue: agreeVenue,
@@ -287,7 +335,7 @@ export function BookingFlow(props: BookingFlowProps) {
       }
       if (!r.ok) throw new Error();
       let j = (await r.json()) as { bookingId?: string; token?: string; orderId?: string; amount?: number; provider?: string; keyId?: string };
-      if (!j.bookingId && j.orderId) {
+      if (j.orderId) {
         // Payment hand-off. The mock gateway confirms immediately; Razorpay
         // opens its checkout and we confirm with its signed response.
         let proof: { paymentId?: string; signature?: string } = {};
@@ -357,7 +405,33 @@ export function BookingFlow(props: BookingFlowProps) {
           </p>
         )}
 
-        {/* 1. Package */}
+        {/* 1. Experience (on the general booking page) */}
+        {props.mode === "any" && categories.length > 1 && (
+          <section className="ts-card space-y-4 p-5" data-testid="experience-step">
+            <h2 className="text-lg font-bold">{t.book.stepExperience}</h2>
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4" role="radiogroup" aria-label={t.book.stepExperience}>
+              {categories.map((c) => (
+                <button
+                  key={c}
+                  type="button"
+                  role="radio"
+                  aria-checked={category === c}
+                  onClick={() => {
+                    setCategory(c);
+                    const first = props.packages.find((p) => categoryOf(p) === c);
+                    if (first) pickPackage(first.id);
+                  }}
+                  className={`min-h-14 rounded-2xl border px-3 text-sm font-semibold ${category === c ? "border-gold bg-raised" : "border-line"}`}
+                  data-testid={`experience-${c}`}
+                >
+                  {t.book.experiences[c]}
+                </button>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* 2. Package */}
         <section className="ts-card space-y-4 p-5">
           <StepTitle n={1} title={t.book.stepPackage} done={!!pkg} />
           <fieldset className="grid gap-3 sm:grid-cols-2">
@@ -546,8 +620,20 @@ export function BookingFlow(props: BookingFlowProps) {
         {/* 3. Date and slot */}
         <section className="ts-card space-y-4 p-5">
           <StepTitle n={3 + stepOffset} title={t.book.stepSlot} done={!!hold} />
+          {pkg && duration > 0 && (
+            <BookingCalendar
+              t={t}
+              packageId={pkg.id}
+              duration={duration}
+              selected={date}
+              minDate={minDate}
+              maxDate={maxDate}
+              onSelect={(d) => pickDate(d)}
+              refreshKey={refreshTick}
+            />
+          )}
           <label className="block max-w-xs">
-            <span className="mb-1 block text-sm text-muted">{t.book.chooseDate}</span>
+            <span className="mb-1 block text-sm text-muted">{t.book.chooseDateTyped}</span>
             <input
               type="date"
               className="ts-input"
@@ -612,6 +698,10 @@ export function BookingFlow(props: BookingFlowProps) {
               <span className="mb-1 block text-sm text-muted">{t.book.email}</span>
               <input className="ts-input" type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} data-testid="guest-email" />
             </label>
+            <label className="block sm:col-span-2">
+              <span className="mb-1 block text-sm text-muted">{t.book.specialRequests}</span>
+              <textarea className="ts-input min-h-20" maxLength={1000} value={specialRequests} onChange={(e) => setSpecialRequests(e.target.value)} data-testid="special-requests" />
+            </label>
             <label className="block">
               <span className="mb-1 block text-sm text-muted">{t.book.phone}</span>
               <span className="flex gap-2">
@@ -660,6 +750,33 @@ export function BookingFlow(props: BookingFlowProps) {
         <section className="ts-card space-y-4 p-5">
           <StepTitle n={5 + stepOffset} title={t.book.stepReview} done={consentOk} />
           <h3 className="font-semibold">{t.book.beforePay}</h3>
+          {!isFree && (
+            <div className="flex flex-wrap items-end gap-2" data-testid="coupon">
+              <label className="block min-w-0 flex-1">
+                <span className="mb-1 block text-sm text-muted">{t.book.couponLabel}</span>
+                <input className="ts-input uppercase" value={couponInput} onChange={(e) => setCouponInput(e.target.value)} maxLength={40} data-testid="coupon-input" />
+              </label>
+              <button type="button" className="ts-btn ts-btn-ghost text-sm" onClick={applyCoupon} disabled={!couponInput.trim()} data-testid="coupon-apply">
+                {t.book.couponApply}
+              </button>
+              {couponMsg && (
+                <p className={`w-full text-sm ${coupon ? "text-ok" : "text-danger"}`} role="status" data-testid="coupon-status">
+                  {couponMsg}
+                </p>
+              )}
+            </div>
+          )}
+          {!isFree && advancePercent > 0 && (
+            <fieldset className="space-y-1" data-testid="pay-plan">
+              <legend className="mb-1 text-sm font-semibold text-muted">{t.book.payPlanTitle}</legend>
+              {(["advance", "full"] as const).map((plan) => (
+                <label key={plan} className={`flex min-h-11 cursor-pointer items-center gap-3 rounded-xl border px-4 ${payPlan === plan ? "border-gold bg-raised" : "border-line"}`}>
+                  <input type="radio" name="payplan" checked={payPlan === plan} onChange={() => setPayPlan(plan)} className="h-5 w-5 accent-[var(--ts-warm)]" data-testid={`pay-${plan}`} />
+                  <span className="text-sm">{plan === "advance" ? t.book.payAdvance.replace("{pct}", String(advancePercent)) : t.book.payFull}</span>
+                </label>
+              ))}
+            </fieldset>
+          )}
           {!isFree && quote?.advance === 0 && (
             <p className="rounded-xl bg-raised px-4 py-3 text-sm" data-testid="venue-note">
               {t.book.venueNote}
@@ -669,9 +786,9 @@ export function BookingFlow(props: BookingFlowProps) {
             <div>
               <h4 className="text-sm font-semibold text-muted">{t.book.refundTitle}</h4>
               <ul className="mt-2 space-y-1 text-sm" data-testid="refund-tiers">
-                {refundTiers.map((r) => (
+                {catalog.refundTiers.map((r, i) => (
                   <li key={r.minHoursBefore} className="flex justify-between gap-3 border-b border-line/50 py-1">
-                    <span>{tl(r.label, locale)}</span>
+                    <span>{refundTiers[i] ? tl(refundTiers[i].label, locale) : `${r.minHoursBefore}h+`}</span>
                     <strong>{r.refundPercentOfAdvance}%</strong>
                   </li>
                 ))}
@@ -784,13 +901,21 @@ export function BookingFlow(props: BookingFlowProps) {
                   <dd>{formatINR(l.amount)}</dd>
                 </div>
               ))}
+              {quote.discount > 0 && (
+                <div className="flex justify-between gap-3 text-ok" data-testid="quote-discount">
+                  <dt>
+                    {t.book.discount} ({coupon?.code})
+                  </dt>
+                  <dd>−{formatINR(quote.discount)}</dd>
+                </div>
+              )}
               <div className="flex justify-between gap-3 border-t border-line pt-2">
                 <dt className="text-muted">{t.book.subtotal}</dt>
                 <dd>{formatINR(quote.subtotal)}</dd>
               </div>
               <div className="flex justify-between gap-3">
                 <dt className="text-muted">
-                  {tl(bookingCfg.taxLabel, locale)} ({bookingCfg.taxPercent}%)
+                  {tl(bookingCfg.taxLabel, locale)} ({catalog.taxPercent}%)
                 </dt>
                 <dd>{formatINR(quote.tax)}</dd>
               </div>

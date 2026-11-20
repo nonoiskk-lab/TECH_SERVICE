@@ -36,6 +36,8 @@ export type Package = {
   name: L;
   summary: L;
   pricing: Pricing;
+  /** Setup added to the work time (owner rule: 30 min). Defaults to sessionRules.setupMinutes. */
+  setupMinutes?: number;
   /** Fixed packages: price in whole rupees before add-ons and tax. Others: 0 (computed). */
   price: number;
   /** Fixed packages: session length. Others: typical length, shown as a hint. */

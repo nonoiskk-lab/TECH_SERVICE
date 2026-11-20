@@ -2,6 +2,7 @@ import "server-only";
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { ensureCatalog } from "@/server/catalog";
 
 /**
  * Staff login. One shared ADMIN_PASSWORD plus the staff member's name, so the
@@ -62,6 +63,7 @@ export async function currentStaff(): Promise<string | null> {
 
 /** Use at the top of every admin page and server action. */
 export async function requireStaff(): Promise<string> {
+  await ensureCatalog();
   const who = await currentStaff();
   if (!who) redirect("/admin/login");
   return who;

@@ -1,9 +1,11 @@
+import { ensureCatalog } from "@/server/catalog";
 import type { NextRequest } from "next/server";
 import { availability } from "@/server/slots";
 import { bookablePackage, json } from "@/lib/api";
 import { bookingDates } from "@/lib/booking-dates";
 
 export async function GET(req: NextRequest) {
+  await ensureCatalog();
   const date = req.nextUrl.searchParams.get("date") ?? "";
   const pkg = bookablePackage(req.nextUrl.searchParams.get("packageId"));
   if (!pkg) return json({ error: "PACKAGE_NOT_BOOKABLE" }, 404);

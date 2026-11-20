@@ -34,9 +34,11 @@ export type BookingDraft = {
   guest: GuestDetails;
   guestCount: number;
   locale: string;
+  subtotal: number;
+  discount: number;
+  tax: number;
   total: number;
-  advancePaid: number;
-  balanceDue: number;
+  specialRequests: string;
   utm: Record<string, string>;
   acceptance: AcceptanceInput;
 };

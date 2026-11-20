@@ -27,6 +27,7 @@ test("podcast time follows episodes; creator time follows reels; space is ₹799
   await page.getByTestId("long-videos").selectOption("0");
   await expect(page.getByText("Pick at least one reel or video.")).toBeVisible();
 
+  await page.getByTestId("experience-celebration").click();
   await page.getByLabel(/Small Private Celebration/).check();
   await page.getByTestId("hours").selectOption("3");
   await expect(page.getByTestId("session-summary")).toContainText("₹2,397");

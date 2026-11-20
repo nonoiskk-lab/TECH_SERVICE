@@ -62,7 +62,7 @@ export function defaultInput(pkg: Package): SessionInput {
 export function resolveSession(pkg: Package, input: SessionInput, titles: TitleInfo[] = []): SessionResult {
   const p = pkg.pricing;
   let work: number;
-  let setup = R.setupMinutes;
+  let setup = pkg.setupMinutes ?? R.setupMinutes;
   let what: string;
   switch (p.kind) {
     case "fixed":

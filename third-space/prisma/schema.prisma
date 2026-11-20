@@ -11,9 +11,21 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-/// A confirmed booking. Status: confirmed | checked_in | completed | cancelled | stopped | no_show
+/// A booking. Status: pending_payment | confirmed | checked_in | in_progress | completed |
+/// cancelled | refund_pending | refunded | no_show | stopped
 model Booking {
   id               String    @id // TS-XXXXXX
+  customerId       String?
+  customer         Customer? @relation(fields: [customerId], references: [id])
+  packageName      String    @default("")
+  subtotal         Int       @default(0)
+  discount         Int       @default(0)
+  couponCode       String?
+  tax              Int       @default(0)
+  specialRequests  String    @default("")
+  source           String    @default("web") // web | admin
+  holdId           String?
+  rescheduledFrom  DateTime?
   accessToken      String    @unique // secret for the guest's confirmation link
   packageId        String
   service          String // theatre | podcast | creator | visit
@@ -56,6 +68,9 @@ model Booking {
   acceptance    PolicyAcceptance?
   incidents     Incident[]
   notifications Notification[]
+  payments      Payment[]
+  recordings    RecordingFile[]
+  membershipUse MembershipUsage[]
 
   @@index([resource, start])
   @@index([start])
@@ -74,9 +89,10 @@ model Hold {
   @@index([resource, start])
 }
 
-/// Staff-blocked time (maintenance, private event, deep cleaning).
+/// Staff-blocked time: maintenance, holiday, private event, deep cleaning.
 model SlotBlock {
   id        String   @id @default(uuid())
+  kind      String   @default("maintenance") // maintenance | holiday | event
   resource  String
   start     DateTime
   end       DateTime
@@ -179,6 +195,9 @@ model AuditLog {
 /// from the admin panel with a wa.me link.
 model Notification {
   id        String    @id @default(uuid())
+  kind      String    @default("booking_confirmed")
+  sendAfter DateTime  @default(now())
+  error     String?
   bookingId String?
   booking   Booking?  @relation(fields: [bookingId], references: [id])
   channel   String // whatsapp | email
@@ -207,4 +226,228 @@ model Title {
   createdBy      String
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
+}
+
+// ---------------------------------------------------------------------------
+// CATALOGUE (admin-editable)
+// ---------------------------------------------------------------------------
+
+model Resource {
+  id                String  @id // theatre | studio
+  name              String
+  openTime          String  @default("10:00")
+  closeTime         String  @default("22:00")
+  slotStepMinutes   Int     @default(30)
+  bufferMinutes     Int     @default(30)
+  bookingWindowDays Int     @default(60)
+  active            Boolean @default(true)
+  sortOrder         Int     @default(0)
+}
+
+model Package {
+  id                String         @id
+  resourceId        String
+  category          String // theatre | podcast | celebration | creator | visit
+  mode              String // watch | create | celebrate | visit
+  service           String // theatre | podcast | creator | celebration | visit
+  nameEn            String
+  nameHi            String
+  summaryEn         String         @default("")
+  summaryHi         String         @default("")
+  pricingKind       String // fixed | title | podcast | creator | hourly
+  startingPrice     Int
+  ratePerHour       Int            @default(0)
+  durationMinutes   Int
+  setupMinutes      Int            @default(30)
+  maxGuests         Int
+  inclusions        Json           @default("[]") // [{en,hi}] entered by admin
+  priceListLabelEn  String         @default("")
+  priceListLabelHi  String         @default("")
+  priceListNoteEn   String         @default("")
+  priceListNoteHi   String         @default("")
+  pricePlus         Boolean        @default(false)
+  showInPriceList   Boolean        @default(true)
+  requiresLegalGate Boolean        @default(false)
+  advancePercent    Int? // null = business default
+  refundTiers       Json? // null = business default
+  planHours         Int?
+  planValidityDays  Int?
+  active            Boolean        @default(true)
+  sortOrder         Int            @default(0)
+  updatedAt         DateTime       @updatedAt
+  assets            PackageAsset[]
+}
+
+model AddOn {
+  id        String   @id
+  nameEn    String
+  nameHi    String
+  price     Int
+  modes     String[]
+  active    Boolean  @default(true)
+  sortOrder Int      @default(0)
+}
+
+model Coupon {
+  code        String    @id
+  kind        String // percent | flat
+  value       Int
+  minSubtotal Int       @default(0)
+  maxUses     Int?
+  usedCount   Int       @default(0)
+  packageIds  String[]
+  validFrom   DateTime?
+  validUntil  DateTime?
+  active      Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+}
+
+/// Staff member or equipment that more than one resource may need.
+model SharedAsset {
+  id       String         @id @default(uuid())
+  name     String
+  kind     String // staff | equipment
+  active   Boolean        @default(true)
+  packages PackageAsset[]
+}
+
+model PackageAsset {
+  packageId String
+  assetId   String
+  package   Package     @relation(fields: [packageId], references: [id], onDelete: Cascade)
+  asset     SharedAsset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+  @@id([packageId, assetId])
+}
+
+/// Business settings as key → JSON (tax, advance %, hold minutes, notification timing…).
+model Setting {
+  key       String   @id
+  value     Json
+  updatedAt DateTime @updatedAt
+  updatedBy String   @default("system")
+}
+
+// ---------------------------------------------------------------------------
+// CUSTOMERS, MEMBERSHIPS, PAYMENTS
+// ---------------------------------------------------------------------------
+
+model Customer {
+  id                String              @id @default(uuid())
+  phone             String              @unique
+  name              String
+  email             String
+  marketingConsent  Boolean             @default(false)
+  notes             String              @default("")
+  deletionRequested DateTime?
+  createdAt         DateTime            @default(now())
+  bookings          Booking[]
+  memberships       CreatorMembership[]
+}
+
+model CreatorMembership {
+  id          String            @id @default(uuid())
+  customerId  String
+  customer    Customer          @relation(fields: [customerId], references: [id])
+  packageId   String
+  bookingId   String            @unique
+  hoursTotal  Int
+  minutesUsed Int               @default(0)
+  validUntil  DateTime
+  status      String            @default("active") // active | expired | cancelled
+  createdAt   DateTime          @default(now())
+  usage       MembershipUsage[]
+}
+
+model MembershipUsage {
+  id           String            @id @default(uuid())
+  membershipId String
+  membership   CreatorMembership @relation(fields: [membershipId], references: [id])
+  bookingId    String?
+  booking      Booking?          @relation(fields: [bookingId], references: [id])
+  minutes      Int
+  note         String            @default("")
+  recordedBy   String
+  createdAt    DateTime          @default(now())
+}
+
+/// One row per money movement. Unique ids prevent duplicate captures.
+model Payment {
+  id        String   @id @default(uuid())
+  bookingId String
+  booking   Booking  @relation(fields: [bookingId], references: [id])
+  provider  String // razorpay | mock | venue | cash | upi | card
+  kind      String // advance | balance | full | refund
+  orderId   String?  @unique
+  paymentId String?  @unique
+  refundId  String?  @unique
+  amount    Int
+  status    String // created | captured | failed | refunded | pending
+  note      String   @default("")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model WebhookEvent {
+  id         String   @id // provider event id
+  provider   String
+  type       String
+  receivedAt DateTime @default(now())
+}
+
+// ---------------------------------------------------------------------------
+// CONTENT, FILES, STAFF, SECURITY
+// ---------------------------------------------------------------------------
+
+/// Recording delivered to one booking through an expiring token link.
+model RecordingFile {
+  id          String    @id @default(uuid())
+  bookingId   String
+  booking     Booking   @relation(fields: [bookingId], references: [id])
+  label       String
+  url         String // storage URL or external link (never shown before the token check)
+  token       String    @unique
+  expiresAt   DateTime
+  deliveredAt DateTime?
+  downloads   Int       @default(0)
+  deleteAfter DateTime?
+  createdBy   String
+  createdAt   DateTime  @default(now())
+}
+
+model Testimonial {
+  id        String   @id @default(uuid())
+  name      String
+  text      String
+  source    String // e.g. "Google review, 12 Dec 2026"
+  rating    Int?
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+}
+
+model GalleryImage {
+  id        String   @id @default(uuid())
+  url       String
+  alt       String
+  category  String   @default("studio")
+  sortOrder Int      @default(0)
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+}
+
+model StaffUser {
+  id           String    @id @default(uuid())
+  email        String    @unique
+  name         String
+  role         String // super_admin | studio_manager | booking_manager | finance_manager | staff
+  passwordHash String
+  active       Boolean   @default(true)
+  lastLoginAt  DateTime?
+  createdAt    DateTime  @default(now())
+}
+
+model RateLimit {
+  key         String   @id
+  windowStart DateTime
+  count       Int
 }

@@ -1,16 +1,16 @@
 import { z } from "zod";
-import { Prisma } from "@prisma/client";
 import { addOnsFor, type Mode } from "@/config/site";
 import { createBooking, holds, otp, paymentService } from "@/server/slots";
-import { db } from "@/server/db";
-import { audit } from "@/server/audit";
-import { queueConfirmation } from "@/server/notify";
+import type { BookingDraft } from "@/server/slots/types";
+import { ensureCatalog } from "@/server/catalog";
+import { findCoupon } from "@/server/coupons";
+import { notifyBooking } from "@/server/notify";
+import { clientKey, rateLimit } from "@/server/rate-limit";
 import { bookablePackage, json } from "@/lib/api";
 import { buildQuote } from "@/lib/pricing";
 import { resolveSession } from "@/lib/session";
 import { flowEnv } from "@/lib/flow-env";
 import { activeTitles } from "@/server/titles";
-import type { BookingDraft } from "@/server/slots/types";
 
 const Body = z.object({
   holdId: z.string().min(1),
@@ -30,6 +30,10 @@ const Body = z.object({
     .default({}),
   guestCount: z.number().int().min(1).max(50),
   locale: z.enum(["en", "hi"]),
+  couponCode: z.string().trim().max(40).optional(),
+  specialRequests: z.string().trim().max(1000).default(""),
+  /** "advance" pays the configured advance online; "full" pays everything online. */
+  payPlan: z.enum(["advance", "full"]).default("advance"),
   guest: z.object({
     name: z.string().trim().min(2).max(80),
     phone: z.string().regex(/^[6-9]\d{9}$/),
@@ -48,11 +52,13 @@ const Body = z.object({
 });
 
 /**
- * Creates the payment order for a held slot (or the booking directly for a
- * free visit). The quote is recomputed from config; client numbers are never
- * trusted. The booking cannot complete without the mandatory declaration.
+ * Checkout. The quote is recomputed on the server from the catalogue; client
+ * numbers are never trusted. Creates the booking as pending_payment with a
+ * Razorpay order, or confirms it directly (free visit / pay at venue).
  */
 export async function POST(req: Request) {
+  await ensureCatalog();
+  if (!(await rateLimit(await clientKey("checkout"), 15, 600))) return json({ error: "RATE_LIMITED" }, 429);
   const parsed = Body.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return json({ error: "BAD_REQUEST", issues: parsed.error.issues.map((i) => i.path.join(".")) }, 400);
   const b = parsed.data;
@@ -68,12 +74,17 @@ export async function POST(req: Request) {
   const addOnIds = b.addOnIds.filter((id) => allowed.has(id));
   const hold = await holds.get(b.holdId);
   if (!hold || hold.packageId !== pkg.id) return json({ error: "HOLD_EXPIRED" }, 410);
-  // Time and price are decided here from what the guest asked for; the hold must match.
+
   const titles = pkg.pricing.kind === "title" ? await activeTitles() : [];
   const resolved = resolveSession(pkg, b.session, titles);
   if (!resolved.ok) return json({ error: resolved.reason }, 400);
   if (hold.durationMinutes !== resolved.session.durationMinutes) return json({ error: "SESSION_CHANGED" }, 409);
-  const quote = buildQuote(pkg, addOnIds, mode, resolved.session, flowEnv().advancePercent)!;
+  const coupon = await findCoupon(b.couponCode, pkg.id);
+  if (b.couponCode && !coupon) return json({ error: "COUPON_INVALID" }, 400);
+  const { advancePercent } = flowEnv();
+  const online = advancePercent > 0;
+  const pct = online && b.payPlan === "full" ? 100 : advancePercent;
+  const quote = buildQuote(pkg, addOnIds, mode, resolved.session, pct, { coupon })!;
   const title = titles.find((x) => x.id === b.session.titleId);
 
   const draft: BookingDraft = {
@@ -88,9 +99,11 @@ export async function POST(req: Request) {
     guest: b.guest,
     guestCount: b.guestCount,
     locale: b.locale,
+    subtotal: quote.subtotal,
+    discount: quote.discount,
+    tax: quote.tax,
     total: quote.total,
-    advancePaid: quote.advance,
-    balanceDue: quote.balance,
+    specialRequests: b.specialRequests,
     utm: b.utm,
     acceptance: {
       locale: b.locale,
@@ -103,17 +116,29 @@ export async function POST(req: Request) {
     },
   };
 
-  if (quote.advance === 0) {
-    const booking = await createBooking(draft, hold.id, { provider: quote.total > 0 ? "venue" : undefined });
-    await queueConfirmation(booking);
-    return json({ bookingId: booking.id, token: booking.accessToken });
+  try {
+    if (quote.advance === 0) {
+      // Free visit, or pay-at-venue mode: confirmed now, nothing charged online.
+      const booking = await createBooking(draft, hold.id, {
+        status: "confirmed",
+        couponCode: coupon?.code,
+        payment: quote.total > 0 ? { provider: "venue", kind: "full", amount: quote.total, status: "pending" } : undefined,
+      });
+      await notifyBooking(booking.id, "booking_confirmed");
+      return json({ bookingId: booking.id, token: booking.accessToken });
+    }
+    const payments = paymentService();
+    const order = await payments.createOrder(quote.advance, hold.id.slice(0, 36));
+    const booking = await createBooking(draft, hold.id, {
+      status: "pending_payment",
+      couponCode: coupon?.code,
+      payment: { provider: order.provider, kind: pct === 100 ? "full" : "advance", orderId: order.orderId, amount: order.amount, status: "created" },
+    });
+    return json({ bookingId: booking.id, orderId: order.orderId, amount: order.amount, provider: order.provider, keyId: order.keyId });
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "";
+    if (msg === "HOLD_EXPIRED") return json({ error: "HOLD_EXPIRED" }, 410);
+    if (msg === "COUPON_EXHAUSTED") return json({ error: "COUPON_INVALID" }, 400);
+    throw e;
   }
-
-  const payments = paymentService();
-  const order = await payments.createOrder(quote.advance, hold.id.slice(0, 36));
-  await db.pendingOrder.create({
-    data: { orderId: order.orderId, holdId: hold.id, amount: order.amount, provider: order.provider, draft: draft as unknown as Prisma.InputJsonValue },
-  });
-  await audit(null, "guest", "payment.order_created", "Hold", hold.id, { orderId: order.orderId, amount: order.amount, provider: order.provider });
-  return json({ orderId: order.orderId, amount: order.amount, provider: order.provider, keyId: order.keyId });
 }

@@ -13,6 +13,7 @@ const contactEnv = {
   ADMIN_PASSWORD: "test-staff-password",
   AUTH_SECRET: "test-auth-secret-at-least-16-chars",
   PAYMENTS_MODE: "mock",
+  RATE_LIMIT_DISABLED: "1",
   OTP_MODE: "mock",
 };
 
