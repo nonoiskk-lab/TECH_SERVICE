@@ -41,6 +41,11 @@ export function manageLink(b: Booking) {
   return `${siteUrl()}/my-booking/${b.id}?t=${b.accessToken}`;
 }
 
+/** Private link to the 1-minute feedback form for this booking. */
+export function feedbackLink(b: Booking) {
+  return `${siteUrl()}/feedback/${b.id}?t=${b.accessToken}`;
+}
+
 export function messageFor(kind: NotifyKind, b: Booking, extra: { link?: string } = {}) {
   const pkg = getPackage(b.packageId)?.name.en ?? b.packageName ?? b.packageId;
   const link = extra.link ?? manageLink(b);
@@ -64,7 +69,7 @@ export function messageFor(kind: NotifyKind, b: Booking, extra: { link?: string 
     rescheduled: [head, `your booking ${b.id} is moved to ${when(b)}.`, `Details: ${link}`],
     cancelled: [head, `your booking ${b.id} (${when(b)}) is cancelled.`, b.refundAmount ? `Refund: Rs ${b.refundAmount}, processed to your original payment method.` : "", `Details: ${link}`],
     recording_ready: [head, `your recording from ${when(b)} is ready. Download it here (private link): ${link}`],
-    feedback_request: [head, "thank you for visiting THIRD SPACE. How was it? Reply with a rating from 1 to 5, or tell us anything we can do better."],
+    feedback_request: [head, "thank you for visiting THIRD SPACE. How was it? Rate your visit in one minute:", feedbackLink(b)],
   };
   return lines[kind].filter(Boolean).join("\n");
 }
@@ -74,7 +79,7 @@ async function sendWhatsApp(kind: NotifyKind, to: string, b: Booking | null, bod
   const phoneId = process.env.WHATSAPP_PHONE_NUMBER_ID?.trim();
   const template = process.env[`WHATSAPP_TEMPLATE_${kind.toUpperCase()}`]?.trim();
   if (!token || !phoneId || !template) return { ok: false, error: "not_configured" };
-  const params = b ? [b.guestName.split(" ")[0], b.id, when(b), manageLink(b)] : [body.slice(0, 900)];
+  const params = b ? [b.guestName.split(" ")[0], b.id, when(b), kind === "feedback_request" ? feedbackLink(b) : manageLink(b)] : [body.slice(0, 900)];
   const r = await fetch(`https://graph.facebook.com/v21.0/${phoneId}/messages`, {
     method: "POST",
     headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },

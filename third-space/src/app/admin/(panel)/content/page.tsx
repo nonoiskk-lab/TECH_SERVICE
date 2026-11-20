@@ -1,16 +1,50 @@
 import { db } from "@/server/db";
 import { requireRole } from "@/server/admin/auth";
-import { saveGalleryImageAction, saveTestimonialAction, toggleContentAction } from "@/server/admin/manage";
+import { publishFeedbackAction, saveGalleryImageAction, saveTestimonialAction, toggleContentAction } from "@/server/admin/manage";
 import { ActionForm } from "@/components/admin/action-form";
 import { Card, Field, H1, Status } from "@/components/admin/ui";
 
 export default async function ContentPage() {
   await requireRole("content");
-  const [reviews, images] = await Promise.all([db.testimonial.findMany({ orderBy: { createdAt: "desc" } }), db.galleryImage.findMany({ orderBy: { sortOrder: "asc" } })]);
+  const [reviews, images, feedback, agg] = await Promise.all([
+    db.testimonial.findMany({ orderBy: { createdAt: "desc" } }),
+    db.galleryImage.findMany({ orderBy: { sortOrder: "asc" } }),
+    db.feedback.findMany({ orderBy: { createdAt: "desc" }, take: 100, include: { booking: { select: { id: true, packageName: true, packageId: true, start: true } } } }),
+    db.feedback.aggregate({ _avg: { rating: true }, _count: true }),
+  ]);
   return (
     <>
       <H1>Gallery & reviews</H1>
-      <div className="grid gap-4 lg:grid-cols-2">
+      <Card title="Guest feedback" testId="feedback-inbox">
+        <p className="mb-3 text-sm text-muted">
+          {agg._count} responses{agg._avg.rating ? ` · average ${agg._avg.rating.toFixed(1)} / 5` : ""}. Guests rate their visit from the link in the feedback message. Publish only
+          what the guest allowed; the website shows first name and initial.
+        </p>
+        <ul className="divide-y divide-line/60 text-sm">
+          {feedback.map((fb) => (
+            <li key={fb.id} className="flex flex-wrap items-start justify-between gap-3 py-3" data-testid="feedback-row">
+              <span className="min-w-0 flex-1">
+                <strong className="text-warm">{"★".repeat(fb.rating)}</strong> {fb.displayName} ·{" "}
+                <a href={`/admin/bookings/${fb.booking.id}`} className="underline-offset-4 hover:underline">
+                  {fb.booking.id}
+                </a>{" "}
+                · {fb.booking.packageName || fb.booking.packageId}
+                {fb.comment && <span className="mt-1 block text-muted">“{fb.comment}”</span>}
+                <span className="mt-1 block text-xs text-faint">{fb.allowPublish ? "Guest allowed publishing" : "Private: not for publishing"}</span>
+              </span>
+              {fb.testimonialId ? (
+                <Status value="published" />
+              ) : fb.allowPublish && fb.comment.length >= 10 ? (
+                <ActionForm action={publishFeedbackAction} submit="Publish as review">
+                  <input type="hidden" name="id" value={fb.id} />
+                </ActionForm>
+              ) : null}
+            </li>
+          ))}
+          {feedback.length === 0 && <li className="py-2 text-muted">No feedback yet.</li>}
+        </ul>
+      </Card>
+      <div className="mt-4 grid gap-4 lg:grid-cols-2">
         <Card title="Customer reviews" testId="reviews">
           <p className="mb-2 text-sm text-muted">Only real reviews, with where they were posted. The home page hides this section until there is at least one.</p>
           <ul className="mb-3 space-y-2 text-sm">

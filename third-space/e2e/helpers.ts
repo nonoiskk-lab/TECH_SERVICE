@@ -1,4 +1,4 @@
-import { expect, type Page, type TestInfo } from "@playwright/test";
+import { expect, type APIRequestContext, type Page, type TestInfo } from "@playwright/test";
 
 export const isOpen = (info: TestInfo) => info.project.name === "gate-open";
 
@@ -79,4 +79,18 @@ export async function addTitle(page: Page, runtimeMinutes: number) {
   await form.getByRole("button", { name: "Add title" }).click();
   await expect(form.getByRole("status")).toContainText(`Added ${name}`);
   return name;
+}
+
+/**
+ * First day from `fromDay` days ahead with a free podcast slot of `duration` minutes, via the public API.
+ * The test database keeps data between runs, so fixed days fill up; tests search instead.
+ */
+export async function freeApiSlot(request: APIRequestContext, fromDay: number, duration: number, step = 1) {
+  for (let k = fromDay; k < fromDay + 15 * step; k += step) {
+    const day = new Date(Date.now() + k * 86400_000).toISOString().slice(0, 10);
+    const slots = (await (await request.get(`/api/availability?date=${day}&packageId=podcast&duration=${duration}`)).json()).slots as { start: string; status: string }[];
+    const free = slots.find((s) => s.status === "available");
+    if (free) return { day, start: free.start, slots };
+  }
+  throw new Error("No free podcast slot found; use a fresh test database");
 }

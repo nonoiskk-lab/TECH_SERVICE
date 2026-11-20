@@ -9,7 +9,7 @@ export const metadata: Metadata = { title: "Admin | THIRD SPACE", robots: { inde
 const NAV: [string, string, Permission][] = [
   ["/admin", "Today", "dashboard"],
   ["/admin/bookings", "Bookings", "bookings.view"],
-  ["/admin/slots", "Day view", "bookings.view"],
+  ["/admin/slots", "Schedule", "bookings.view"],
   ["/admin/calendar", "Calendar", "calendar"],
   ["/admin/customers", "Customers", "customers"],
   ["/admin/packages", "Packages", "packages"],

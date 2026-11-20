@@ -31,3 +31,12 @@ New tests:
 Content checker: 34 pages, gate closed, all passed (it now follows same-site redirects such as `/account` → `/account/login` instead of reporting them as dead links). It caught and blocked a copy leak ("movie" in a feature card while the film-licence gate is closed), fixed before release.
 
 Fixed during this release: the admin "Minimum booking price" setting was saved but never applied to pricing; it now drives both server and browser prices.
+
+## Update — feedback, equipment and schedule (2026-11-20, evening)
+**Playwright: 59 passed, 0 failed, 18 skipped by design** (run on a freshly created local test database).
+
+New tests: feedback link refuses a wrong token and is closed before the session; after check-in the guest rates 5★ with consent; second attempt says "already rated"; staff publish it and it appears on the home page as "Verified guest feedback". Staff-entered studio equipment appears on the Podcast and Creative Studio pages. The Schedule shows both spaces and links the booking.
+
+Test hygiene: two older tests used one fixed date each and failed once the shared test database filled up after many runs; they now search for a free date (`freeApiSlot`). When the 60-day window is exhausted locally, recreate the test database (`dropdb`/`createdb` + `prisma migrate deploy`).
+
+Found while checking the Schedule visually: the first version drew `pending_payment` bookings whose 15-minute hold had expired as if they still occupied the room. They don't (the engine correctly frees that time), so the Schedule now draws pending bookings only through their active hold.

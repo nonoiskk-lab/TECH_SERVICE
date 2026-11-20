@@ -69,3 +69,25 @@ export function MapEmbed({ address, title }: { address: string; title: string })
     />
   );
 }
+
+/** Equipment / facilities table for a space. Renders nothing when staff have not entered a list. */
+export function EquipmentList({ items, title }: { items: { name: string; detail: string }[]; title: string }) {
+  if (items.length === 0) return null;
+  return (
+    <section className="ts-section" id="equipment" aria-labelledby="equipment-h">
+      <div className="mx-auto max-w-[var(--ts-maxw)] px-4">
+        <h2 id="equipment-h" className="mb-8 text-3xl leading-tight sm:text-5xl">
+          {title}
+        </h2>
+        <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3" data-testid="equipment">
+          {items.map((i) => (
+            <li key={i.name + i.detail} className="ts-card p-5">
+              <p className="font-semibold">{i.name}</p>
+              {i.detail && <p className="mt-1 text-sm text-muted">{i.detail}</p>}
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
+  );
+}

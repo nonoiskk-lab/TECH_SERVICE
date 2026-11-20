@@ -706,8 +706,8 @@ Devanagari falls back to Noto Sans Devanagari.
 | Real photos and video | The gallery uses illustrations | Lower trust than real rooms | Upload photos in Admin → Content; add a short room video on each experience page | Critical (before launch marketing) |
 | Online payments | Production runs pay-at-venue (no Razorpay keys) | No advance collected; no-show risk | Add the Razorpay keys and webhook secret | Critical |
 | WhatsApp and email delivery | Messages queue until providers are set | Guests get no confirmation | WhatsApp Cloud API templates plus Resend | High |
-| Equipment lists | Not published (not invented) | Studio buyers want specs | Owner to supply the list; show it as a table on podcast and creative pages | High |
+| Equipment lists | Admin-editable list now built (Calendar → equipment); empty until the owner fills it | Studio buyers want specs | Owner enters the real list; it appears on the studio and theatre pages | High (owner) |
 | Reschedule rule | Self-service set to once, ≥24 h before (an **assumption**) | Policy must match | Owner to confirm in Admin → Settings | High |
-| Testimonials and ratings | None yet | Weaker social proof | Collect reviews after sessions (the feedback cron is ready) and add them in Admin | Medium |
+| Testimonials and ratings | Feedback form, consent and one-click publish now built | Weaker social proof until guests respond | Turn on WhatsApp/email so the feedback link reaches guests | Medium |
 | SMS OTP | Off in production | Phone not verified | Connect MSG91 or Gupshup | Medium |
 | Theatre launch | Legal Gate closed | Theatre packages hidden | Open once titles are licensed | Per legal |

@@ -1,6 +1,6 @@
 import { createHmac } from "node:crypto";
 import { expect, test, type APIRequestContext } from "@playwright/test";
-import { adminLogin, isOpen } from "./helpers";
+import { acceptTerms, adminLogin, bookPodcast, chooseDate, fillDetailsAndVerify, firstAvailableSlot, isOpen } from "./helpers";
 
 const WEBHOOK_SECRET = "test-webhook-secret";
 
@@ -242,5 +242,81 @@ test.describe("Pricing and Creative Studio pages", () => {
     await page.goto("/creative-studio");
     await expect(page.locator("#book").getByTestId("session-step")).toBeVisible();
     await expect(page.locator("#custom form")).toBeVisible();
+  });
+});
+
+test.describe("Feedback → reviews, equipment lists and the staff schedule", () => {
+  test.beforeEach(({}, info) => test.skip(isOpen(info), "runs once, on the gate-closed server"));
+
+  test("guest rates a visit after check-in; staff publish it as a review with consent", async ({ page }) => {
+    const id = await bookPodcast(page, 14);
+    // The private token comes from the guest's My Booking link.
+    await page.goto("/my-booking");
+    const find = page.getByTestId("find-booking");
+    await find.getByTestId("find-id").fill(id);
+    await find.getByTestId("find-phone").fill("9876543210");
+    await find.getByTestId("find-email").fill("guest@thirdspace.in");
+    await find.getByRole("button").click();
+    await expect(page.getByTestId("receipt-id")).toHaveText(id);
+    const token = new URL(page.url()).searchParams.get("t")!;
+
+    await page.goto(`/feedback/${id}?t=wrong`);
+    await expect(page.getByTestId("feedback-invalid")).toBeVisible();
+    await page.goto(`/feedback/${id}?t=${token}`);
+    await expect(page.getByTestId("feedback-not-yet")).toBeVisible(); // not before the session
+
+    await adminLogin(page);
+    await page.goto(`/admin/bookings/${id}`);
+    await page.getByTestId("age-count").fill("2");
+    await page.getByTestId("id-seen").check();
+    await page.getByTestId("checkin").getByRole("button", { name: "Check in" }).click();
+    await expect(page.getByTestId("age-state")).toHaveText(/18\+ verified/);
+
+    const comment = `Lovely quiet studio, sound was clear ${Date.now().toString(36)}`;
+    await page.goto(`/feedback/${id}?t=${token}`);
+    await page.locator("label").filter({ has: page.getByTestId("rating-5") }).click();
+    await page.getByTestId("feedback-comment").fill(comment);
+    await page.getByTestId("feedback-publish").check();
+    await page.getByTestId("feedback-submit").click();
+    await expect(page.getByTestId("feedback-thanks")).toContainText("Thank you");
+    await page.goto(`/feedback/${id}?t=${token}`);
+    await expect(page.getByTestId("feedback-thanks")).toContainText("already rated"); // once only
+
+    await page.goto("/admin/content");
+    const row = page.getByTestId("feedback-row").filter({ hasText: comment });
+    await expect(row).toContainText("Guest allowed publishing");
+    await row.getByRole("button", { name: "Publish as review" }).click();
+    await expect(page.getByTestId("feedback-row").filter({ hasText: comment })).toContainText("published");
+    await page.goto("/");
+    await expect(page.getByTestId("testimonials")).toContainText(comment);
+    await expect(page.getByTestId("testimonials")).toContainText("Verified guest feedback");
+  });
+
+  test("equipment entered by staff appears on the studio pages; schedule shows both spaces", async ({ page }) => {
+    await adminLogin(page);
+    await page.goto("/admin/calendar");
+    const card = page.getByTestId("equipment-studio");
+    const mic = `Test dynamic mic ${Date.now().toString(36)}`;
+    await card.locator("textarea").fill(`${mic} — 4 units\nAcoustic panels`);
+    await card.getByRole("button", { name: "Save list" }).click();
+    await expect(card.getByRole("status")).toContainText("Saved 2 item(s)");
+    await page.goto("/podcast-studio");
+    await expect(page.getByTestId("equipment")).toContainText(mic);
+    await expect(page.getByTestId("equipment")).toContainText("4 units");
+    await page.goto("/creative-studio");
+    await expect(page.getByTestId("equipment")).toContainText("Acoustic panels");
+
+    await page.goto("/book?package=podcast");
+    const day = await chooseDate(page, 16);
+    await (await firstAvailableSlot(page)).click();
+    await expect(page.getByTestId("hold-banner")).toBeVisible();
+    await fillDetailsAndVerify(page);
+    await acceptTerms(page, { recording: true });
+    await page.getByTestId("pay-button").click();
+    const id = (await page.getByTestId("booking-id").textContent())!.trim();
+    await page.goto(`/admin/slots?date=${day}`);
+    await expect(page.getByTestId("schedule-room")).toBeVisible();
+    await expect(page.getByTestId("schedule-studio").getByTestId("schedule-booking").filter({ hasText: id })).toHaveAttribute("href", `/admin/bookings/${id}`);
+    await expect(page.getByTestId("occupancy-studio")).toContainText("% booked");
   });
 });

@@ -501,3 +501,46 @@ export async function saveAssetAction(_: ActionState, f: FormData): Promise<Acti
   await audit(null, who, "asset.created", "SharedAsset", a.id, { name, kind, packages: ids });
   return done(["/admin/calendar"], `Saved ${name}. Bookings that need it can no longer overlap.`);
 }
+
+// ---------------------------------------------------------------- guest feedback → testimonials
+
+/** Publishes a guest's feedback as a testimonial. Only when the guest ticked consent and wrote a comment. */
+export async function publishFeedbackAction(_: ActionState, f: FormData): Promise<ActionState> {
+  const who = await guard("content");
+  const fb = await db.feedback.findUnique({ where: { id: str(f, "id") }, include: { booking: true } });
+  if (!fb) return { error: "Feedback not found." };
+  if (!fb.allowPublish) return { error: "The guest did not allow publishing this feedback." };
+  if (fb.comment.length < 10) return { error: "Only feedback with a written comment can be published." };
+  if (fb.testimonialId) return { error: "Already published." };
+  const date = fb.createdAt.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric", timeZone: "Asia/Kolkata" });
+  const t = await db.testimonial.create({ data: { name: fb.displayName || "Guest", text: fb.comment, source: `Verified guest feedback, ${date}`, rating: fb.rating } });
+  await db.feedback.update({ where: { id: fb.id }, data: { publishedAt: new Date(), testimonialId: t.id } });
+  await audit(null, who, "feedback.published", "Feedback", fb.id, { testimonialId: t.id });
+  return done(["/admin/content", "/"], "Published on the website.");
+}
+
+// ---------------------------------------------------------------- equipment & facilities per space
+
+/**
+ * Equipment and facilities shown on the public space pages. One item per line:
+ * "Name — detail" (detail optional). Empty list hides the section; nothing is shown that staff did not enter.
+ */
+export async function saveEquipmentAction(_: ActionState, f: FormData): Promise<ActionState> {
+  const who = await guard("calendar");
+  const resource = str(f, "resource");
+  if (!["room", "studio"].includes(resource)) return { error: "Unknown space." };
+  const items = String(f.get("items") ?? "")
+    .split("\n")
+    .map((l) => l.trim())
+    .filter(Boolean)
+    .slice(0, 40)
+    .map((l) => {
+      const [name, ...rest] = l.split(/\s+[—–-]\s+/);
+      return { name: name.slice(0, 80), detail: rest.join(" — ").slice(0, 160) };
+    });
+  const row = await db.setting.findUnique({ where: { key: "equipment" } });
+  const value = { ...((row?.value as Record<string, { name: string; detail: string }[]>) ?? {}), [resource]: items };
+  await db.setting.upsert({ where: { key: "equipment" }, create: { key: "equipment", value, updatedBy: who }, update: { value, updatedBy: who } });
+  await audit(null, who, "equipment.saved", "Setting", resource, { count: items.length });
+  return done(["/admin/calendar", "/podcast-studio", "/creative-studio", "/private-theatre"], `Saved ${items.length} item(s).`);
+}

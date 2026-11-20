@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { equipmentFor } from "@/server/content";
+import { EquipmentList } from "@/components/site-sections";
 import { recordingConsent } from "@/config/site";
 import { packages } from "@/config/packages";
 import { getDict } from "@/lib/locale";
@@ -48,6 +50,7 @@ export default async function CreatePage() {
         <p className="mb-6 max-w-2xl text-muted">{t.create.estimatorText}</p>
         <BookingFlow t={t} locale={locale} mode="create" packages={createPkgs} {...bookingDates()} {...flowEnv()} />
       </Section>
+      <EquipmentList items={await equipmentFor("studio")} title={t.pages.equipmentTitle} />
     </>
   );
 }

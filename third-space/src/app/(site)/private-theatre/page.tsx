@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { equipmentFor } from "@/server/content";
+import { EquipmentList } from "@/components/site-sections";
 import Link from "next/link";
 import { addOnsFor, contentRule, isLegalGateOpen, themes } from "@/config/site";
 import { packages } from "@/config/packages";
@@ -119,6 +121,7 @@ export default async function WatchPage() {
           {tl(contentRule, locale)}
         </p>
       </Section>
+      <EquipmentList items={await equipmentFor("room")} title={t.pages.equipmentTitle} />
     </>
   );
 }

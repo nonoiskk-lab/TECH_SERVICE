@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { chooseDate } from "./helpers";
+import { chooseDate, freeApiSlot } from "./helpers";
 
 test("podcast time follows episodes; creator time follows reels; space is ₹799/hr", async ({ page }) => {
   await page.goto("/book?package=podcast");
@@ -69,11 +69,10 @@ test("server prices the session itself and rejects a mismatched hold", async ({ 
 });
 
 test("every booking keeps a 30-minute gap before the next one", async ({ request }, info) => {
-  const day = new Date(Date.now() + (52 + (info.project.name === "gate-open" ? 1 : 0)) * 86400_000).toISOString().slice(0, 10);
+  const { day, start } = await freeApiSlot(request, 52 + (info.project.name === "gate-open" ? 1 : 0), 90, 2);
   const get = async () =>
     (await (await request.get(`/api/availability?date=${day}&packageId=podcast&duration=90`)).json()).slots as { start: string; status: string }[];
-  const before = await get();
-  const first = before.find((s) => s.status === "available")!;
+  const first = { start };
   const r = await request.post("/api/holds", { data: { packageId: "podcast", start: first.start, durationMinutes: 90 } });
   expect(r.status()).toBe(201);
   const startMs = Date.parse(first.start);

@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { acceptTerms, chooseDate, fillDetailsAndVerify, firstAvailableSlot, isOpen } from "./helpers";
+import { acceptTerms, chooseDate, fillDetailsAndVerify, firstAvailableSlot, isOpen, freeApiSlot } from "./helpers";
 
 test("booking happy path: podcast, advance paid, booking ID shown", async ({ page }, info) => {
   await page.goto("/book?package=podcast");
@@ -91,9 +91,7 @@ test("free visit books without payment", async ({ page }, info) => {
 });
 
 test("server refuses a booking without the mandatory declaration", async ({ request }, info) => {
-  const day = new Date(Date.now() + 40 * 86400_000 + (isOpen(info) ? 86400_000 : 0)).toISOString().slice(0, 10);
-  const slots = (await (await request.get(`/api/availability?date=${day}&packageId=podcast&duration=90`)).json()).slots as { start: string; status: string }[];
-  const start = slots.find((s) => s.status === "available")!.start;
+  const { start } = await freeApiSlot(request, 40 + (isOpen(info) ? 1 : 0), 90, 2);
   const hold = await (await request.post("/api/holds", { data: { packageId: "podcast", start, durationMinutes: 90 } })).json();
   await request.post("/api/otp", { data: { action: "send", phone: "9876500001" } });
   await request.post("/api/otp", { data: { action: "verify", phone: "9876500001", code: "123456" } });

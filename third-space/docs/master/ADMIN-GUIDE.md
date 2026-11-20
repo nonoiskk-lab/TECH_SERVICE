@@ -34,3 +34,13 @@ Guests manage bookings at `/my-booking` (booking ID + phone + email), print the 
 - Guests can create an account at `/account/signup` (mobile + email + password, 18+). If that mobile already has bookings, the account only links them when the email matches the one used to book.
 - **Customers** shows an "online account" badge for guests who have one.
 - **Settings → Guest self-service rescheduling**: switch on/off, minimum notice in hours (default 24) and how many times one booking can be moved (default 1). These defaults are an assumption until the owner confirms the rule. Moves go through the same slot engine, so they can never double-book; every move is in the audit log and the guest gets a "rescheduled" message.
+
+## Guest feedback → reviews (new)
+- After a session the cron sends the guest a private feedback link (`/feedback/<booking>?t=…`). It opens only after check-in, once per booking: a 1–5 rating, an optional comment and a separate tick-box allowing publication.
+- **Gallery & reviews → Guest feedback** lists every response with the average rating. "Publish as review" appears only when the guest allowed it and wrote a comment; the website shows first name + initial and "Verified guest feedback, <date>".
+
+## Equipment & facilities (new)
+- **Calendar → Studio / Theatre room equipment & facilities**: one item per line as "Name — detail". The list appears on the Podcast Studio, Creative Studio and Private Theatre pages; an empty list hides the section. List only what is really in the room.
+
+## Schedule (was "Day view")
+- **Schedule** shows both spaces for a day on one timeline: confirmed sessions (click to open), holds and bookings awaiting payment (dashed), blocked time and the cleaning gap after each booking, plus % booked. Use ‹ Today › or pick a date.

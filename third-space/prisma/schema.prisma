@@ -75,6 +75,7 @@ model Booking {
 
   @@index([resource, start])
   @@index([start])
+  feedback         Feedback?
 }
 
 /// A slot held during checkout. Expired rows are ignored and cleaned up lazily.
@@ -454,4 +455,19 @@ model RateLimit {
   key         String   @id
   windowStart DateTime
   count       Int
+}
+
+/// Guest feedback after a session (from the link in the feedback message).
+/// Published as a Testimonial only when the guest allowed it and staff approve.
+model Feedback {
+  id             String    @id @default(uuid())
+  bookingId      String    @unique
+  booking        Booking   @relation(fields: [bookingId], references: [id])
+  rating         Int
+  comment        String    @default("")
+  allowPublish   Boolean   @default(false)
+  displayName    String    @default("")
+  publishedAt    DateTime?
+  testimonialId  String?
+  createdAt      DateTime  @default(now())
 }

@@ -1,6 +1,7 @@
 import { db } from "@/server/db";
 import { requireRole } from "@/server/admin/auth";
-import { createClosureAction, saveAssetAction, saveResourceAction } from "@/server/admin/manage";
+import { createClosureAction, saveAssetAction, saveEquipmentAction, saveResourceAction } from "@/server/admin/manage";
+import { equipmentFor } from "@/server/content";
 import { packages } from "@/config/packages";
 import { deleteBlockAction } from "@/server/admin/actions";
 import { ActionForm } from "@/components/admin/action-form";
@@ -9,6 +10,7 @@ import { istToday } from "@/server/slots/time";
 
 export default async function CalendarPage() {
   await requireRole("calendar");
+  const [roomEq, studioEq] = await Promise.all([equipmentFor("room"), equipmentFor("studio")]);
   const [resources, closures, assets] = await Promise.all([
     db.resource.findMany({ orderBy: { sortOrder: "asc" } }),
     db.slotBlock.findMany({ where: { end: { gte: new Date() } }, orderBy: { start: "asc" }, take: 100 }),
@@ -17,6 +19,17 @@ export default async function CalendarPage() {
   return (
     <>
       <H1>Calendar & resources</H1>
+      <div className="mb-4 grid gap-4 lg:grid-cols-2">
+        {([["studio", "Studio equipment & facilities", studioEq], ["room", "Theatre room equipment & facilities", roomEq]] as const).map(([id, title, list]) => (
+          <Card key={id} title={title} testId={`equipment-${id}`}>
+            <p className="mb-2 text-sm text-muted">One item per line, as “Name — detail”. Shown on the public page only when filled in. List only what is really there.</p>
+            <ActionForm action={saveEquipmentAction} submit="Save list">
+              <input type="hidden" name="resource" value={id} />
+              <textarea name="items" rows={6} className="ts-input" defaultValue={list.map((i) => (i.detail ? `${i.name} — ${i.detail}` : i.name)).join("\n")} />
+            </ActionForm>
+          </Card>
+        ))}
+      </div>
       <div className="grid gap-4 lg:grid-cols-2">
         {resources.map((r) => (
           <Card key={r.id} title={r.name} testId={`resource-${r.id}`}>

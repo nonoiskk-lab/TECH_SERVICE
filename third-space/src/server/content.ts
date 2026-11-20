@@ -31,3 +31,16 @@ export async function testimonials(limit = 6): Promise<TestimonialItem[]> {
     return [];
   }
 }
+
+export type EquipmentItem = { name: string; detail: string };
+
+/** Equipment and facilities entered by staff for a space ("room" | "studio"). Empty when none. */
+export async function equipmentFor(resource: "room" | "studio"): Promise<EquipmentItem[]> {
+  try {
+    const row = await db.setting.findUnique({ where: { key: "equipment" } });
+    const list = (row?.value as Record<string, EquipmentItem[]> | null)?.[resource];
+    return Array.isArray(list) ? list.filter((i) => i && typeof i.name === "string" && i.name) : [];
+  } catch {
+    return [];
+  }
+}

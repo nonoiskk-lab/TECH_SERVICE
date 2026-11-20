@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { equipmentFor } from "@/server/content";
+import { EquipmentList } from "@/components/site-sections";
 import Link from "next/link";
 import { enquiryPurposes, isLegalGateOpen } from "@/config/site";
 import { packages } from "@/config/packages";
@@ -59,6 +61,7 @@ export default async function CreativeStudioPage() {
           <EnquiryForm t={t} purposes={purposes} initialPurpose="creator" />
         </div>
       </Section>
+      <EquipmentList items={await equipmentFor("studio")} title={t.pages.equipmentTitle} />
     </>
   );
 }
