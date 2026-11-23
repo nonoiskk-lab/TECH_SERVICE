@@ -1,0 +1,62 @@
+{
+  "$meta": {
+    "name": "THIRD SPACE design tokens",
+    "version": "5.0.0",
+    "date": "2026-11-23",
+    "source": "src/styles/tokens.css (implemented). Values are THIRD SPACE's own: Proposed, pending MD-01 approval.",
+    "reference": "Perfect Venue audit (Measured) informed spacing, button sizes and section rhythm. Skedda Report 11: Unknown (document missing).",
+    "status": "Implemented, not approved"
+  },
+  "color": {
+    "light": {
+      "bg": "#ffffff",
+      "bg-card": "#ffffff",
+      "bg-raised": "#f7f2ea",
+      "line": "#e8e0d4",
+      "text": "#222222",
+      "text-muted": "#585858",
+      "text-faint": "#7a7a7a",
+      "gold": "#c69b55",
+      "gold-strong": "#b5883f",
+      "warm": "#8a6428",
+      "warm-strong": "#6f4f1d",
+      "on-gold": "#11100f",
+      "espresso": "#201a17",
+      "ivory": "#f7efe4",
+      "ok": "#2f7a43",
+      "danger": "#b3261e"
+    },
+    "band-dark": {
+      "bg": "#201a17",
+      "bg-raised": "#2c2420",
+      "line": "rgba(243, 233, 216, 0.18)",
+      "text": "#f3e9d8",
+      "text-muted": "#e0d4c1",
+      "text-faint": "#bfb19c",
+      "warm": "#d6ad6a",
+      "warm-strong": "#e2bf86"
+    },
+    "band-gold": {
+      "bg": "#c69b55",
+      "text": "#11100f",
+      "text-muted": "#2a221d",
+      "warm": "#11100f",
+      "line": "rgba(17, 16, 15, 0.25)"
+    }
+  },
+  "typography": {
+    "display": "Fraunces, serif",
+    "body": "DM Sans, sans-serif",
+    "devanagari": "Noto Sans Devanagari, sans-serif"
+  },
+  "radius": { "card": "14px", "sm": "8px", "button": "6px" },
+  "size": { "tap": "44px", "button": "44px", "button-lg": "60px", "max-width": "1200px" },
+  "space": { "section-y": "64px", "section-y-lg": "110px" },
+  "shadow": {
+    "glow": "0 1px 10px rgba(32, 26, 23, 0.10)",
+    "card": "0 1px 10px rgba(179, 168, 153, 0.35)",
+    "nav": "0 0 20px rgba(0, 0, 0, 0.08)"
+  },
+  "motion": { "ease": "cubic-bezier(.2, .7, .2, 1)", "duration": "400ms" },
+  "breakpoints": { "xs": "360px", "sm": "390px", "md": "768px", "lg": "1024px", "xl": "1280px", "xxl": "1440px" }
+}
