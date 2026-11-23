@@ -11,7 +11,7 @@ test("live site without payment keys: no fake payment, no test OTP, pay at venue
   await page.goto("/book?package=podcast");
   await expect(page.getByText(/Test mode/)).toHaveCount(0);
   await chooseDate(page, 2);
-  await expect(page.getByTestId("pay-at-venue")).toContainText("₹2,241"); // 1,899 + 18% GST
+  await expect(page.getByTestId("pay-at-venue")).toContainText("₹2,240.82"); // 1,899 + 18% GST, paise-exact
   await expect(page.getByTestId("quote-advance")).toHaveCount(0);
   await (await firstAvailableSlot(page)).click();
   await page.getByTestId("guest-name").fill("Live Guest");
@@ -21,7 +21,7 @@ test("live site without payment keys: no fake payment, no test OTP, pay at venue
   await expect(page.getByTestId("venue-note")).toBeVisible();
   await expect(page.getByTestId("refund-tiers")).toHaveCount(0);
   await acceptTerms(page, { recording: true });
-  await expect(page.getByTestId("pay-button")).toHaveText("Confirm booking · pay ₹2,241 at venue");
+  await expect(page.getByTestId("pay-button")).toHaveText("Confirm booking · pay ₹2,240.82 at venue");
   await page.getByTestId("pay-button").click();
   await expect(page.getByTestId("booking-id")).toHaveText(/^TS-/);
   await expect(page.getByText("₹0", { exact: true })).toBeVisible();

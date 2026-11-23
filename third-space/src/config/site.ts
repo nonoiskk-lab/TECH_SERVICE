@@ -8,6 +8,8 @@
  * Values marked `NEEDS OWNER` in docs/STAGE_REPORT.md are sensible defaults
  * the owner must confirm before launch.
  */
+import { rs } from "@/lib/money";
+
 
 export type Locale = "en" | "hi";
 /** A string in English and Hinglish. */
@@ -144,7 +146,7 @@ export const sessionRules = {
   /** Owner's rule: booking time = the work itself + 30 minutes setup. No rounding. */
   setupMinutes: 30,
   /** Lowest price of any paid booking (owner: "₹799 is the lowest price"). Applied to the base price before add-ons and GST. */
-  minimumCharge: 799,
+  minimumCharge: rs(799),
   maxSessionMinutes: 480,
   podcast: { episodeLengths: [15, 30, 45, 60, 90], maxEpisodes: 4 },
   creator: { reelMinutes: 15, longVideoMinutes: 30, maxReels: 10, maxLongVideos: 4 },
@@ -190,13 +192,13 @@ export const themes: Theme[] = [
 ];
 
 export const addOns: AddOn[] = [
-  { id: "decor", modes: ["watch", "celebrate"], name: { en: "Theme decor setup", hi: "Theme decor setup" }, price: 699 },
-  { id: "cake", modes: ["watch", "celebrate"], name: { en: "Cake (500 g)", hi: "Cake (500 g)" }, price: 599 },
-  { id: "fog-entry", modes: ["celebrate"], name: { en: "Fog entry", hi: "Fog entry" }, price: 499 },
-  { id: "photos", modes: ["watch", "celebrate"], name: { en: "20-minute photo shoot", hi: "20 minute photo shoot" }, price: 799 },
-  { id: "extra-camera", modes: ["create"], name: { en: "Extra camera angle", hi: "Extra camera angle" }, price: 499 },
-  { id: "basic-edit", modes: ["create"], name: { en: "Basic edit of the full episode", hi: "Poore episode ka basic edit" }, price: 1499 },
-  { id: "reels", modes: ["create"], name: { en: "3 short reels cut from your session", hi: "Aapke session se 3 short reels" }, price: 999 },
+  { id: "decor", modes: ["watch", "celebrate"], name: { en: "Theme decor setup", hi: "Theme decor setup" }, price: rs(699) },
+  { id: "cake", modes: ["watch", "celebrate"], name: { en: "Cake (500 g)", hi: "Cake (500 g)" }, price: rs(599) },
+  { id: "fog-entry", modes: ["celebrate"], name: { en: "Fog entry", hi: "Fog entry" }, price: rs(499) },
+  { id: "photos", modes: ["watch", "celebrate"], name: { en: "20-minute photo shoot", hi: "20 minute photo shoot" }, price: rs(799) },
+  { id: "extra-camera", modes: ["create"], name: { en: "Extra camera angle", hi: "Extra camera angle" }, price: rs(499) },
+  { id: "basic-edit", modes: ["create"], name: { en: "Basic edit of the full episode", hi: "Poore episode ka basic edit" }, price: rs(1499) },
+  { id: "reels", modes: ["create"], name: { en: "3 short reels cut from your session", hi: "Aapke session se 3 short reels" }, price: rs(999) },
 ];
 
 export const refundTiers: RefundTier[] = [

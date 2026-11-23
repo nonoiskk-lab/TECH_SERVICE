@@ -60,9 +60,7 @@ export function couponDiscount(c: CouponRule | null, gross: number, packageId: s
   return Math.max(0, Math.min(d, gross));
 }
 
-export function formatINR(n: number): string {
-  return "₹" + n.toLocaleString("en-IN");
-}
+export { formatINR } from "./money";
 
 /** Refund for a cancellation `hoursBefore` the slot, as an amount of the advance. */
 export function refundFor(advance: number, hoursBefore: number): number {

@@ -1,4 +1,5 @@
 import { db } from "@/server/db";
+import { formatINR } from "@/lib/pricing";
 import { requireRole } from "@/server/admin/auth";
 import { saveCouponAction } from "@/server/admin/manage";
 import { ActionForm } from "@/components/admin/action-form";
@@ -16,8 +17,8 @@ export default async function CouponsPage() {
             {rows.map((c) => (
               <li key={c.code} className="flex flex-wrap items-center justify-between gap-2 py-2">
                 <span>
-                  <strong>{c.code}</strong> · {c.kind === "percent" ? `${c.value}% off` : `₹${c.value} off`}
-                  {c.minSubtotal ? ` · min ₹${c.minSubtotal}` : ""} · used {c.usedCount}
+                  <strong>{c.code}</strong> · {c.kind === "percent" ? `${c.value}% off` : `${formatINR(c.value)} off`}
+                  {c.minSubtotal ? ` · min ${formatINR(c.minSubtotal)}` : ""} · used {c.usedCount}
                   {c.maxUses ? `/${c.maxUses}` : ""}
                   {c.packageIds.length ? ` · only ${c.packageIds.join(", ")}` : ""}
                   {c.validUntil ? ` · until ${fmtDateTime(c.validUntil)}` : ""}
@@ -37,14 +38,14 @@ export default async function CouponsPage() {
               <Field label="Type">
                 <select name="kind" className="ts-input">
                   <option value="percent">Percent</option>
-                  <option value="flat">Flat ₹</option>
+                  <option value="flat">Flat ₹ (rupees)</option>
                 </select>
               </Field>
-              <Field label="Value">
-                <input name="value" type="number" min={1} className="ts-input" />
+              <Field label="Value (percent, or rupees for flat)">
+                <input name="value" type="number" step="0.01" min={0.01} className="ts-input" />
               </Field>
               <Field label="Min subtotal ₹">
-                <input name="minSubtotal" type="number" min={0} defaultValue={0} className="ts-input" />
+                <input name="minSubtotal" type="number" step="0.01" min={0} defaultValue={0} className="ts-input" />
               </Field>
               <Field label="Max uses (blank = unlimited)">
                 <input name="maxUses" type="number" min={1} className="ts-input" />

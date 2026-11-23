@@ -1,3 +1,4 @@
+import { paiseToInput as rupees } from "@/lib/money";
 import "server-only";
 import type { Booking } from "@prisma/client";
 import { getPackage } from "@/config/packages";
@@ -56,18 +57,18 @@ export function messageFor(kind: NotifyKind, b: Booking, extra: { link?: string 
       head,
       `your booking ${b.id} is confirmed.`,
       `${pkg}, ${when(b)}, ${b.guestCount} guest(s).`,
-      b.advancePaid > 0 ? `Paid: Rs ${b.advancePaid}. Pay at venue: Rs ${b.balanceDue}.` : `Pay at venue: Rs ${b.balanceDue}.`,
+      b.advancePaid > 0 ? `Paid: Rs ${rupees(b.advancePaid)}. Pay at venue: Rs ${rupees(b.balanceDue)}.` : `Pay at venue: Rs ${rupees(b.balanceDue)}.`,
       "18+ only. Every guest brings a government photo ID.",
       `Manage your booking: ${link}`,
       contact.addressLine ? `Address: ${contact.fullAddress}` : "",
     ],
-    payment_received: [head, `we received Rs ${b.advancePaid} for booking ${b.id} (${pkg}, ${when(b)}).`, `Balance at venue: Rs ${b.balanceDue}.`, `Details: ${link}`],
+    payment_received: [head, `we received Rs ${rupees(b.advancePaid)} for booking ${b.id} (${pkg}, ${when(b)}).`, `Balance at venue: Rs ${rupees(b.balanceDue)}.`, `Details: ${link}`],
     payment_pending: [head, `your booking ${b.id} is waiting for payment. Finish paying to keep the slot, or it will be released.`, `Details: ${link}`],
     payment_issue: [head, `we received your payment for ${b.id}, but the slot was taken before it completed. We will refund you in full or move you to another slot. We will call you shortly.`],
     reminder_24h: [head, `reminder: ${pkg} tomorrow, ${when(b)}. Please arrive 10 minutes early with a photo ID for every guest.`, `Details: ${link}`],
     reminder_2h: [head, `see you in about 2 hours: ${pkg}, ${when(b)}.`, contact.mapUrl ? `Directions: ${contact.mapUrl}` : ""],
     rescheduled: [head, `your booking ${b.id} is moved to ${when(b)}.`, `Details: ${link}`],
-    cancelled: [head, `your booking ${b.id} (${when(b)}) is cancelled.`, b.refundAmount ? `Refund: Rs ${b.refundAmount}, processed to your original payment method.` : "", `Details: ${link}`],
+    cancelled: [head, `your booking ${b.id} (${when(b)}) is cancelled.`, b.refundAmount ? `Refund: Rs ${rupees(b.refundAmount)}, processed to your original payment method.` : "", `Details: ${link}`],
     recording_ready: [head, `your recording from ${when(b)} is ready. Download it here (private link): ${link}`],
     feedback_request: [head, "thank you for visiting THIRD SPACE. How was it? Rate your visit in one minute:", feedbackLink(b)],
   };

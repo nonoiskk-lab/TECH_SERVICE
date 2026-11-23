@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { paiseToInput } from "@/lib/money";
 import { notFound } from "next/navigation";
 import { addOns, themes } from "@/config/site";
 import { getPackage } from "@/config/packages";
@@ -112,7 +113,7 @@ export default async function BookingDetail({ params }: PageProps<"/admin/bookin
             <ActionForm action={recordPaymentAction} submit="Record payment" className="mt-3 flex flex-wrap items-end gap-2" testId="record-payment">
               <input type="hidden" name="bookingId" value={b.id} />
               <Field label="Amount (₹)">
-                <input name="amount" type="number" min={1} max={b.balanceDue} defaultValue={b.balanceDue} className="ts-input w-32" />
+                <input name="amount" type="number" step="0.01" min={0.01} max={paiseToInput(b.balanceDue)} defaultValue={paiseToInput(b.balanceDue)} className="ts-input w-32" />
               </Field>
               <Field label="Method">
                 <select name="method" className="ts-input w-28">
@@ -130,7 +131,7 @@ export default async function BookingDetail({ params }: PageProps<"/admin/bookin
               <p className="text-sm text-muted">Use only when the guest paid outside Razorpay (UPI to the business account, cash). Online payments confirm automatically.</p>
               <div className="flex flex-wrap gap-2">
                 <Field label="Amount received (₹)">
-                  <input name="amount" type="number" min={0} defaultValue={0} className="ts-input w-32" />
+                  <input name="amount" type="number" step="0.01" min={0} defaultValue={0} className="ts-input w-32" />
                 </Field>
                 <Field label="Method">
                   <select name="method" className="ts-input w-28">
@@ -325,7 +326,7 @@ export default async function BookingDetail({ params }: PageProps<"/admin/bookin
                 <input name="reason" className="ts-input" />
               </Field>
               <Field label="Refund amount (₹)">
-                <input name="refundAmount" type="number" min={0} max={b.advancePaid} defaultValue={suggestedRefund} className="ts-input w-32" />
+                <input name="refundAmount" type="number" step="0.01" min={0} max={paiseToInput(b.advancePaid)} defaultValue={paiseToInput(suggestedRefund)} className="ts-input w-32" />
               </Field>
             </ActionForm>
           </Card>

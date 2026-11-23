@@ -44,7 +44,7 @@ export async function POST(req: Request) {
     if (orig) {
       await db.payment.upsert({
         where: { refundId: rf.id },
-        create: { bookingId: orig.bookingId, provider: "razorpay", kind: "refund", refundId: rf.id, amount: Math.round(rf.amount / 100), status: "refunded" },
+        create: { bookingId: orig.bookingId, provider: "razorpay", kind: "refund", refundId: rf.id, amount: rf.amount, status: "refunded" },
         update: { status: "refunded" },
       });
       await db.booking.update({ where: { id: orig.bookingId }, data: { status: "refunded" } });

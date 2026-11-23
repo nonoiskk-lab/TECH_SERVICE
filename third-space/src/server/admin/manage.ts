@@ -11,7 +11,8 @@ import { audit } from "@/server/audit";
 import { invalidateCatalog } from "@/server/catalog";
 import { createBooking, holds, SlotTakenError } from "@/server/slots";
 import { notifyBooking } from "@/server/notify";
-import { buildQuote } from "@/lib/pricing";
+import { buildQuote, formatINR } from "@/lib/pricing";
+import { parseRupees } from "@/lib/money";
 import { resolveSession } from "@/lib/session";
 import { hashPassword, requireRole, ROLES, type Permission } from "./auth";
 import type { ActionState } from "./actions";
@@ -20,6 +21,11 @@ const str = (f: FormData, k: string) => String(f.get(k) ?? "").trim();
 const int = (f: FormData, k: string) => {
   const v = str(f, k);
   return v === "" ? null : Number.isFinite(Number(v)) ? Math.round(Number(v)) : NaN;
+};
+/** Form field entered in rupees ("1699", "1,699.50") to integer paise. null = empty, NaN = invalid. */
+const money = (f: FormData, k: string) => {
+  const v = str(f, k);
+  return v === "" ? null : (parseRupees(v) ?? NaN);
 };
 const bool = (f: FormData, k: string) => f.get(k) === "on";
 
@@ -42,8 +48,8 @@ const PackageForm = z.object({
   nameHi: z.string().max(80),
   summaryEn: z.string().max(400),
   summaryHi: z.string().max(400),
-  startingPrice: z.number().int().min(0).max(1_000_000),
-  ratePerHour: z.number().int().min(0).max(100_000),
+  startingPrice: z.number().int().min(0).max(100_000_000),
+  ratePerHour: z.number().int().min(0).max(10_000_000),
   durationMinutes: z.number().int().min(10).max(720),
   setupMinutes: z.number().int().min(0).max(120),
   maxGuests: z.number().int().min(1).max(100),
@@ -64,8 +70,8 @@ export async function savePackageAction(_: ActionState, f: FormData): Promise<Ac
     nameHi: str(f, "nameHi") || str(f, "nameEn"),
     summaryEn: str(f, "summaryEn"),
     summaryHi: str(f, "summaryHi"),
-    startingPrice: int(f, "startingPrice"),
-    ratePerHour: int(f, "ratePerHour") ?? 0,
+    startingPrice: money(f, "startingPrice"),
+    ratePerHour: money(f, "ratePerHour") ?? 0,
     durationMinutes: int(f, "durationMinutes"),
     setupMinutes: int(f, "setupMinutes") ?? 0,
     maxGuests: int(f, "maxGuests"),
@@ -117,7 +123,7 @@ export async function savePackageAction(_: ActionState, f: FormData): Promise<Ac
 export async function saveAddOnAction(_: ActionState, f: FormData): Promise<ActionState> {
   const who = await guard("packages");
   const id = str(f, "id");
-  const price = int(f, "price");
+  const price = money(f, "price");
   const modes = ["watch", "create", "celebrate"].filter((m) => bool(f, `mode_${m}`));
   if (!/^[a-z0-9-]{2,40}$/.test(id) || !str(f, "nameEn") || price === null || Number.isNaN(price) || price < 0) return { error: "Fill id (a-z, 0-9, -), name and price." };
   const data = { nameEn: str(f, "nameEn"), nameHi: str(f, "nameHi") || str(f, "nameEn"), price, modes, active: bool(f, "active"), sortOrder: int(f, "sortOrder") ?? 0 };
@@ -131,13 +137,13 @@ export async function saveCouponAction(_: ActionState, f: FormData): Promise<Act
   const who = await guard("coupons");
   const code = str(f, "code").toUpperCase();
   const kind = str(f, "kind") === "flat" ? "flat" : "percent";
-  const value = int(f, "value");
+  const value = kind === "flat" ? money(f, "value") : int(f, "value");
   if (!/^[A-Z0-9-]{3,30}$/.test(code) || value === null || Number.isNaN(value) || value <= 0 || (kind === "percent" && value > 100)) return { error: "Code (A-Z, 0-9), and a value (percent ≤ 100 or rupees)." };
   const date = (k: string) => (str(f, k) ? new Date(`${str(f, k)}T00:00:00+05:30`) : null);
   const data = {
     kind,
     value,
-    minSubtotal: int(f, "minSubtotal") ?? 0,
+    minSubtotal: money(f, "minSubtotal") ?? 0,
     maxUses: int(f, "maxUses"),
     packageIds: str(f, "packageIds").split(",").map((x) => x.trim()).filter(Boolean),
     validFrom: date("validFrom"),
@@ -202,7 +208,8 @@ export async function saveBusinessSettingsAction(_: ActionState, f: FormData): P
   const tax = n("taxPercent", 0, 28);
   const adv = n("advancePercent", 0, 100);
   const hold = n("holdMinutes", 5, 60);
-  const min = n("minimumCharge", 0, 100000);
+  const minRaw = money(f, "minimumCharge");
+  const min = minRaw !== null && !Number.isNaN(minRaw) && minRaw <= 10_000_000 ? minRaw : null;
   const tiers = [0, 1, 2].map((i) => ({ minHoursBefore: n(`tierHours${i}`, 0, 720), refundPercentOfAdvance: n(`tierPct${i}`, 0, 100) }));
   const rsHours = n("rescheduleMinHours", 0, 720);
   const rsTimes = n("rescheduleMaxTimes", 0, 10);
@@ -277,7 +284,7 @@ export async function manualBookingAction(_: ActionState, f: FormData): Promise<
           workMinutes: minutes,
           setupMinutes: 0,
           durationMinutes: minutes,
-          basePrice: Math.max(pkg.pricing.kind === "fixed" ? pkg.price : pkg.pricing.startingPrice, Math.round(((pkg.pricing.kind === "fixed" ? 0 : pkg.pricing.ratePerHour) * minutes) / 60)),
+          basePrice: Math.max(pkg.pricing.kind === "fixed" ? pkg.price : pkg.pricing.startingPrice, Math.round(((pkg.pricing.kind === "fixed" ? 0 : pkg.pricing.ratePerHour) * minutes) / 60 / 100) * 100),
           minimumApplied: false,
           startingPrice: 0,
           label: pkg.name,
@@ -334,7 +341,8 @@ export async function manualConfirmAction(_: ActionState, f: FormData): Promise<
   const id = str(f, "bookingId");
   const b = await db.booking.findUnique({ where: { id } });
   if (!b || b.status !== "pending_payment") return { error: "Only bookings waiting for payment can be confirmed manually." };
-  const amount = int(f, "amount") ?? 0;
+  const amount = money(f, "amount") ?? 0;
+  if (Number.isNaN(amount)) return { error: "Enter a valid amount in rupees." };
   const method = ["cash", "upi", "card", "bank"].includes(str(f, "method")) ? str(f, "method") : "upi";
   await db.$transaction([
     db.booking.update({ where: { id }, data: { status: "confirmed", advancePaid: { increment: amount }, balanceDue: { decrement: amount }, holdId: null } }),
@@ -351,8 +359,8 @@ export async function recordPaymentAction(_: ActionState, f: FormData): Promise<
   const who = await guard("checkin");
   const id = str(f, "bookingId");
   const b = await db.booking.findUnique({ where: { id } });
-  const amount = int(f, "amount");
-  if (!b || amount === null || Number.isNaN(amount) || amount <= 0 || amount > b.balanceDue) return { error: `Amount must be 1 to ${b?.balanceDue ?? 0}.` };
+  const amount = money(f, "amount");
+  if (!b || amount === null || Number.isNaN(amount) || amount <= 0 || amount > b.balanceDue) return { error: `Amount must be above ₹0 and at most ${formatINR(b?.balanceDue ?? 0)}.` };
   const method = ["cash", "upi", "card", "bank"].includes(str(f, "method")) ? str(f, "method") : "upi";
   await db.$transaction([
     db.payment.create({ data: { bookingId: id, provider: method, kind: "balance", amount, status: "captured", note: str(f, "note") } }),
@@ -360,7 +368,7 @@ export async function recordPaymentAction(_: ActionState, f: FormData): Promise<
     db.booking.update({ where: { id }, data: { advancePaid: { increment: amount }, balanceDue: { decrement: amount }, ...(amount >= b.balanceDue ? { balancePaidAt: new Date() } : {}) } }),
   ]);
   await audit(null, who, "payment.recorded", "Booking", id, { amount, method });
-  return done([`/admin/bookings/${id}`], `Recorded ₹${amount}.`);
+  return done([`/admin/bookings/${id}`], `Recorded ${formatINR(amount)}.`);
 }
 
 export async function setProgressAction(f: FormData) {

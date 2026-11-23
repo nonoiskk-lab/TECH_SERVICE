@@ -1,4 +1,5 @@
 import { db } from "@/server/db";
+import { paiseToInput } from "@/lib/money";
 import { isLegalGateOpen } from "@/config/site";
 import { requireRole } from "@/server/admin/auth";
 import { saveBusinessSettingsAction } from "@/server/admin/manage";
@@ -32,7 +33,7 @@ export default async function SettingsPage() {
                 <input name="holdMinutes" type="number" min={5} max={60} defaultValue={b.holdMinutes ?? 15} className="ts-input" />
               </Field>
               <Field label="Minimum booking price ₹">
-                <input name="minimumCharge" type="number" min={0} defaultValue={b.minimumCharge ?? 799} className="ts-input" />
+                <input name="minimumCharge" type="number" step="0.01" min={0} defaultValue={paiseToInput(b.minimumCharge ?? 79900)} className="ts-input" />
               </Field>
             </div>
             <p className="mt-2 text-sm font-semibold">Guest self-service rescheduling</p>

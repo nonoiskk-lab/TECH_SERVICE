@@ -32,7 +32,7 @@ test("podcast time follows episodes; creator time follows reels; space is ₹799
   await page.getByTestId("hours").selectOption("3");
   await expect(page.getByTestId("session-summary")).toContainText("₹2,397");
   await expect(page.getByTestId("setup-time")).toHaveCount(0); // only space: no setup added
-  await expect(page.getByTestId("quote-total")).toHaveText("₹2,828"); // 2,397 + 18% GST
+  await expect(page.getByTestId("quote-total")).toHaveText("₹2,828.46"); // 2,397 + 18% GST, paise-exact
 });
 
 test("changing the session after holding a slot releases the hold", async ({ page }) => {

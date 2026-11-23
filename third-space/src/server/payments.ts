@@ -28,7 +28,7 @@ function razorpay(keyId: string, secret: string): PaymentService {
       const r = await fetch("https://api.razorpay.com/v1/orders", {
         method: "POST",
         headers: { "content-type": "application/json", authorization: "Basic " + Buffer.from(`${keyId}:${secret}`).toString("base64") },
-        body: JSON.stringify({ amount: amount * 100, currency: "INR", receipt }),
+        body: JSON.stringify({ amount, currency: "INR", receipt }),
       });
       if (!r.ok) throw new Error(`RAZORPAY_ORDER_FAILED_${r.status}`);
       const j = (await r.json()) as { id: string };

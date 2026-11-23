@@ -968,7 +968,7 @@ function openRazorpay(o: { keyId: string; orderId: string; amount: number; name:
       new Ctor({
         key: o.keyId,
         order_id: o.orderId,
-        amount: o.amount * 100,
+        amount: o.amount, // paise
         currency: "INR",
         name: "THIRD SPACE",
         prefill: { name: o.name, email: o.email, contact: o.phone },

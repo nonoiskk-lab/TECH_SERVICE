@@ -1,6 +1,7 @@
 import "server-only";
 import { isLegalGateOpen, type Package } from "./site";
 import { minimumPrice } from "@/lib/session";
+import { rs } from "@/lib/money";
 
 /**
  * Package catalogue. Server-only on purpose: client bundles must not carry
@@ -23,7 +24,7 @@ export const packages: Package[] = [
       en: "The private room for your group. Starts at 2 hours; a longer title runs longer.",
       hi: "Aapke group ke liye private room. 2 ghante se shuru; lamba title ho to time badhega.",
     },
-    pricing: { kind: "title", ratePerHour: 850, startingPrice: 1699 },
+    pricing: { kind: "title", ratePerHour: rs(850), startingPrice: rs(1699) },
     price: 0,
     durationMinutes: 120,
     capacity: 5,
@@ -47,7 +48,7 @@ export const packages: Package[] = [
       en: "The private room with unlimited popcorn and cold drinks.",
       hi: "Private room, saath me unlimited popcorn aur cold drink.",
     },
-    pricing: { kind: "title", ratePerHour: 1350, startingPrice: 2699 },
+    pricing: { kind: "title", ratePerHour: rs(1350), startingPrice: rs(2699) },
     price: 0,
     durationMinutes: 120,
     capacity: 4,
@@ -71,7 +72,7 @@ export const packages: Package[] = [
       en: "Tell us how many episodes and how long each one is. We add 30 minutes setup and show the price.",
       hi: "Bataiye kitne episode aur har ek kitna lamba. Hum 30 minute setup jod kar price dikhate hain.",
     },
-    pricing: { kind: "podcast", ratePerHour: 950, startingPrice: 1899 },
+    pricing: { kind: "podcast", ratePerHour: rs(950), startingPrice: rs(1899) },
     price: 0,
     durationMinutes: 120,
     capacity: 4,
@@ -96,7 +97,7 @@ export const packages: Package[] = [
       en: "Tell us how many reels and longer videos you will shoot. We add 30 minutes setup and show the price.",
       hi: "Bataiye kitni reels aur lambi videos shoot karni hain. Hum 30 minute setup jod kar price dikhate hain.",
     },
-    pricing: { kind: "creator", ratePerHour: 950, startingPrice: 1899 },
+    pricing: { kind: "creator", ratePerHour: rs(950), startingPrice: rs(1899) },
     price: 0,
     durationMinutes: 120,
     capacity: 4,
@@ -117,7 +118,7 @@ export const packages: Package[] = [
       hi: "Private room me do ghante, aapke mauke ke liye sajaya hua. Decoration aur refreshments aapki pasand ya quote ke hisaab se.",
     },
     pricing: { kind: "fixed" },
-    price: 2499,
+    price: rs(2499),
     durationMinutes: 120,
     capacity: 5,
     includes: [
@@ -140,7 +141,7 @@ export const packages: Package[] = [
       en: "Three hours in the private room with unlimited food, popcorn and cold drinks.",
       hi: "Private room me teen ghante, unlimited khana, popcorn aur cold drink ke saath.",
     },
-    pricing: { kind: "title", ratePerHour: 2333, startingPrice: 6999 },
+    pricing: { kind: "title", ratePerHour: rs(2333), startingPrice: rs(6999) },
     price: 0,
     durationMinutes: 180,
     capacity: 5,
@@ -164,7 +165,7 @@ export const packages: Package[] = [
       en: "Just the private room, by the hour, for a small get-together. Bring your cake; decoration is optional.",
       hi: "Sirf private room, ghante ke hisaab se, chhote get-together ke liye. Cake laaiye; decoration optional.",
     },
-    pricing: { kind: "hourly", ratePerHour: 799, startingPrice: 799 },
+    pricing: { kind: "hourly", ratePerHour: rs(799), startingPrice: rs(799) },
     price: 0,
     durationMinutes: 60,
     capacity: 5,
@@ -188,7 +189,7 @@ export const packages: Package[] = [
       hi: "Mahine ke 8 fixed studio ghante, tay outputs ke saath. Pehla session abhi book karein.",
     },
     pricing: { kind: "fixed" },
-    price: 4999,
+    price: rs(4999),
     durationMinutes: 120,
     capacity: 4,
     prepaidHours: 8,

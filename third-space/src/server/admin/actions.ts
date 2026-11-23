@@ -8,6 +8,8 @@ import { audit } from "@/server/audit";
 import { notifyBooking } from "@/server/notify";
 import { checkPassword, endSession, requireStaff, startSession, verifyPassword, type Role } from "./auth";
 import { clientKey, rateLimit } from "@/server/rate-limit";
+import { formatINR } from "@/lib/pricing";
+import { parseRupees } from "@/lib/money";
 
 export type ActionState = { error?: string; ok?: string } | undefined;
 
@@ -90,16 +92,16 @@ export async function cancelAction(_: ActionState, f: FormData): Promise<ActionS
   const b = await db.booking.findUnique({ where: { id } });
   if (!b || ["cancelled", "stopped", "refund_pending", "refunded", "completed"].includes(b.status)) return { error: "Booking cannot be cancelled." };
   const reason = str(f, "reason");
-  const refund = Number(str(f, "refundAmount"));
+  const refund = parseRupees(str(f, "refundAmount") || "0") ?? -1;
   if (reason.length < 3) return { error: "Write a short reason." };
-  if (!Number.isInteger(refund) || refund < 0 || refund > b.advancePaid) return { error: `Refund must be between 0 and ${b.advancePaid}.` };
+  if (refund < 0 || refund > b.advancePaid) return { error: `Refund must be between ₹0 and ${formatINR(b.advancePaid)}.` };
   const status = refund > 0 ? "refund_pending" : "cancelled";
   await db.booking.update({ where: { id }, data: { status, cancelledAt: new Date(), cancelReason: reason, refundAmount: refund, holdId: null } });
   await db.hold.deleteMany({ where: { id: b.holdId ?? "" } });
   await audit(null, who, "booking.cancelled", "Booking", id, { reason, refundAmount: refund, suggested: str(f, "suggested") });
   await notifyBooking(id, "cancelled");
   refresh(id);
-  return { ok: refund > 0 ? `Cancelled. Refund ₹${refund} is pending: pay it in Razorpay, then mark it refunded.` : "Cancelled." };
+  return { ok: refund > 0 ? `Cancelled. Refund ${formatINR(refund)} is pending: pay it in Razorpay, then mark it refunded.` : "Cancelled." };
 }
 
 /** Stop a session for a rule breach (policy sections 7 and 8). Always opens an incident. */

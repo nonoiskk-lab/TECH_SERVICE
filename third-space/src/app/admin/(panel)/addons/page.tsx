@@ -1,4 +1,5 @@
 import { db } from "@/server/db";
+import { paiseToInput } from "@/lib/money";
 import { requireRole } from "@/server/admin/auth";
 import { saveAddOnAction } from "@/server/admin/manage";
 import { formatINR } from "@/lib/pricing";
@@ -24,7 +25,7 @@ function AddOnForm({ a }: { a?: { id: string; nameEn: string; nameHi: string; pr
         <input name="nameHi" defaultValue={a?.nameHi ?? ""} className="ts-input" />
       </Field>
       <Field label="Price ₹">
-        <input name="price" type="number" min={0} defaultValue={a?.price ?? ""} className="ts-input" />
+        <input name="price" type="number" step="0.01" min={0} defaultValue={a ? paiseToInput(a.price) : ""} className="ts-input" />
       </Field>
       <input type="hidden" name="sortOrder" value={a?.sortOrder ?? 50} />
       <div className="flex flex-wrap gap-3 text-sm sm:col-span-5">

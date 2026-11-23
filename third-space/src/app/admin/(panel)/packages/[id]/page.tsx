@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { paiseToInput } from "@/lib/money";
 import { db } from "@/server/db";
 import { requireRole } from "@/server/admin/auth";
 import { savePackageAction } from "@/server/admin/manage";
@@ -54,10 +55,10 @@ export default async function PackageEdit({ params }: PageProps<"/admin/packages
               <input name="nameHi" defaultValue={p?.nameHi ?? ""} className="ts-input" />
             </Field>
             <Field label="Starting price (₹, before tax)">
-              <input name="startingPrice" type="number" min={0} defaultValue={n(p?.startingPrice)} className="ts-input" />
+              <input name="startingPrice" type="number" step="0.01" min={0} defaultValue={p ? paiseToInput(p.startingPrice) : ""} className="ts-input" />
             </Field>
             <Field label="Rate per hour (₹) for longer sessions">
-              <input name="ratePerHour" type="number" min={0} defaultValue={n(p?.ratePerHour)} className="ts-input" />
+              <input name="ratePerHour" type="number" step="0.01" min={0} defaultValue={p ? paiseToInput(p.ratePerHour) : ""} className="ts-input" />
             </Field>
             <Field label="Base duration (min)">
               <input name="durationMinutes" type="number" min={10} defaultValue={n(p?.durationMinutes ?? 120)} className="ts-input" />

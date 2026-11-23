@@ -1,4 +1,5 @@
 import { sessionRules, type L, type Package } from "@/config/site";
+import { formatINR } from "./money";
 
 /**
  * Decides session length and base price automatically from what the guest
@@ -37,7 +38,8 @@ export type Session = {
 export type SessionResult = { ok: true; session: Session } | { ok: false; reason: "NEED_TITLE" | "NEED_WORK" | "TOO_LONG" | "BAD_INPUT" };
 
 const R = sessionRules;
-const priceFor = (rate: number, minutes: number) => Math.round((rate * minutes) / 60);
+/** Time price in paise, rounded to a whole rupee so guests see clean prices (GST keeps its paise). */
+const priceFor = (rate: number, minutes: number) => Math.round((rate * minutes) / 60 / 100) * 100;
 const int = (v: unknown, lo: number, hi: number) => (typeof v === "number" && Number.isInteger(v) && v >= lo && v <= hi ? v : null);
 
 export function durationText(minutes: number) {
@@ -99,7 +101,7 @@ export function resolveSession(pkg: Package, input: SessionInput, titles: TitleI
       if (!h) return { ok: false, reason: "BAD_INPUT" };
       work = h * 60;
       setup = 0;
-      what = `${h} × ₹${p.ratePerHour}`;
+      what = `${h} × ${formatINR(p.ratePerHour)}`;
       break;
     }
   }

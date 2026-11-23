@@ -7,8 +7,8 @@ test("booking happy path: podcast, advance paid, booking ID shown", async ({ pag
   await page.getByTestId("addon-extra-camera").check();
   // Default: 1 × 60 min + 30 min setup = 1h 30m (₹1,425 by time) → package starting price ₹1,899; + ₹499 camera; + 18% GST.
   await expect(page.getByTestId("session-summary")).toContainText("1h 30m · ₹1,899");
-  await expect(page.getByTestId("quote-total")).toHaveText("₹2,830");
-  await expect(page.getByTestId("quote-advance")).toHaveText("₹1,415");
+  await expect(page.getByTestId("quote-total")).toHaveText("₹2,829.64");
+  await expect(page.getByTestId("quote-advance")).toHaveText("₹1,414.82");
   await (await firstAvailableSlot(page)).click();
   await expect(page.getByTestId("hold-banner")).toBeVisible();
   await expect(page.getByTestId("hold-countdown")).toHaveText(/^1[45]:\d\d$/);
@@ -118,8 +118,8 @@ test("birthday/anniversary experience books in the room with a theme and add-ons
   await page.getByRole("radio", { name: "Anniversary", exact: true }).check();
   await chooseDate(page, 3 + (isOpen(info) ? 10 : 0));
   await page.getByTestId("addon-fog-entry").check();
-  // ₹2,499 + ₹499 fog = ₹2,998 + 18% GST = ₹3,538.
-  await expect(page.getByTestId("quote-total")).toHaveText("₹3,538");
+  // ₹2,499 + ₹499 fog = ₹2,998 + 18% GST = ₹3,537.64 (GST keeps paise).
+  await expect(page.getByTestId("quote-total")).toHaveText("₹3,537.64");
   await (await firstAvailableSlot(page)).click();
   await fillDetailsAndVerify(page);
   await expect(page.getByTestId("link-addendum")).toHaveCount(0); // master policy only
