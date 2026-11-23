@@ -20,6 +20,7 @@ export async function POST(req: Request) {
   }
   const r = await confirmPayment(body.orderId, verified.paymentId, "guest");
   if (r.state === "unknown_order") return json({ error: "ORDER_UNKNOWN" }, 404);
+  if (r.state === "amount_mismatch") return json({ error: "PAYMENT_NOT_CONFIRMED" }, 402);
   if (r.fresh) await notifyBooking(r.bookingId, r.state === "confirmed" ? "payment_received" : "payment_issue");
   if (r.state === "refund_pending") return json({ error: "HOLD_EXPIRED", bookingId: r.bookingId }, 410);
   return json({ bookingId: r.bookingId, token: r.token });

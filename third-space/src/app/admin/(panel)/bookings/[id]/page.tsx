@@ -11,7 +11,7 @@ import { balancePaidAction, cancelAction, checkInAction, setStatusAction, stopSe
 import { ActionForm } from "@/components/admin/action-form";
 import { Card, Field, fmtDateTime, fmtTime, H1, hoursUntil, Status } from "@/components/admin/ui";
 import { can, requireRole } from "@/server/admin/auth";
-import { attachRecordingAction, manualConfirmAction, markRefundedAction, recordPaymentAction, rescheduleAction, setProgressAction } from "@/server/admin/manage";
+import { attachRecordingAction, issueRefundAction, manualConfirmAction, markRefundedAction, recordPaymentAction, rescheduleAction, setProgressAction } from "@/server/admin/manage";
 import { toIstIso } from "@/server/slots/time";
 
 export default async function BookingDetail({ params }: PageProps<"/admin/bookings/[id]">) {
@@ -144,6 +144,14 @@ export default async function BookingDetail({ params }: PageProps<"/admin/bookin
                   <input name="note" className="ts-input w-40" />
                 </Field>
               </div>
+            </ActionForm>
+          )}
+          {b.status === "refund_pending" && can(me.role, "payments") && b.payments.some((p) => p.kind !== "refund" && p.status === "captured" && p.paymentId && ["razorpay", "mock"].includes(p.provider)) && (
+            <ActionForm action={issueRefundAction} submit="Refund via Razorpay" className="mt-3 flex flex-wrap items-end gap-2" testId="issue-refund">
+              <input type="hidden" name="bookingId" value={b.id} />
+              <p className="w-full text-sm text-muted">
+                Sends {formatINR(b.refundAmount ?? b.advancePaid)} back to the guest&apos;s original payment method through Razorpay. Safe to click twice: the gateway never refunds the same booking twice.
+              </p>
             </ActionForm>
           )}
           {b.status === "refund_pending" && can(me.role, "payments") && (

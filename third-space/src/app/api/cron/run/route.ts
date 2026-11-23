@@ -1,4 +1,5 @@
 import { timingSafeEqual } from "node:crypto";
+import { reconcilePayments } from "@/server/reconcile";
 import { expireMembership } from "@/server/credits";
 import { db } from "@/server/db";
 import { audit } from "@/server/audit";
@@ -85,6 +86,12 @@ async function run() {
     });
   }
   report.membershipsExpired = lapsed.length;
+  // 7. Payment reconciliation (missed webhooks, guests who closed the tab).
+  const rec = await reconcilePayments();
+  report.reconcileChecked = rec.checked;
+  report.reconcileRecovered = rec.confirmed;
+  report.reconcileMismatched = rec.mismatched;
+  report.reconcileErrors = rec.errors;
   return report;
 }
 

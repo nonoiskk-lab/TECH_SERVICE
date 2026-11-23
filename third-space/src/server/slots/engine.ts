@@ -313,18 +313,29 @@ async function createMembership(tx: Prisma.TransactionClient, bookingId: string,
 export type ConfirmResult =
   | { state: "confirmed"; bookingId: string; token: string; fresh: boolean }
   | { state: "refund_pending"; bookingId: string; token: string; fresh: boolean }
-  | { state: "unknown_order" };
+  | { state: "unknown_order" }
+  /** The gateway says it captured a different amount or currency than we ordered: nothing is confirmed. */
+  | { state: "amount_mismatch"; bookingId: string };
 
 /**
  * Mark an online payment as captured and confirm its booking. Called by the
  * browser callback and by the Razorpay webhook; whichever comes first wins,
  * the second is a no-op (idempotent on the payment row).
  */
-export async function confirmPayment(orderId: string, paymentId: string | undefined, actor: string): Promise<ConfirmResult> {
+export async function confirmPayment(orderId: string, paymentId: string | undefined, actor: string, gateway?: { amount: number; currency?: string }): Promise<ConfirmResult> {
   return db.$transaction(async (tx) => {
-    const pay = await tx.payment.findUnique({ where: { orderId }, include: { booking: true } });
-    if (!pay) return { state: "unknown_order" as const };
+    const probe = await tx.payment.findUnique({ where: { orderId }, select: { id: true } });
+    if (!probe) return { state: "unknown_order" as const };
+    // Serialise every confirmation of this payment. The browser callback, the webhook and the
+    // reconciliation job can arrive at the same instant; without this row lock each would see
+    // "not captured yet" and the advance would be added more than once.
+    await tx.$queryRaw`SELECT "id" FROM "Payment" WHERE "id" = ${probe.id} FOR UPDATE`;
+    const pay = await tx.payment.findUniqueOrThrow({ where: { id: probe.id }, include: { booking: true } });
     const b = pay.booking;
+    if (gateway && pay.status !== "captured" && (gateway.amount !== pay.amount || (gateway.currency && gateway.currency !== "INR"))) {
+      await audit(tx, actor, "payment.amount_mismatch", "Booking", b.id, { orderId, paymentId, expected: pay.amount, got: gateway.amount, currency: gateway.currency });
+      return { state: "amount_mismatch" as const, bookingId: b.id };
+    }
     if (pay.status === "captured") {
       return { state: b.status === "refund_pending" ? ("refund_pending" as const) : ("confirmed" as const), bookingId: b.id, token: b.accessToken, fresh: false };
     }

@@ -14,11 +14,12 @@ Resume from here. Updated after each step. Classes: Implemented, Tested, Verifie
 - Credit ledger: CreditEntry (append-only, DB trigger blocks negative balance, idempotency key), admin consume/adjust, cancel reversal, expiry on cron. 6 DB tests incl. 20 parallel consumes. Tested: 18 unit, 59 e2e.
 - F-04 fixed in code: preview builds no longer migrate (scripts/vercel-build.mjs).
 
+- Razorpay hardening: FIXED a critical race (parallel webhook+callback double-added the advance; row lock in confirmPayment), webhook claim-then-release idempotency, amount/currency verification, gateway refund API (idempotent, admin button), reconciliation job (cron step 7). 10 new DB-backed tests (28 unit total), 59 e2e.
+
 ## Current
-- Razorpay hardening: amount check on capture, refund API, reconciliation job, payment tests.
+- Password reset, staff portal, role model, remaining Phase 6/12 gaps.
 
 ## Remaining (in order)
-4. Razorpay refund API, reconciliation job, payment tests
 5. Password reset, staff portal, roles
 6. Unit/integration test layers, a11y, security checks
 7. Docs set (13 files), release audit, scores

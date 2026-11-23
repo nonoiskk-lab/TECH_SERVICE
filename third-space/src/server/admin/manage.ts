@@ -1,5 +1,6 @@
 "use server";
 
+import { issueGatewayRefund } from "@/server/refunds";
 import { moveBooking } from "@/server/reschedule";
 import { randomBytes } from "node:crypto";
 import { revalidatePath } from "next/cache";
@@ -379,6 +380,15 @@ export async function setProgressAction(f: FormData) {
   await db.booking.update({ where: { id }, data: { status: to } });
   await audit(null, who, `booking.${to}`, "Booking", id);
   revalidatePath(`/admin/bookings/${id}`);
+}
+
+/** Sends the pending refund to the payment gateway (full or partial amount set at cancellation). */
+export async function issueRefundAction(_: ActionState, f: FormData): Promise<ActionState> {
+  const who = await guard("payments");
+  const id = str(f, "bookingId");
+  const r = await issueGatewayRefund(id, who);
+  if (!r.ok) return { error: r.error };
+  return done([`/admin/bookings/${id}`, "/admin/payments"], r.already ? "Refund was already requested." : r.status === "processed" ? "Refund processed." : "Refund requested. It completes when the gateway confirms.");
 }
 
 export async function markRefundedAction(_: ActionState, f: FormData): Promise<ActionState> {

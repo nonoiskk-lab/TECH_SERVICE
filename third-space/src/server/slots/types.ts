@@ -71,7 +71,13 @@ export interface PaymentService {
   createOrder(amount: number, receipt: string): Promise<PaymentOrder>;
   /** Verify the gateway's success callback. */
   verify(input: { orderId: string; paymentId?: string; signature?: string }): Promise<{ ok: boolean; paymentId?: string }>;
+  /** Ask the gateway to refund `amount` paise of a captured payment. `receipt` doubles as the idempotency key. */
+  refund(input: { paymentId: string; amount: number; receipt: string }): Promise<{ refundId: string; status: "pending" | "processed" | "failed" }>;
+  /** Payments the gateway holds for an order (reconciliation). Amounts in paise. */
+  listOrderPayments(orderId: string): Promise<GatewayPayment[]>;
 }
+
+export type GatewayPayment = { id: string; status: "created" | "authorized" | "captured" | "refunded" | "failed"; amount: number; currency: string };
 
 export interface OtpService {
   readonly isMock: boolean;
