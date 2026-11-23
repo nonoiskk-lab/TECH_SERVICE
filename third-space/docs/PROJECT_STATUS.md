@@ -1,37 +1,79 @@
-# THIRD SPACE: project status and progress file (V5.0)
+# THIRD SPACE: project status (V5.0)
 
-Resume from here. Updated after each step. Classes: Implemented, Tested, Verified, Production-configured, Live.
+Updated 2026-11-23. Companion documents: PRODUCT_REQUIREMENTS, SYSTEM_ARCHITECTURE, DESIGN_SYSTEM, DATABASE_SCHEMA, BOOKING_ENGINE, API_DOCUMENTATION, RAZORPAY_INTEGRATION, SECURITY_AUDIT, TESTING_REPORT, DEPLOYMENT_GUIDE, ASSUMPTIONS_AND_DECISIONS, RELEASE_CHECKLIST. Earlier discovery work: `docs/v4/`.
 
-## Done
-- Phase 0 docs (docs/v4/), CI green (F-01, F-02) — run #35 success.
-- Production DB checked: 0 bookings, no overlaps, btree_gist not yet installed.
+## One-line status
 
-## Done (V5 session)
-- DB-level overlap constraint `booking_no_overlap` + Vitest (50 parallel inserts -> 1 wins). Tested locally.
-- next 16.3.4 -> 16.4.6 (critical advisory). 4 high remain in Prisma CLI build deps.
-- Money in integer paise end to end (migration 20261123130000, src/lib/money.ts, admin forms in rupees, Razorpay boundary, CSV/notify). Tested: 12 unit, 59 e2e, 34 content pages.
+The application is built, tested and **deployed** at https://third-space-gamma.vercel.app in **pay-at-venue mode**. It is **not ready to take online payments**: Razorpay has never been exercised against the real API, and backups, monitoring, staging and the daily-only cron are open. No email, WhatsApp or SMS message is sent (no provider is connected).
 
-- Credit ledger: CreditEntry (append-only, DB trigger blocks negative balance, idempotency key), admin consume/adjust, cancel reversal, expiry on cron. 6 DB tests incl. 20 parallel consumes. Tested: 18 unit, 59 e2e.
-- F-04 fixed in code: preview builds no longer migrate (scripts/vercel-build.mjs).
+## Evidence levels
 
-- Razorpay hardening: FIXED a critical race (parallel webhook+callback double-added the advance; row lock in confirmPayment), webhook claim-then-release idempotency, amount/currency verification, gateway refund API (idempotent, admin button), reconciliation job (cron step 7). 10 new DB-backed tests (28 unit total), 59 e2e.
+| Area | Implemented | Tested | Verified on the live deployment | Production-configured | Live |
+|---|:-:|:-:|:-:|:-:|:-:|
+| Public website, pricing, policies | ✔ | ✔ | ✔ (pricing, headers, availability) | ✔ | ✔ |
+| Booking engine, holds, double-booking guard | ✔ | ✔ (DB, service, e2e) | ✔ (availability) | ✔ | ✔ pay-at-venue |
+| Customer accounts, reset, history | ✔ | ✔ | not exercised on live | ✔ | ✔ |
+| Admin dashboard and modules | ✔ | ✔ | login page only | ✔ | ✔ |
+| Staff portal | ✔ | ✔ | not exercised on live | ✔ | ✔ |
+| Credit ledger | ✔ | ✔ (DB) | migration applied | ✔ | ✔ |
+| Razorpay orders, webhook, refunds, reconciliation | ✔ | ✔ (fake gateway, mock) | | ✘ no keys | ✘ |
+| Email / WhatsApp / SMS | adapters + outbox | queueing only | | ✘ | ✘ |
+| Backups, monitoring, staging | ✘ | ✘ | | ✘ | ✘ |
 
-- Security: OTP send/verify rate limits (was none), atomic rate limiter, HSTS + CSP + COOP headers (0 CSP violations on 6 pages in Chromium), customer password reset (hashed single-use 30-min token, no enumeration) and server-side session revocation. 31 unit, 61 e2e.
+## Done in the V5 session (commits on `claude/intelligent-ride-aojomq`)
 
-- Staff portal /staff (daily schedule, My bookings, booking detail, room ready, check-in, start/complete, notes, issue report, manager assignment), booking-state transition guard (completed/in_progress only along confirmed->checked_in->...). Staff land in /staff. 36 unit, 63 e2e.
+1. CI green again (F-01, F-02); CI now also runs the unit/database tests.
+2. Database overlap guard (`booking_no_overlap`).
+3. Integer paise end to end (one-way migration).
+4. Append-only credit ledger with DB-enforced rules.
+5. Payment hardening: fixed a **critical** parallel-confirmation race, webhook idempotency, amount verification, refund API, reconciliation.
+6. Security: OTP rate limits, atomic limiter, HSTS and CSP, password reset, session revocation, Next.js security upgrade, vitest upgrade, preview builds no longer migrate.
+7. Staff portal and booking-state guard.
+8. Accessibility fixes found by axe.
+9. Production deployment with migrations 5 to 10 applied and checked; documentation set.
 
-- Accessibility: axe WCAG 2.1 A/AA on 11 pages at 390px; fixed contrast token (#7a7a7a 4.29:1 -> #666 5.7:1) and calendar ARIA (invalid grid role, label mismatch). 74 e2e, 36 unit.
+## Test totals (latest local run, fresh database)
 
-## Current
-- Production deploy (needs migrate on prod DB: paise + ledger + reset + staff ops), docs set (13 files), release audit and scores.
+36 unit/database tests passed · 74 end-to-end passed, 0 failed (33 skipped by design) · 11 axe accessibility checks passed · 35 content checks passed · typecheck, lint and production build pass. `npm audit`: 0 critical, 4 high (Prisma 6 CLI toolchain, build-time). Details and the list of what was **not** tested: TESTING_REPORT.
 
-## Remaining (in order)
-5. Password reset, staff portal, roles
-6. Unit/integration test layers, a11y, security checks
-7. Docs set (13 files), release audit, scores
+## Known issues and open risks
 
-## Blocked by external input
-- Razorpay keys, WhatsApp/Email provider, domain, GSTIN, Skedda reports 11/12, staging DB approval (creates a Supabase project).
+See SECURITY_AUDIT "Open findings" (O1 to O10) and RELEASE_CHECKLIST section B. In short: no staging database, backups unverified, no monitoring, `CRON_SECRET` unset so cron does not run, bootstrap password login still enabled, Razorpay unverified, CSP keeps `unsafe-inline`, reset links stored in the outbox, no load or cross-browser testing.
 
-## Known failures
-- none open
+## Incomplete features
+
+Invoices; 8-role model; paying normal bookings with credits online; customer notification history; real messaging delivery; first-class equipment and staff resources; `timestamptz` and foreign keys for `resource`/`packageId`; design approval and real photography; Skedda-based specification (document missing).
+
+## External inputs still required
+
+| Input | Needed for |
+|---|---|
+| Razorpay account, test then live keys, webhook secret | Online payments |
+| `CRON_SECRET` (and a scheduler faster than daily) | Expiry, reminders, reconciliation |
+| Supabase plan confirmation, staging project approval | Backups, staging |
+| Resend key and sender, WhatsApp Business account | Messages |
+| Domain | Public launch |
+| GSTIN and invoice format | Invoices |
+| Price, GST, advance, refund, hours approvals | Commercial go-live |
+| Advocate approval of policies; film licences | Policies, Legal Gate |
+| Skedda Reports 1 to 12 or a written waiver | Design reference |
+
+## Quality score (out of 10; every score below 9 has a reason and a plan)
+
+| Category | Score | Reason | Improvement plan |
+|---|:-:|---|---|
+| Product completeness | 7 | Core modules work; missing items listed above | Invoices, credit redemption, notification history, 8 roles after owner input |
+| Booking reliability | 8 | Engine plus DB constraint, heavily tested for races at DB and service level | Browser-level concurrent test, load test, equipment and staff as constrained resources |
+| Payment security | 7 | Logic is strong and tested, but only against a fake gateway; cron is daily | Test-mode run, 15-minute reconciliation, real refund trial |
+| UI/UX quality | 7 | Consistent tokens and components; not owner-approved; illustrations not photos | Owner review, photography, shared skeletons |
+| Mobile responsiveness | 7.5 | Tested at 390 px only | Automate 360 to 1440 px, real devices |
+| Database integrity | 8.5 | Exclusion, ledger triggers, RLS; strings without FKs, no `timestamptz` | Dedicated migration on a staging DB |
+| Security | 7.5 | Critical findings fixed; no pen test; open O1 to O7 | Close O2 to O4, Prisma 7, nonce CSP, 2FA |
+| Performance | 5 | **Not measured.** No Lighthouse, bundle or API timing work was done | Measure, set budgets, fix findings |
+| Accessibility | 7 | axe passes on 11 pages; no manual keyboard or screen-reader review | Manual audit |
+| Maintainability | 7.5 | Modular, 110 automated tests, documentation; some very large components and files | Split the booking flow component and engine file |
+| Deployment readiness | 5.5 | Deployed and verified, but no staging, backups unverified, no monitoring, cron inactive, no payment keys | RELEASE_CHECKLIST section B |
+
+## Resume instructions
+
+Everything above is committed. Next actions in order: set `CRON_SECRET`; Razorpay test keys and the test-mode checklist; staging database; backup drill and monitoring; owner decisions MD-01 to MD-18 (`docs/v4/MISSING-DECISIONS.md`); then Prisma 7 and the performance pass.
