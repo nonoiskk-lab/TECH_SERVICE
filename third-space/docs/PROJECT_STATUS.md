@@ -16,8 +16,10 @@ Resume from here. Updated after each step. Classes: Implemented, Tested, Verifie
 
 - Razorpay hardening: FIXED a critical race (parallel webhook+callback double-added the advance; row lock in confirmPayment), webhook claim-then-release idempotency, amount/currency verification, gateway refund API (idempotent, admin button), reconciliation job (cron step 7). 10 new DB-backed tests (28 unit total), 59 e2e.
 
+- Security: OTP send/verify rate limits (was none), atomic rate limiter, HSTS + CSP + COOP headers (0 CSP violations on 6 pages in Chromium), customer password reset (hashed single-use 30-min token, no enumeration) and server-side session revocation. 31 unit, 61 e2e.
+
 ## Current
-- Password reset, staff portal, role model, remaining Phase 6/12 gaps.
+- Staff portal (separate /staff), role model, remaining gaps; then production deploy, docs set, release audit.
 
 ## Remaining (in order)
 5. Password reset, staff portal, roles

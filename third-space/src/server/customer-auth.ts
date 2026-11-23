@@ -18,7 +18,7 @@ export function accountsEnabled() {
 const sign = (payload: string) => createHmac("sha256", key()).update(payload).digest("base64url");
 
 export async function startCustomerSession(customerId: string) {
-  const payload = Buffer.from(JSON.stringify({ id: customerId, exp: Date.now() + TTL_MS })).toString("base64url");
+  const payload = Buffer.from(JSON.stringify({ id: customerId, iat: Date.now(), exp: Date.now() + TTL_MS })).toString("base64url");
   (await cookies()).set(COOKIE, `${payload}.${sign(payload)}`, {
     httpOnly: true,
     sameSite: "lax",
@@ -42,10 +42,13 @@ export async function currentCustomer() {
   const b = Buffer.from(sig);
   if (a.length !== b.length || !timingSafeEqual(a, b)) return null;
   try {
-    const s = JSON.parse(Buffer.from(payload, "base64url").toString()) as { id: string; exp: number };
+    const s = JSON.parse(Buffer.from(payload, "base64url").toString()) as { id: string; iat?: number; exp: number };
     if (s.exp <= Date.now()) return null;
     const c = await db.customer.findUnique({ where: { id: s.id } });
-    return c && c.passwordHash && !c.deletionRequested ? c : null;
+    if (!c || !c.passwordHash || c.deletionRequested) return null;
+    // Server-side revocation: a password change or reset invalidates every older session.
+    if (c.sessionsValidFrom && (s.iat ?? 0) < c.sessionsValidFrom.getTime()) return null;
+    return c;
   } catch {
     return null;
   }

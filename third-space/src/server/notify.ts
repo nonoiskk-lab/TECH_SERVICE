@@ -106,7 +106,8 @@ async function sendEmail(to: string, subject: string, body: string): Promise<{ o
   return r.ok ? { ok: true } : { ok: false, error: `email_${r.status}: ${(await r.text()).slice(0, 200)}` };
 }
 
-const SUBJECTS: Record<NotifyKind, string> = {
+const SUBJECTS: Record<string, string> = {
+  password_reset: "Reset your password",
   enquiry_received: "We got your enquiry",
   booking_confirmed: "Booking confirmed",
   payment_received: "Payment received",
@@ -124,7 +125,7 @@ const SUBJECTS: Record<NotifyKind, string> = {
 export async function deliver(id: string) {
   const n = await db.notification.findUnique({ where: { id }, include: { booking: true } });
   if (!n || n.status !== "queued" || n.sendAfter > new Date()) return;
-  const r = n.channel === "whatsapp" ? await sendWhatsApp(n.kind as NotifyKind, n.to, n.booking, n.body) : await sendEmail(n.to, `THIRD SPACE: ${SUBJECTS[n.kind as NotifyKind] ?? "Update"}`, n.body);
+  const r = n.channel === "whatsapp" ? await sendWhatsApp(n.kind as NotifyKind, n.to, n.booking, n.body) : await sendEmail(n.to, `THIRD SPACE: ${SUBJECTS[n.kind] ?? "Update"}`, n.body);
   if (r.ok) await db.notification.update({ where: { id }, data: { status: "sent", sentAt: new Date(), error: null } });
   else if (r.error !== "not_configured") await db.notification.update({ where: { id }, data: { error: r.error } });
 }
@@ -140,6 +141,12 @@ export async function notifyBooking(bookingId: string, kind: NotifyKind, opts: {
     db.notification.create({ data: { bookingId, kind, channel: "email", to: b.guestEmail, body, sendAfter } }),
   ]);
   if (sendAfter <= new Date()) for (const r of rows) await deliver(r.id).catch(() => undefined);
+}
+
+/** Account email that is not about a booking (password reset). Queued in the outbox, sent if email is configured. */
+export async function queueAccountEmail(to: string, kind: "password_reset", body: string) {
+  const row = await db.notification.create({ data: { kind, channel: "email", to, body } });
+  await deliver(row.id).catch(() => undefined);
 }
 
 /** Enquiry acknowledgement (no booking). */

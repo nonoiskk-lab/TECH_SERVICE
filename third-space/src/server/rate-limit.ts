@@ -17,13 +17,13 @@ export async function clientKey(prefix: string) {
 export async function rateLimit(key: string, limit: number, windowSeconds: number): Promise<boolean> {
   if (process.env.RATE_LIMIT_DISABLED === "1") return true;
   const windowStart = new Date(Math.floor(Date.now() / (windowSeconds * 1000)) * windowSeconds * 1000);
-  const count = await db.$transaction(async (tx) => {
-    const row = await tx.rateLimit.findUnique({ where: { key } });
-    if (!row || row.windowStart.getTime() !== windowStart.getTime()) {
-      await tx.rateLimit.upsert({ where: { key }, create: { key, windowStart, count: 1 }, update: { windowStart, count: 1 } });
-      return 1;
-    }
-    return (await tx.rateLimit.update({ where: { key }, data: { count: { increment: 1 } } })).count;
-  });
+  // One atomic statement: two simultaneous first hits cannot both read "no row".
+  const rows = await db.$queryRaw<{ count: number }[]>`
+    INSERT INTO "RateLimit" ("key", "windowStart", "count") VALUES (${key}, ${windowStart}, 1)
+    ON CONFLICT ("key") DO UPDATE SET
+      "count" = CASE WHEN "RateLimit"."windowStart" = EXCLUDED."windowStart" THEN "RateLimit"."count" + 1 ELSE 1 END,
+      "windowStart" = EXCLUDED."windowStart"
+    RETURNING "count"`;
+  const count = Number(rows[0]?.count ?? 1);
   return count <= limit;
 }

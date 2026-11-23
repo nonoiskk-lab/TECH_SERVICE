@@ -21,6 +21,11 @@ export default async function LoginPage({ searchParams }: PageProps<"/account/lo
         <div className="mx-auto max-w-md space-y-4">
           {accountsEnabled() ? <LoginForm l={a} next={next} /> : <p className="ts-card p-5">{a.disabled}</p>}
           <p className="text-center text-sm text-muted">
+            <Link href="/account/forgot" className="underline-offset-4 hover:underline" data-testid="forgot-link">
+              Forgot password?
+            </Link>
+          </p>
+          <p className="text-center text-sm text-muted">
             {a.noAccount}{" "}
             <Link href={`/account/signup?next=${encodeURIComponent(next)}`} className="font-semibold text-warm">
               {a.signup}

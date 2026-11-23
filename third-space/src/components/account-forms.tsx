@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import { customerLoginAction, signupAction, updateProfileAction, type AccountState } from "@/server/customer-actions";
+import { customerLoginAction, requestPasswordResetAction, resetPasswordAction, signupAction, updateProfileAction, type AccountState } from "@/server/customer-actions";
 
 function Msg({ s }: { s: AccountState }) {
   if (!s || (!s.error && !s.ok)) return null;
@@ -93,6 +93,40 @@ export function ProfileForm({ l, name, email, marketing }: { l: L; name: string;
       <Msg s={state} />
       <button className="ts-btn ts-btn-ghost w-full" disabled={pending}>
         {l.save}
+      </button>
+    </form>
+  );
+}
+
+export function ForgotForm() {
+  const [state, action, pending] = useActionState(requestPasswordResetAction, undefined);
+  return (
+    <form action={action} className="ts-card space-y-4 p-6" data-testid="account-forgot">
+      <Field label="Mobile number or email">
+        <input name="login" className="ts-input" autoComplete="username" required defaultValue={state?.values?.login} data-testid="forgot-id" />
+      </Field>
+      <Msg s={state} />
+      <button className="ts-btn ts-btn-primary w-full" disabled={pending}>
+        Send reset link
+      </button>
+    </form>
+  );
+}
+
+export function ResetForm({ token }: { token: string }) {
+  const [state, action, pending] = useActionState(resetPasswordAction, undefined);
+  return (
+    <form action={action} className="ts-card space-y-4 p-6" data-testid="account-reset">
+      <input type="hidden" name="token" value={token} />
+      <Field label="New password (8+ characters)">
+        <input name="password" type="password" minLength={8} className="ts-input" autoComplete="new-password" required data-testid="reset-password" />
+      </Field>
+      <Field label="Repeat new password">
+        <input name="confirm" type="password" minLength={8} className="ts-input" autoComplete="new-password" required data-testid="reset-confirm" />
+      </Field>
+      <Msg s={state} />
+      <button className="ts-btn ts-btn-primary w-full" disabled={pending}>
+        Save new password
       </button>
     </form>
   );

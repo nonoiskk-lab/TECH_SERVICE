@@ -345,8 +345,11 @@ model Customer {
   /// Set when the guest creates an online account (scrypt hash). Null = no account.
   passwordHash      String?
   lastLoginAt       DateTime?
+  /// Sessions issued before this moment are rejected (set on password change or reset).
+  sessionsValidFrom DateTime?
   createdAt         DateTime            @default(now())
   bookings          Booking[]
+  resets            PasswordReset[]
   memberships       CreatorMembership[]
 }
 
@@ -489,4 +492,17 @@ model CreditEntry {
   createdAt    DateTime          @default(now())
 
   @@index([membershipId, createdAt])
+}
+
+/// One-time password reset link. Only a SHA-256 hash of the token is stored; it expires and is single use.
+model PasswordReset {
+  id         String    @id @default(uuid())
+  customerId String
+  customer   Customer  @relation(fields: [customerId], references: [id])
+  tokenHash  String    @unique
+  expiresAt  DateTime
+  usedAt     DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([customerId, createdAt])
 }
