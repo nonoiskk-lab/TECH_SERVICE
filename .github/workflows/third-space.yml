@@ -45,6 +45,7 @@ jobs:
       - run: npx next typegen && npm run typecheck
       - run: npm run lint
       - run: npx prisma migrate deploy
+      - run: npm run test:unit
       - run: npm run build
       - run: npx playwright install --with-deps chromium
       - name: Start both Legal Gate states

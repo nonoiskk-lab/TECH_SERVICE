@@ -86,7 +86,9 @@ export async function addTitle(page: Page, runtimeMinutes: number) {
  * The test database keeps data between runs, so fixed days fill up; tests search instead.
  */
 export async function freeApiSlot(request: APIRequestContext, fromDay: number, duration: number, step = 1) {
-  for (let k = fromDay; k < fromDay + 15 * step; k += step) {
+  // Random start offset so parallel tests (and both gate projects) rarely pick the same day.
+  const jitter = Math.floor(Math.random() * 5) * step;
+  for (let k = fromDay + jitter; k < fromDay + jitter + 15 * step; k += step) {
     const day = new Date(Date.now() + k * 86400_000).toISOString().slice(0, 10);
     const slots = (await (await request.get(`/api/availability?date=${day}&packageId=podcast&duration=${duration}`)).json()).slots as { start: string; status: string }[];
     const free = slots.find((s) => s.status === "available");
