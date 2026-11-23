@@ -13,6 +13,7 @@ import { Card, Field, fmtDateTime, fmtTime, H1, hoursUntil, Status } from "@/com
 import { can, requireRole } from "@/server/admin/auth";
 import { attachRecordingAction, issueRefundAction, manualConfirmAction, markRefundedAction, recordPaymentAction, rescheduleAction, setProgressAction } from "@/server/admin/manage";
 import { toIstIso } from "@/server/slots/time";
+import { assignStaffAction } from "@/server/staff-actions";
 
 export default async function BookingDetail({ params }: PageProps<"/admin/bookings/[id]">) {
   const me = await requireRole("bookings.view");
@@ -22,6 +23,7 @@ export default async function BookingDetail({ params }: PageProps<"/admin/bookin
     include: { acceptance: true, incidents: { orderBy: { createdAt: "desc" } }, notifications: true, payments: { orderBy: { createdAt: "asc" } }, recordings: true },
   });
   if (!b) notFound();
+  const staffUsers = await db.staffUser.findMany({ where: { active: true }, orderBy: { name: "asc" }, select: { id: true, name: true } });
   const pkg = getPackage(b.packageId);
   const hoursBefore = hoursUntil(b.start);
   const suggestedRefund = refundFor(b.advancePaid, Math.max(0, hoursBefore));
@@ -337,6 +339,26 @@ export default async function BookingDetail({ params }: PageProps<"/admin/bookin
                 <input name="refundAmount" type="number" step="0.01" min={0} max={paiseToInput(b.advancePaid)} defaultValue={paiseToInput(suggestedRefund)} className="ts-input w-32" />
               </Field>
             </ActionForm>
+          </Card>
+        )}
+
+        {can(me.role, "bookings.manage") && ["confirmed", "checked_in", "in_progress"].includes(b.status) && (
+          <Card title="Staff assignment" testId="assign-card">
+            <ActionForm action={assignStaffAction} submit="Save" className="flex flex-wrap items-end gap-2" testId="assign-form">
+              <input type="hidden" name="bookingId" value={b.id} />
+              <Field label="Runs this booking">
+                <select name="staffId" defaultValue={b.assignedStaffId ?? ""} className="ts-input w-56">
+                  <option value="">Nobody</option>
+                  {staffUsers.map((u) => (
+                    <option key={u.id} value={u.id}>
+                      {u.name}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+            </ActionForm>
+            {b.roomReadyAt && <p className="mt-2 text-xs text-muted">Room marked ready by {b.roomReadyBy}.</p>}
+            {b.staffNotes && <pre className="mt-2 whitespace-pre-wrap font-sans text-xs text-muted">{b.staffNotes}</pre>}
           </Card>
         )}
 

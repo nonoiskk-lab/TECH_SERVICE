@@ -18,8 +18,10 @@ Resume from here. Updated after each step. Classes: Implemented, Tested, Verifie
 
 - Security: OTP send/verify rate limits (was none), atomic rate limiter, HSTS + CSP + COOP headers (0 CSP violations on 6 pages in Chromium), customer password reset (hashed single-use 30-min token, no enumeration) and server-side session revocation. 31 unit, 61 e2e.
 
+- Staff portal /staff (daily schedule, My bookings, booking detail, room ready, check-in, start/complete, notes, issue report, manager assignment), booking-state transition guard (completed/in_progress only along confirmed->checked_in->...). Staff land in /staff. 36 unit, 63 e2e.
+
 ## Current
-- Staff portal (separate /staff), role model, remaining gaps; then production deploy, docs set, release audit.
+- Production deploy (needs migrate on prod DB: paise + ledger + reset + staff ops), docs set (13 files), release audit and scores.
 
 ## Remaining (in order)
 5. Password reset, staff portal, roles

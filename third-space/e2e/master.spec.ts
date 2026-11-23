@@ -154,7 +154,7 @@ test.describe("Payments, My Booking and admin controls", () => {
     await page.getByTestId("admin-name").fill(email);
     await page.getByTestId("admin-password").fill("desk-staff-pass-1");
     await page.getByRole("button", { name: "Log in" }).click();
-    await expect(page).toHaveURL(/\/admin$/);
+    await expect(page).toHaveURL(/\/staff$/); // staff land in the staff portal, not the admin dashboard
     await page.goto("/admin/payments");
     await expect(page).toHaveURL(/denied=/);
     await expect(page.getByText("Your role cannot open that page.")).toBeVisible();

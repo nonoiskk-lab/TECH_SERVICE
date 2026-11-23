@@ -75,7 +75,15 @@ model Booking {
 
   @@index([resource, start])
   @@index([start])
+  @@index([assignedStaffId, start])
   feedback         Feedback?
+
+  /// Staff operations: who runs this booking, room preparation and internal notes.
+  assignedStaffId String?
+  assignedStaff   StaffUser? @relation(fields: [assignedStaffId], references: [id], onDelete: SetNull)
+  roomReadyAt     DateTime?
+  roomReadyBy     String?
+  staffNotes      String     @default("")
 }
 
 /// A slot held during checkout. Expired rows are ignored and cleaned up lazily.
@@ -453,6 +461,7 @@ model StaffUser {
   active       Boolean   @default(true)
   lastLoginAt  DateTime?
   createdAt    DateTime  @default(now())
+  assignedBookings Booking[]
 }
 
 model RateLimit {

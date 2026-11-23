@@ -1,5 +1,6 @@
 "use server";
 
+import { canOpsTransition } from "@/server/booking-state";
 import { issueGatewayRefund } from "@/server/refunds";
 import { moveBooking } from "@/server/reschedule";
 import { randomBytes } from "node:crypto";
@@ -377,6 +378,11 @@ export async function setProgressAction(f: FormData) {
   const who = await guard("checkin");
   const id = str(f, "bookingId");
   const to = z.enum(["in_progress", "completed", "no_show"]).parse(str(f, "status"));
+  const cur = await db.booking.findUnique({ where: { id } });
+  if (!cur || !canOpsTransition(cur.status, to, { start: cur.start })) {
+    await audit(null, who, "booking.transition_refused", "Booking", id, { from: cur?.status, to });
+    return;
+  }
   await db.booking.update({ where: { id }, data: { status: to } });
   await audit(null, who, `booking.${to}`, "Booking", id);
   revalidatePath(`/admin/bookings/${id}`);

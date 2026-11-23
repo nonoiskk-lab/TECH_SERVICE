@@ -1,5 +1,6 @@
 "use server";
 
+import { canOpsTransition } from "@/server/booking-state";
 import { restoreForBooking } from "@/server/credits";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -30,7 +31,7 @@ export async function loginAction(_: ActionState, f: FormData): Promise<ActionSt
     await db.staffUser.update({ where: { id: u.id }, data: { lastLoginAt: new Date() } });
     await startSession({ id: u.id, name: u.name, role: u.role as Role });
     await audit(null, u.name, "admin.login", "Admin", u.id, { role: u.role });
-    redirect("/admin");
+    redirect(u.role === "staff" ? "/staff" : "/admin");
   }
   // Bootstrap owner login: shared ADMIN_PASSWORD + a name (Super Admin).
   if (!checkPassword(password)) {
@@ -51,6 +52,7 @@ export async function logoutAction() {
 
 function refresh(id?: string) {
   revalidatePath("/admin", "layout");
+  revalidatePath("/staff", "layout");
   if (id) revalidatePath(`/admin/bookings/${id}`);
 }
 
@@ -82,6 +84,11 @@ export async function setStatusAction(f: FormData) {
   const who = await requireStaff("checkin");
   const id = str(f, "bookingId");
   const status = z.enum(["completed", "no_show"]).parse(str(f, "status"));
+  const b = await db.booking.findUnique({ where: { id } });
+  if (!b || !canOpsTransition(b.status, status, { start: b.start })) {
+    await audit(null, who, "booking.transition_refused", "Booking", id, { from: b?.status, to: status });
+    return refresh(id);
+  }
   await db.booking.update({ where: { id }, data: { status } });
   await audit(null, who, `booking.${status}`, "Booking", id);
   refresh(id);
