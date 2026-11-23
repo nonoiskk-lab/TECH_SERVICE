@@ -32,6 +32,8 @@ jobs:
       AUTH_SECRET: test-auth-secret-at-least-16-chars
       PAYMENTS_MODE: mock
       OTP_MODE: mock
+      RATE_LIMIT_DISABLED: "1"
+      RAZORPAY_WEBHOOK_SECRET: test-webhook-secret
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
