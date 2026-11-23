@@ -1,5 +1,6 @@
 "use server";
 
+import { restoreForBooking } from "@/server/credits";
 import { redirect } from "next/navigation";
 import { db } from "@/server/db";
 import { audit } from "@/server/audit";
@@ -40,7 +41,9 @@ export async function guestCancelAction(_: GuestState, f: FormData): Promise<Gue
     db.booking.update({ where: { id }, data: { status: refund > 0 ? "refund_pending" : "cancelled", cancelledAt: new Date(), cancelReason: "Cancelled by guest online", refundAmount: refund, holdId: null } }),
     db.hold.deleteMany({ where: { id: b.holdId ?? "" } }),
   ]);
-  await audit(null, "guest", "booking.cancelled_by_guest", "Booking", id, { hoursBefore: Math.round(hoursBefore), refund });
+  // ASSUMPTION (editable later): credits spent on this booking go back when the guest cancels 24h or more before start.
+  const restored = hoursBefore >= 24 ? await db.$transaction((tx) => restoreForBooking(tx, id, "guest")) : 0;
+  await audit(null, "guest", "booking.cancelled_by_guest", "Booking", id, { hoursBefore: Math.round(hoursBefore), refund, creditsRestored: restored });
   await notifyBooking(id, "cancelled");
   redirect(`/my-booking/${id}?t=${token}&cancelled=${refund}`);
 }

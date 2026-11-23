@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { balancesFor } from "@/server/credits";
 import { db } from "@/server/db";
 import { requireRole } from "@/server/admin/auth";
 import { anonymiseCustomerAction } from "@/server/admin/manage";
@@ -12,6 +13,7 @@ export default async function CustomerPage({ params }: PageProps<"/admin/custome
   const { id } = await params;
   const c = await db.customer.findUnique({ where: { id }, include: { bookings: { orderBy: { start: "desc" } }, memberships: true } });
   if (!c) notFound();
+  const bal = await balancesFor(c.memberships.map((m) => m.id));
   const spent = c.bookings.reduce((a, b) => a + b.advancePaid, 0);
   return (
     <>
@@ -28,7 +30,7 @@ export default async function CustomerPage({ params }: PageProps<"/admin/custome
         <Card title="Creator Plans">
           {c.memberships.map((m) => (
             <p key={m.id} className="text-sm">
-              {m.hoursTotal * 60 - m.minutesUsed} of {m.hoursTotal * 60} min left · {m.status} · until {m.validUntil.toISOString().slice(0, 10)}
+              {bal.get(m.id) ?? 0} of {m.hoursTotal * 60} min left · {m.status} · until {m.validUntil.toISOString().slice(0, 10)}
             </p>
           ))}
           {c.memberships.length === 0 && <p className="text-sm text-muted">None.</p>}

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { balancesFor } from "@/server/credits";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getDict } from "@/lib/locale";
@@ -29,6 +30,7 @@ export default async function AccountPage() {
     db.booking.findMany({ where: { OR: [{ customerId: c.id }, { guestPhone: c.phone }] }, orderBy: { start: "desc" }, take: 100 }),
     db.creatorMembership.findMany({ where: { customerId: c.id, status: "active" }, orderBy: { validUntil: "desc" } }),
   ]);
+  const planBalance = await balancesFor(plans.map((p) => p.id));
   const { upcoming, past } = splitBookings(bookings);
   const statusLabel = (s: string) => t.myBooking.statusLabels[s as keyof typeof t.myBooking.statusLabels] ?? s;
   const Row = ({ b }: { b: (typeof bookings)[number] }) => (
@@ -87,7 +89,7 @@ export default async function AccountPage() {
                 <h2 className="text-lg">{a.plan}</h2>
                 <p className="mt-1 text-sm text-muted">
                   {a.planLeft
-                    .replace("{left}", String(Math.max(0, p.hoursTotal - p.minutesUsed / 60).toFixed(1).replace(/\.0$/, "")))
+                    .replace("{left}", String(Math.max(0, (planBalance.get(p.id) ?? 0) / 60).toFixed(1).replace(/\.0$/, "")))
                     .replace("{total}", String(p.hoursTotal))
                     .replace("{date}", p.validUntil.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric", timeZone: "Asia/Kolkata" }))}
                 </p>

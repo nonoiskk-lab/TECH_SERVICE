@@ -1,3 +1,4 @@
+import { postCredit } from "@/server/credits";
 import "server-only";
 import { randomBytes } from "node:crypto";
 import { Prisma } from "@prisma/client";
@@ -298,19 +299,15 @@ export async function createBooking(draft: BookingDraft, holdId: string, opts: C
 }
 
 async function createMembership(tx: Prisma.TransactionClient, bookingId: string, customerId: string, packageId: string, hoursTotal: number, validityDays: number, start: Date) {
-  await tx.creatorMembership.upsert({
+  const m = await tx.creatorMembership.upsert({
     where: { bookingId },
-    create: {
-      bookingId,
-      customerId,
-      packageId,
-      hoursTotal,
-      validUntil: new Date(start.getTime() + validityDays * 86400_000),
-      usage: { create: { bookingId, minutes: 120, note: "First session booked with the plan", recordedBy: "system" } },
-      minutesUsed: 120,
-    },
+    create: { bookingId, customerId, packageId, hoursTotal, validUntil: new Date(start.getTime() + validityDays * 86400_000) },
     update: {},
   });
+  // Ledger: the plan's hours, then the first session booked with the plan. Keys make both idempotent
+  // (a retried payment confirmation cannot grant the hours twice).
+  await postCredit(tx, { membershipId: m.id, kind: "purchase", minutes: hoursTotal * 60, bookingId, note: "Plan purchased", actor: "system", key: `purchase:${bookingId}` });
+  await postCredit(tx, { membershipId: m.id, kind: "consume", minutes: -120, bookingId, note: "First session booked with the plan", actor: "system", key: `consume:${bookingId}:first` });
 }
 
 export type ConfirmResult =

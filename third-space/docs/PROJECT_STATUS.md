@@ -11,11 +11,13 @@ Resume from here. Updated after each step. Classes: Implemented, Tested, Verifie
 - next 16.3.4 -> 16.4.6 (critical advisory). 4 high remain in Prisma CLI build deps.
 - Money in integer paise end to end (migration 20261123130000, src/lib/money.ts, admin forms in rupees, Razorpay boundary, CSV/notify). Tested: 12 unit, 59 e2e, 34 content pages.
 
+- Credit ledger: CreditEntry (append-only, DB trigger blocks negative balance, idempotency key), admin consume/adjust, cancel reversal, expiry on cron. 6 DB tests incl. 20 parallel consumes. Tested: 18 unit, 59 e2e.
+- F-04 fixed in code: preview builds no longer migrate (scripts/vercel-build.mjs).
+
 ## Current
-- Credit ledger (CreditEntry) replacing hours/minutes balance; fix membership race.
+- Razorpay hardening: amount check on capture, refund API, reconciliation job, payment tests.
 
 ## Remaining (in order)
-3. Credit ledger (CreditEntry), fix membership race
 4. Razorpay refund API, reconciliation job, payment tests
 5. Password reset, staff portal, roles
 6. Unit/integration test layers, a11y, security checks

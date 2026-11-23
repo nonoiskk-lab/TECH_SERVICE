@@ -13,6 +13,7 @@ import { createBooking, holds, SlotTakenError } from "@/server/slots";
 import { notifyBooking } from "@/server/notify";
 import { buildQuote, formatINR } from "@/lib/pricing";
 import { parseRupees } from "@/lib/money";
+import { post, InsufficientCreditsError } from "@/server/credits";
 import { resolveSession } from "@/lib/session";
 import { hashPassword, requireRole, ROLES, type Permission } from "./auth";
 import type { ActionState } from "./actions";
@@ -403,13 +404,34 @@ export async function membershipUsageAction(_: ActionState, f: FormData): Promis
   const minutes = int(f, "minutes");
   const m = await db.creatorMembership.findUnique({ where: { id } });
   if (!m || m.status !== "active") return { error: "Membership is not active." };
-  if (!minutes || minutes <= 0 || m.minutesUsed + minutes > m.hoursTotal * 60) return { error: `Minutes must fit in the ${m.hoursTotal * 60 - m.minutesUsed} remaining.` };
-  await db.$transaction([
-    db.membershipUsage.create({ data: { membershipId: id, minutes, note: str(f, "note"), recordedBy: who, bookingId: str(f, "bookingId") || null } }),
-    db.creatorMembership.update({ where: { id }, data: { minutesUsed: { increment: minutes } } }),
-  ]);
+  if (!minutes || Number.isNaN(minutes) || minutes <= 0) return { error: "Enter the minutes used." };
+  try {
+    await post({ membershipId: id, kind: "consume", minutes: -minutes, bookingId: str(f, "bookingId") || null, note: str(f, "note"), actor: who });
+  } catch (e) {
+    if (e instanceof InsufficientCreditsError) return { error: `Only ${e.balance} minutes are left.` };
+    throw e;
+  }
   await audit(null, who, "membership.usage", "CreatorMembership", id, { minutes });
   return done(["/admin/memberships"], `Recorded ${minutes} min.`);
+}
+
+/** Admin correction (goodwill credit or fix). Signed minutes; a written reason is mandatory. */
+export async function adjustCreditsAction(_: ActionState, f: FormData): Promise<ActionState> {
+  const who = await guard("memberships");
+  const id = str(f, "membershipId");
+  const minutes = int(f, "minutes");
+  const note = str(f, "note");
+  if (!minutes || Number.isNaN(minutes) || Math.abs(minutes) > 6000) return { error: "Enter minutes between -6000 and 6000 (not 0)." };
+  if (note.length < 3) return { error: "Write the reason for the adjustment." };
+  if (!(await db.creatorMembership.findUnique({ where: { id } }))) return { error: "Membership not found." };
+  try {
+    await post({ membershipId: id, kind: "adjust", minutes, note, actor: who });
+  } catch (e) {
+    if (e instanceof InsufficientCreditsError) return { error: `Cannot go below zero: ${e.balance} minutes are left.` };
+    throw e;
+  }
+  await audit(null, who, "membership.adjust", "CreatorMembership", id, { minutes, note });
+  return done(["/admin/memberships"], `Adjusted by ${minutes} min.`);
 }
 
 // ---------------------------------------------------------------- recordings

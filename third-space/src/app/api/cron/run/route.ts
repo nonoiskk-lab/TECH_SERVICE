@@ -1,4 +1,5 @@
 import { timingSafeEqual } from "node:crypto";
+import { expireMembership } from "@/server/credits";
 import { db } from "@/server/db";
 import { audit } from "@/server/audit";
 import { deliver, notifyBooking } from "@/server/notify";
@@ -76,8 +77,14 @@ async function run() {
   await db.rateLimit.deleteMany({ where: { windowStart: { lt: new Date(now.getTime() - 86400_000) } } });
 
   // 6. Memberships past validity.
-  const exp = await db.creatorMembership.updateMany({ where: { status: "active", validUntil: { lt: now } }, data: { status: "expired" } });
-  report.membershipsExpired = exp.count;
+  const lapsed = await db.creatorMembership.findMany({ where: { status: "active", validUntil: { lt: now } }, select: { id: true } });
+  for (const m of lapsed) {
+    await db.$transaction(async (tx) => {
+      await expireMembership(tx, m.id); // writes off the remaining minutes in the ledger (idempotent)
+      await tx.creatorMembership.update({ where: { id: m.id }, data: { status: "expired" } });
+    });
+  }
+  report.membershipsExpired = lapsed.length;
   return report;
 }
 

@@ -1,5 +1,6 @@
 "use server";
 
+import { restoreForBooking } from "@/server/credits";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
@@ -98,7 +99,9 @@ export async function cancelAction(_: ActionState, f: FormData): Promise<ActionS
   const status = refund > 0 ? "refund_pending" : "cancelled";
   await db.booking.update({ where: { id }, data: { status, cancelledAt: new Date(), cancelReason: reason, refundAmount: refund, holdId: null } });
   await db.hold.deleteMany({ where: { id: b.holdId ?? "" } });
-  await audit(null, who, "booking.cancelled", "Booking", id, { reason, refundAmount: refund, suggested: str(f, "suggested") });
+  // Credits spent on this booking go back to the plan (once).
+  const restored = await db.$transaction((tx) => restoreForBooking(tx, id, who));
+  await audit(null, who, "booking.cancelled", "Booking", id, { reason, refundAmount: refund, suggested: str(f, "suggested"), creditsRestored: restored });
   await notifyBooking(id, "cancelled");
   refresh(id);
   return { ok: refund > 0 ? `Cancelled. Refund ${formatINR(refund)} is pending: pay it in Razorpay, then mark it refunded.` : "Cancelled." };

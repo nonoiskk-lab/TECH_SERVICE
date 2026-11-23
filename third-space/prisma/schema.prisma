@@ -362,6 +362,7 @@ model CreatorMembership {
   status      String            @default("active") // active | expired | cancelled
   createdAt   DateTime          @default(now())
   usage       MembershipUsage[]
+  entries     CreditEntry[]
 }
 
 model MembershipUsage {
@@ -470,4 +471,22 @@ model Feedback {
   publishedAt    DateTime?
   testimonialId  String?
   createdAt      DateTime  @default(now())
+}
+
+/// Auditable credit ledger. The balance of a membership is SUM(minutes) over its entries.
+/// Rows are append-only (never updated or deleted). A database trigger rejects any entry
+/// that would make the balance negative, and `key` makes a posting idempotent.
+model CreditEntry {
+  id           String            @id @default(uuid())
+  membershipId String
+  membership   CreatorMembership @relation(fields: [membershipId], references: [id])
+  kind         String // purchase | consume | restore | adjust | expire
+  minutes      Int // signed: purchase/restore positive, consume/expire negative, adjust either
+  bookingId    String?
+  note         String            @default("")
+  actor        String
+  key          String?           @unique
+  createdAt    DateTime          @default(now())
+
+  @@index([membershipId, createdAt])
 }
