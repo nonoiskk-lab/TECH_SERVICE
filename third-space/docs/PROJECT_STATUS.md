@@ -20,6 +20,8 @@ Resume from here. Updated after each step. Classes: Implemented, Tested, Verifie
 
 - Staff portal /staff (daily schedule, My bookings, booking detail, room ready, check-in, start/complete, notes, issue report, manager assignment), booking-state transition guard (completed/in_progress only along confirmed->checked_in->...). Staff land in /staff. 36 unit, 63 e2e.
 
+- Accessibility: axe WCAG 2.1 A/AA on 11 pages at 390px; fixed contrast token (#7a7a7a 4.29:1 -> #666 5.7:1) and calendar ARIA (invalid grid role, label mismatch). 74 e2e, 36 unit.
+
 ## Current
 - Production deploy (needs migrate on prod DB: paise + ledger + reset + staff ops), docs set (13 files), release audit and scores.
 

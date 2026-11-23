@@ -80,7 +80,7 @@ export function BookingCalendar({
           <span key={d}>{d}</span>
         ))}
       </div>
-      <div className="mt-1 grid grid-cols-7 gap-1" role="grid" aria-label={label}>
+      <div className="mt-1 grid grid-cols-7 gap-1" role="group" aria-label={label}>
         {grid.map((date, i) => {
           if (!date) return <span key={`e${i}`} />;
           const status: DayStatus = days?.[date] ?? "unavailable";
@@ -93,7 +93,7 @@ export function BookingCalendar({
               disabled={loading || status !== "available"}
               onClick={() => onSelect(date)}
               aria-pressed={isSel}
-              aria-label={`${date}: ${t.book.calendarLegend[status]}`}
+              aria-label={`${Number(date.slice(8))} ${new Date(`${date}T12:00:00+05:30`).toLocaleDateString("en-IN", { month: "long", year: "numeric", timeZone: "Asia/Kolkata" })}, ${t.book.calendarLegend[status]}`}
               data-date={date}
               data-status={status}
               className={`relative flex h-11 items-center justify-center rounded-xl text-sm tabular-nums transition ${

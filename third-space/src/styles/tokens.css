@@ -11,7 +11,7 @@
   --ts-line: #e8e0d4;
   --ts-text: #222222;
   --ts-text-muted: #585858;
-  --ts-text-faint: #7a7a7a;
+  --ts-text-faint: #666666;
   --ts-gold: #c69b55;          /* Champagne Gold: primary fill */
   --ts-gold-strong: #b5883f;   /* primary hover */
   --ts-warm: #8a6428;          /* gold text on white, 5.4:1 */
@@ -66,7 +66,7 @@
   --ts-line: #e8e0d4;
   --ts-text: #222222;
   --ts-text-muted: #585858;
-  --ts-text-faint: #7a7a7a;
+  --ts-text-faint: #666666;
   --ts-warm: #8a6428;
   color: var(--ts-text);
 }
