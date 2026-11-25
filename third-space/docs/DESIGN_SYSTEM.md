@@ -11,7 +11,9 @@ Implemented (v5, light). **Not approved by the owner.** Direction follows the ow
 - Surfaces: light (white and ivory `#f7efe4`), dark espresso `#201a17`, gold `#c69b55`, selected through `.ts-band-light`, `.ts-band-dark`, `.ts-band-gold`.
 - Text: `--ts-text #222`, `--ts-text-muted #585858`, `--ts-text-faint #666` (raised from `#7a7a7a` after the axe check: 4.29:1 → 5.7:1 on white), gold text `#8a6428`.
 - Type: Fraunces (display), DM Sans (body), Noto Sans Devanagari; all OFL, served by `next/font`. Fraunces and DM Sans use `font-display: optional` so late font loading cannot shift the layout.
-- Shape and size: buttons 6 px radius at 44 px (60 px for hero CTAs), cards 14 px, tap target 44 px, content width 1200 px.
+- Shape and size: one radius scale (6, 8, 12, 16 px and pill); buttons are pills at 44 px (60 px for hero CTAs), cards 16 px, inputs and time chips 12 px; tap target 44 px; content width 1200 px.
+- Semantic aliases (`--background`, `--foreground`, `--primary`, `--muted`, `--border`, `--input`, `--ring`, `--radius`, shadow scale) sit on top of the `--ts-*` tokens in the same file. UI borders use `--ts-border-strong` (3:1 or better) and focus uses `--ts-ring`.
+- Details, evidence and the research behind these choices: `docs/DESIGN_RESEARCH.md`.
 - Motion: 400 ms, translate-only reveals, disabled under `prefers-reduced-motion`.
 - Status chips (`Status` in `components/admin/ui.tsx`) always carry text, never colour alone.
 

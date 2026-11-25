@@ -9,7 +9,7 @@ Run on 2026-11-23 against commit history of branch `claude/intelligent-ride-aojo
 | Types | `tsc --noEmit` | whole project | pass |
 | Lint | ESLint | whole project | pass |
 | Unit / database / integration | Vitest 5 against Postgres | 6 files, 37 tests | 37 passed |
-| End to end | Playwright, Chromium, 390 px mobile viewport (plus 360, 768, 1024, 1280, 1440 px for the responsive spec), two Legal Gate servers plus a live-mode server | 13 spec files | 81 passed, 0 failed, 40 skipped by design (specs written to run once, on the gate-closed server, are skipped on the other two servers); three consecutive full runs passed |
+| End to end | Playwright, Chromium, 390 px mobile viewport (plus 360, 768, 1024, 1280, 1440 px for the responsive spec), two Legal Gate servers plus a live-mode server | 14 spec files | 84 passed, 0 failed, 43 skipped by design (specs written to run once, on the gate-closed server, are skipped on the other two servers); three consecutive full runs passed |
 | Content checks | `scripts/check-content.mjs` | 35 pages | passed |
 | Accessibility | axe-core (WCAG 2.1 A/AA), serious and critical | 11 pages | 11 passed |
 | Production build | `next build` | | pass |

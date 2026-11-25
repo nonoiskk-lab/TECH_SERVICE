@@ -56,14 +56,14 @@ h1 { font-weight: 800; }
 }
 .ts-btn-primary { background: var(--ts-gold); color: var(--ts-on-gold); }
 .ts-btn-primary:hover { background: var(--ts-gold-strong); }
-.ts-btn-ghost { border-color: var(--ts-gold); color: var(--ts-warm); background: transparent; }
+.ts-btn-ghost { border-color: var(--ts-warm); color: var(--ts-warm); background: transparent; } /* border was gold (2.6:1); warm is 5.3:1 */
 .ts-btn-ghost:hover { background: color-mix(in srgb, var(--ts-gold) 15%, transparent); }
 .ts-btn-dark { border-color: var(--ts-text); color: var(--ts-text); background: transparent; border-width: 1px; }
 .ts-btn-dark:hover { background: var(--ts-gold); border-color: var(--ts-gold); color: var(--ts-on-gold); }
 .ts-btn-white { background: #fff; color: var(--ts-warm-strong); }
 .ts-btn-white:hover { background: #fffaf2; }
 .ts-btn:active:not([disabled]) { transform: translateY(1px); }
-.ts-btn:focus-visible { outline: 2px solid var(--ts-gold); outline-offset: 3px; }
+.ts-btn:focus-visible { outline: 2px solid var(--ts-ring); outline-offset: 3px; }
 .ts-btn-lg { min-height: var(--ts-btn-h-lg); padding: 0 1.85rem; font-size: 1.125rem; }
 .ts-btn-text { min-height: var(--ts-tap); padding: 0; border: 0; color: var(--ts-warm); background: none; font-weight: 700; }
 .ts-btn-text:hover { color: var(--ts-warm-strong); text-decoration: underline; text-underline-offset: 4px; }
@@ -100,10 +100,10 @@ h1 { font-weight: 800; }
 .ts-table th, .ts-table td { padding: .8rem .9rem; border-bottom: 1px solid var(--ts-line); text-align: left; vertical-align: top; }
 .ts-table thead th { font-size: .72rem; letter-spacing: .14em; text-transform: uppercase; color: var(--ts-text-faint); font-weight: 700; }
 .ts-input {
-  width: 100%; min-height: var(--ts-tap); padding: .5rem .875rem; border-radius: var(--ts-radius-sm);
-  background: #fff; border: 1px solid var(--ts-line); color: #222;
+  width: 100%; min-height: var(--ts-tap); padding: .5rem .875rem; border-radius: var(--ts-radius-md);
+  background: #fff; border: 1px solid var(--ts-border-strong); color: #222;
 }
-.ts-input:focus { border-color: var(--ts-gold); outline: none; box-shadow: 0 0 0 3px rgba(198, 155, 85, .3); }
+.ts-input:focus { border-color: var(--ts-ring); outline: none; box-shadow: 0 0 0 3px rgba(198, 155, 85, .35); }
 .ts-prose p + p { margin-top: .75rem; }
 /* Eyebrow label with the gold dot. */
 /* Small uppercase label above headings. */

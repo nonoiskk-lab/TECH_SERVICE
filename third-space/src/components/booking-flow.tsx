@@ -379,12 +379,22 @@ export function BookingFlow(props: BookingFlowProps) {
 
   const mm = Math.max(0, Math.floor(remainingMs / 60000));
   const ss = Math.max(0, Math.floor((remainingMs % 60000) / 1000));
+  // Mobile sticky action: one primary button on screen. It hides while the review/pay section is visible.
+  const checkoutRef = useRef<HTMLElement | null>(null);
+  const [checkoutVisible, setCheckoutVisible] = useState(false);
+  useEffect(() => {
+    const el = checkoutRef.current;
+    if (!el || typeof IntersectionObserver === "undefined") return;
+    const io = new IntersectionObserver(([e]) => setCheckoutVisible(e.isIntersecting), { threshold: 0.15 });
+    io.observe(el);
+    return () => io.disconnect();
+  }, [hold]);
   const showAddOns = availableAddOns.length > 0 && !isFree;
   const stepOffset = showAddOns ? 0 : -1;
   const visibleSlots = (slots ?? []).filter((s) => s.status !== "past");
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[1fr_360px]" data-testid="booking-flow">
+    <div className={`grid gap-6 lg:grid-cols-[1fr_360px] ${hold ? "pb-24 lg:pb-0" : ""}`} data-testid="booking-flow">
       <div className="space-y-6">
         {hold && (
           <div
@@ -625,6 +635,19 @@ export function BookingFlow(props: BookingFlowProps) {
         {/* 3. Date and slot */}
         <section className="ts-card space-y-4 p-5">
           <StepTitle n={3 + stepOffset} title={t.book.stepSlot} done={!!hold} />
+          {/* Price and cancellation rules are visible BEFORE a time is chosen (same numbers as the review step). */}
+          {!isFree && quote && (
+            <div className="rounded-xl bg-raised px-4 py-3 text-sm" data-testid="policy-glance">
+              <p className="font-semibold">{t.book.policyGlance}</p>
+              {(quote.advance ?? 0) > 0 ? (
+                <p className="mt-1 text-muted">
+                  {catalog.refundTiers.map((r, i) => `${refundTiers[i] ? tl(refundTiers[i].label, locale) : `${r.minHoursBefore}h+`}: ${r.refundPercentOfAdvance}%`).join(" · ")}
+                </p>
+              ) : (
+                <p className="mt-1 text-muted">{t.book.venueNote}</p>
+              )}
+            </div>
+          )}
           {pkg && duration > 0 && (
             <BookingCalendar
               t={t}
@@ -666,11 +689,11 @@ export function BookingFlow(props: BookingFlowProps) {
                   data-start={s.start}
                   data-status={mine ? "mine" : s.status}
                   className={`min-h-11 rounded-xl border px-2 text-sm font-semibold ${
-                    mine ? "border-warm bg-warm text-warm-ink" : disabled ? "border-line/50 text-faint line-through" : "border-line hover:border-warm"
+                    mine ? "border-warm bg-warm text-white" : disabled ? "border-line/50 text-faint line-through" : "border-[var(--ts-border-strong)] hover:border-warm"
                   }`}
                 >
                   {timeLabel(s.start)}
-                  <span className="block text-[11px] font-normal opacity-75">
+                  <span className={`block text-[11px] font-normal ${mine ? "" : "opacity-75"}`}>
                     {t.book.until.replace("{time}", timeLabel(s.end))}
                   </span>
                   {disabled && <span className="sr-only"> ({s.status === "booked" ? t.book.booked : t.book.held})</span>}
@@ -752,7 +775,7 @@ export function BookingFlow(props: BookingFlowProps) {
         </section>
 
         {/* 5. Review: rules and refund tiers BEFORE the pay button */}
-        <section className="ts-card space-y-4 p-5">
+        <section className="ts-card space-y-4 p-5" id="checkout" ref={checkoutRef}>
           <StepTitle n={5 + stepOffset} title={t.book.stepReview} done={consentOk} />
           <h3 className="font-semibold">{t.book.beforePay}</h3>
           {!isFree && (
@@ -953,6 +976,20 @@ export function BookingFlow(props: BookingFlowProps) {
           {!quote && <p className="mt-3 text-sm text-muted">{t.book.selectPackageFirst}</p>}
         </div>
       </aside>
+
+      {hold && !checkoutVisible && quote && (
+        <div className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-white px-4 py-3 shadow-[0_-4px_16px_rgba(32,26,23,0.10)] lg:hidden" data-testid="sticky-cta">
+          <div className="mx-auto flex max-w-xl items-center justify-between gap-3">
+            <span className="text-sm">
+              <span className="block text-muted">{t.book.stickyTotal}</span>
+              <strong className="text-lg">{formatINR(quote.total)}</strong>
+            </span>
+            <button type="button" className="ts-btn ts-btn-primary" onClick={() => document.getElementById("checkout")?.scrollIntoView({ behavior: "smooth", block: "start" })} data-testid="sticky-cta-button">
+              {t.book.stickyReview}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

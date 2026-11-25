@@ -34,7 +34,7 @@ The application is built, tested and **deployed** at https://third-space-gamma.v
 
 ## Test totals (latest local run, fresh database)
 
-37 unit/database tests passed · 81 end-to-end passed, 0 failed (40 skipped by design; three consecutive full runs) · 11 axe accessibility checks passed · 35 content checks passed · layout checked at six widths · LCP 0.76 to 1.3 s and worst CLS 0.010 on 14 pages under mobile throttling · typecheck, lint and production build pass. `npm audit`: 0 critical, 4 high (Prisma 6 CLI toolchain, build-time). Details and the list of what was **not** tested: TESTING_REPORT.
+37 unit/database tests passed · 84 end-to-end passed, 0 failed (43 skipped by design; consecutive full runs) · 11 axe accessibility checks passed · 35 content checks passed · layout checked at six widths · LCP 0.76 to 1.3 s and worst CLS 0.010 on 14 pages under mobile throttling · typecheck, lint and production build pass. `npm audit`: 0 critical, 4 high (Prisma 6 CLI toolchain, build-time). Details and the list of what was **not** tested: TESTING_REPORT.
 
 ## Known issues and open risks
 

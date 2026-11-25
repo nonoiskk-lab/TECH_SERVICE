@@ -1,8 +1,8 @@
 {
   "$meta": {
     "name": "THIRD SPACE design tokens",
-    "version": "5.0.0",
-    "date": "2026-11-23",
+    "version": "5.1.0",
+    "date": "2026-11-25",
     "source": "src/styles/tokens.css (implemented). Values are THIRD SPACE's own: Proposed, pending MD-01 approval.",
     "reference": "Perfect Venue audit (Measured) informed spacing, button sizes and section rhythm. Skedda Report 11: Unknown (document missing).",
     "status": "Implemented, not approved"
@@ -24,7 +24,9 @@
       "espresso": "#201a17",
       "ivory": "#f7efe4",
       "ok": "#2f7a43",
-      "danger": "#b3261e"
+      "danger": "#b3261e",
+      "border-strong": "#8a8071",
+      "ring": "#6f4f1d"
     },
     "band-dark": {
       "bg": "#201a17",
@@ -34,7 +36,8 @@
       "text-muted": "#e0d4c1",
       "text-faint": "#bfb19c",
       "warm": "#d6ad6a",
-      "warm-strong": "#e2bf86"
+      "warm-strong": "#e2bf86",
+      "ring": "#e2bf86"
     },
     "band-gold": {
       "bg": "#c69b55",
@@ -49,14 +52,60 @@
     "body": "DM Sans, sans-serif",
     "devanagari": "Noto Sans Devanagari, sans-serif"
   },
-  "radius": { "card": "14px", "sm": "8px", "button": "6px" },
-  "size": { "tap": "44px", "button": "44px", "button-lg": "60px", "max-width": "1200px" },
-  "space": { "section-y": "64px", "section-y-lg": "110px" },
+  "radius": {
+    "xs": "6px",
+    "sm": "8px",
+    "md": "12px",
+    "lg": "16px",
+    "pill": "999px",
+    "card": "var(--ts-radius-lg)",
+    "button": "var(--ts-radius-pill)",
+    "input": "var(--ts-radius-md)"
+  },
+  "size": {
+    "tap": "44px",
+    "button": "44px",
+    "button-lg": "60px",
+    "max-width": "1200px"
+  },
+  "space": {
+    "section-y": "64px",
+    "section-y-lg": "110px"
+  },
   "shadow": {
     "glow": "0 1px 10px rgba(32, 26, 23, 0.10)",
     "card": "0 1px 10px rgba(179, 168, 153, 0.35)",
     "nav": "0 0 20px rgba(0, 0, 0, 0.08)"
   },
-  "motion": { "ease": "cubic-bezier(.2, .7, .2, 1)", "duration": "400ms" },
-  "breakpoints": { "xs": "360px", "sm": "390px", "md": "768px", "lg": "1024px", "xl": "1280px", "xxl": "1440px" }
+  "motion": {
+    "ease": "cubic-bezier(.2, .7, .2, 1)",
+    "duration": "400ms"
+  },
+  "breakpoints": {
+    "xs": "360px",
+    "sm": "390px",
+    "md": "768px",
+    "lg": "1024px",
+    "xl": "1280px",
+    "xxl": "1440px"
+  },
+  "semantic": {
+    "background": "--ts-bg",
+    "foreground": "--ts-text",
+    "card": "--ts-bg-card",
+    "primary": "--ts-gold",
+    "primary-foreground": "--ts-on-gold",
+    "primary-hover": "--ts-gold-strong",
+    "muted": "--ts-bg-raised",
+    "muted-foreground": "--ts-text-muted",
+    "border": "--ts-line",
+    "input": "--ts-border-strong",
+    "ring": "--ts-ring",
+    "destructive": "--ts-danger",
+    "success": "--ts-ok",
+    "radius": "--ts-radius",
+    "shadow-sm": "--ts-glow",
+    "shadow-md": "--ts-shadow-card",
+    "shadow-lg": "--ts-shadow-nav"
+  }
 }
