@@ -34,7 +34,7 @@ The application is built, tested and **deployed** at https://third-space-gamma.v
 
 ## Test totals (latest local run, fresh database)
 
-36 unit/database tests passed · 74 end-to-end passed, 0 failed (33 skipped by design) · 11 axe accessibility checks passed · 35 content checks passed · typecheck, lint and production build pass. `npm audit`: 0 critical, 4 high (Prisma 6 CLI toolchain, build-time). Details and the list of what was **not** tested: TESTING_REPORT.
+37 unit/database tests passed · 81 end-to-end passed, 0 failed (40 skipped by design; three consecutive full runs) · 11 axe accessibility checks passed · 35 content checks passed · layout checked at six widths · LCP 0.76 to 1.3 s and worst CLS 0.010 on 14 pages under mobile throttling · typecheck, lint and production build pass. `npm audit`: 0 critical, 4 high (Prisma 6 CLI toolchain, build-time). Details and the list of what was **not** tested: TESTING_REPORT.
 
 ## Known issues and open risks
 
@@ -42,7 +42,7 @@ See SECURITY_AUDIT "Open findings" (O1 to O10) and RELEASE_CHECKLIST section B. 
 
 ## Incomplete features
 
-Invoices; 8-role model; paying normal bookings with credits online; customer notification history; real messaging delivery; first-class equipment and staff resources; `timestamptz` and foreign keys for `resource`/`packageId`; design approval and real photography; Skedda-based specification (document missing).
+Invoices; 8-role model; guests paying with plan hours online; real messaging delivery; first-class equipment and staff resources; `timestamptz` and foreign keys for `resource`/`packageId`; design approval and real photography; Skedda-based specification (document missing).
 
 ## External inputs still required
 
@@ -62,14 +62,14 @@ Invoices; 8-role model; paying normal bookings with credits online; customer not
 
 | Category | Score | Reason | Improvement plan |
 |---|:-:|---|---|
-| Product completeness | 7 | Core modules work; missing items listed above | Invoices, credit redemption, notification history, 8 roles after owner input |
+| Product completeness | 7.5 | Core modules work; missing items listed above | Invoices, guest self-redemption of plan hours, 8 roles after owner input |
 | Booking reliability | 8 | Engine plus DB constraint, heavily tested for races at DB and service level | Browser-level concurrent test, load test, equipment and staff as constrained resources |
 | Payment security | 7 | Logic is strong and tested, but only against a fake gateway; cron is daily | Test-mode run, 15-minute reconciliation, real refund trial |
 | UI/UX quality | 7 | Consistent tokens and components; not owner-approved; illustrations not photos | Owner review, photography, shared skeletons |
-| Mobile responsiveness | 7.5 | Tested at 390 px only | Automate 360 to 1440 px, real devices |
+| Mobile responsiveness | 8 | Automated at 360, 390, 768, 1024, 1280, 1440 px; no real devices | Real devices, Safari |
 | Database integrity | 8.5 | Exclusion, ledger triggers, RLS; strings without FKs, no `timestamptz` | Dedicated migration on a staging DB |
 | Security | 7.5 | Critical findings fixed; no pen test; open O1 to O7 | Close O2 to O4, Prisma 7, nonce CSP, 2FA |
-| Performance | 5 | **Not measured.** No Lighthouse, bundle or API timing work was done | Measure, set budgets, fix findings |
+| Performance | 7 | LCP and CLS measured and fixed under mobile throttling; no Lighthouse, bundle budget or API load numbers; every page is rendered per request (dynamic) | Lighthouse in CI, caching for static marketing pages, API timing |
 | Accessibility | 7 | axe passes on 11 pages; no manual keyboard or screen-reader review | Manual audit |
 | Maintainability | 7.5 | Modular, 110 automated tests, documentation; some very large components and files | Split the booking flow component and engine file |
 | Deployment readiness | 5.5 | Deployed and verified, but no staging, backups unverified, no monitoring, cron inactive, no payment keys | RELEASE_CHECKLIST section B |

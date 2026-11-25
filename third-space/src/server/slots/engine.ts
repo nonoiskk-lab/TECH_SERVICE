@@ -197,6 +197,8 @@ export type CreateOptions = {
   couponCode?: string;
   /** Opening payment row (order created, or venue/manual record). */
   payment?: { provider: string; kind: "advance" | "full" | "balance"; orderId?: string; amount: number; status: "created" | "captured" | "pending" };
+  /** Runs inside the booking transaction; if it throws, the whole booking is rolled back (used to spend plan hours atomically). */
+  inTransaction?: (tx: Prisma.TransactionClient, booking: { id: string; start: Date; durationMinutes: number }) => Promise<void>;
 };
 
 /**
@@ -285,6 +287,7 @@ export async function createBooking(draft: BookingDraft, holdId: string, opts: C
     });
     if (opts.status === "confirmed") await tx.hold.delete({ where: { id: hold.id } });
     else await tx.hold.update({ where: { id: hold.id }, data: { expiresAt: new Date(Math.max(hold.expiresAt.getTime(), Date.now() + 10 * 60_000)) } });
+    if (opts.inTransaction) await opts.inTransaction(tx, { id: b.id, start: b.start, durationMinutes: b.durationMinutes });
     if (pkg.prepaidHours && opts.status === "confirmed") await createMembership(tx, b.id, customer.id, pkg.id, pkg.prepaidHours, pkg.prepaidValidityDays ?? 30, b.start);
     await audit(tx, opts.actor ?? "guest", opts.status === "confirmed" ? "booking.created" : "booking.pending_payment", "Booking", b.id, {
       packageId: b.packageId,

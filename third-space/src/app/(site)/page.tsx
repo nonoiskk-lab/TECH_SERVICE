@@ -48,13 +48,14 @@ export default async function Home() {
       <section className="relative overflow-hidden bg-white">
         <Container className="grid items-center gap-12 pb-16 pt-12 sm:pt-16 lg:grid-cols-[1.05fr_1fr] lg:pb-24 lg:pt-20">
           <div>
-            <p className="flex flex-wrap items-center gap-3" data-testid="launch">
+            <p className="flex flex-col items-start gap-3 sm:flex-row sm:flex-wrap sm:items-center" data-testid="launch">
               <span className="ts-eyebrow">{t.home.launch}</span>
               <span className="rounded-md border border-gold px-2 py-0.5 text-xs font-bold text-warm" data-testid="adults-only">
                 {t.home.adultsOnly}
               </span>
             </p>
-            <h1 className="mt-5 text-[2.75rem] leading-[1.08] sm:text-[4.375rem] sm:leading-[1.1]" style={{ fontWeight: 900 }}>
+            {/* min-h reserves the three lines the heavy display font needs on phones, so the headline does not push the page down when the font swaps in (CLS). */}
+            <h1 className="mt-5 min-h-[8.9rem] text-[2.75rem] leading-[1.08] sm:min-h-0 sm:text-[4.375rem] sm:leading-[1.1]" style={{ fontWeight: 900 }}>
               {t.home.heroAccent} <span className="ts-mark">{t.home.heroRest}</span>
             </h1>
             <p className="mt-6 max-w-xl text-lg leading-[1.7] text-text sm:text-xl">{t.home.heroLine}</p>

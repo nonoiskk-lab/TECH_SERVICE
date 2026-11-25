@@ -15,8 +15,8 @@ Status words: **Implemented** (code exists), **Tested** (automated test passes),
 | 5 | Birthday / Anniversary | Yes | e2e | Pricing | |
 | 6 | Family and group | Yes | e2e (pricing page) | Pricing | |
 | 7 | Small private celebration | Yes | e2e | Pricing | |
-| 8 | Creator memberships and prepaid hours | Plan purchase, ledger, staff usage and adjustment, expiry, cancel reversal | DB tests | | Pay normal bookings with credits online; plan purchase online needs Razorpay |
-| 9 | Customer accounts and history | Signup, login, logout, password reset, profile, bookings, plan balance, booking details with payment and refund lines | e2e | | Customer notification history; "cancellation request" (cancel is immediate when allowed) |
+| 8 | Creator memberships and prepaid hours | Plan purchase, ledger, staff usage and adjustment, expiry, cancel reversal, **staff book a session with plan hours (minutes leave the ledger atomically with the booking)** | DB tests, e2e | | Guests paying with plan hours themselves online; plan purchase online needs Razorpay |
+| 9 | Customer accounts and history | Signup, login, logout, password reset, profile, bookings, plan balance, **payment and refund history, booking messages (sent or waiting)**, booking details with payment and refund lines | e2e | | "Cancellation request" workflow (cancel is immediate when allowed) |
 | 10 | Staff operations | `/staff` portal | e2e | Deployed | Separate checklists beyond room ready |
 | 11 | Admin dashboard | Today, bookings, calendar, schedule, catalogue, customers, payments, reports, settings, staff, audit, exports | e2e | Deployed | Resource utilisation chart beyond schedule occupancy |
 | 12 | Payments, refunds, reporting | Razorpay orders, signature, webhook, refund API, reconciliation, manual venue payments, CSV exports | Service tests with a fake gateway | | Real Razorpay run; invoices; ledger of all money movements (only credits have a ledger) |

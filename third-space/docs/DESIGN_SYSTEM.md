@@ -10,7 +10,7 @@ Implemented (v5, light). **Not approved by the owner.** Direction follows the ow
 
 - Surfaces: light (white and ivory `#f7efe4`), dark espresso `#201a17`, gold `#c69b55`, selected through `.ts-band-light`, `.ts-band-dark`, `.ts-band-gold`.
 - Text: `--ts-text #222`, `--ts-text-muted #585858`, `--ts-text-faint #666` (raised from `#7a7a7a` after the axe check: 4.29:1 → 5.7:1 on white), gold text `#8a6428`.
-- Type: Fraunces (display), DM Sans (body), Noto Sans Devanagari; all OFL, served by `next/font`.
+- Type: Fraunces (display), DM Sans (body), Noto Sans Devanagari; all OFL, served by `next/font`. Fraunces and DM Sans use `font-display: optional` so late font loading cannot shift the layout.
 - Shape and size: buttons 6 px radius at 44 px (60 px for hero CTAs), cards 14 px, tap target 44 px, content width 1200 px.
 - Motion: 400 ms, translate-only reveals, disabled under `prefers-reduced-motion`.
 - Status chips (`Status` in `components/admin/ui.tsx`) always carry text, never colour alone.
@@ -27,7 +27,7 @@ Implemented (v5, light). **Not approved by the owner.** Direction follows the ow
 
 ## Gaps
 
-- Automated checks only at 390 px; 360, 768, 1024, 1280 and 1440 px are not automated.
+- Layout checks (no sideways scroll, hero button visible) run at 360, 768, 1024, 1280 and 1440 px as well as 390 px; visual regressions are not automated.
 - Empty and error states exist for the main flows (no-result lists, form errors, unavailable slots); loading is shown by disabled calendar days and button states. There is no shared skeleton component.
 - Modals are not used; confirmations are inline.
 - Staff portal and admin share the admin look; they have not had a separate design pass.

@@ -54,7 +54,7 @@ export function SiteHeader({ t, locale }: { t: Dict; locale: Locale }) {
         <Link href="/" aria-label="THIRD SPACE home" className="flex min-h-11 items-center">
           <Wordmark />
         </Link>
-        <nav aria-label="Main" className="hidden items-center gap-0.5 xl:flex">
+        <nav aria-label="Main" className="hidden items-center gap-0.5 min-[1340px]:flex">
           {links.map((l) => (
             <Link key={l.href} href={l.href} className="whitespace-nowrap px-2.5 py-5 text-[15px] tracking-[0.02em] text-text transition-colors hover:text-warm">
               {l.label}
@@ -63,7 +63,7 @@ export function SiteHeader({ t, locale }: { t: Dict; locale: Locale }) {
         </nav>
         <div className="flex items-center gap-2">
           <LocaleToggle next={locale === "en" ? "hi" : "en"} label={locale === "en" ? "Hinglish" : "English"} />
-          <Link href="/account" className="hidden min-h-11 items-center whitespace-nowrap px-2.5 text-[15px] hover:text-warm xl:inline-flex" data-testid="nav-account">
+          <Link href="/account" className="hidden min-h-11 items-center whitespace-nowrap px-2.5 text-[15px] hover:text-warm min-[1340px]:inline-flex" data-testid="nav-account">
             {t.nav.account}
           </Link>
           <Link href="/visit" className="ts-btn ts-btn-ghost hidden whitespace-nowrap md:inline-flex">
@@ -72,7 +72,7 @@ export function SiteHeader({ t, locale }: { t: Dict; locale: Locale }) {
           <Link href="/book" className="ts-btn ts-btn-primary hidden whitespace-nowrap sm:inline-flex">
             {t.nav.book}
           </Link>
-          <details className="relative xl:hidden">
+          <details className="relative min-[1340px]:hidden">
             <summary className="flex min-h-11 min-w-11 cursor-pointer list-none items-center justify-center rounded-md border border-line px-3 text-sm">
               {t.nav.menu}
             </summary>

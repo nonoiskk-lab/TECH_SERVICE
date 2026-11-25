@@ -42,10 +42,14 @@ Business information that was not supplied is handled with configurable defaults
 | English plus Hinglish copy | Owner request | Hindi script is not provided |
 | Design: light v5 system using THIRD SPACE tokens (see `docs/DESIGN_SYSTEM.md`) | Owner asked for a Perfect Venue style structure; no Perfect Venue assets are used | Decision MD-01 (Skedda Reports 11 and 12 are missing) |
 
+## Plan hours for staff bookings
+
+A session booked by staff with a guest's Creator Plan hours is recorded with total ₹0 (the plan was paid for when bought), and the booked minutes (including setup) leave the ledger in the same transaction. Revenue reports therefore count the plan once, at purchase. The mobile number must match the plan holder.
+
 ## Deliberately not done
 
 - `timestamptz` columns and foreign keys for `Booking.resource` / `packageId`: touching every booking query; worth a dedicated migration with a staging database.
 - Eight-role model: needs the owner's role mapping (MD-06).
 - Invoices and GST invoice numbering: needs GSTIN and invoice format (MD-08).
-- Online redemption of credits for a normal booking.
-- Customer-facing notification history and a "cancellation request" workflow (cancellation is immediate for eligible bookings).
+- Guests redeeming plan hours themselves online (staff can do it today).
+- A "cancellation request" workflow (cancellation is immediate for eligible bookings).

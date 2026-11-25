@@ -6,7 +6,7 @@ const WEBHOOK_SECRET = "test-webhook-secret";
 
 /** Creates a pending (online, mock-provider) podcast booking through the public API. */
 async function pendingBooking(request: APIRequestContext, dayOffset: number, phone: string) {
-  for (let k = dayOffset; k < dayOffset + 12; k++) {
+  for (let k = dayOffset; k < Math.min(dayOffset + 12, 58); k++) {
     const day = new Date(Date.now() + k * 86400_000).toISOString().slice(0, 10);
     const slots = (await (await request.get(`/api/availability?date=${day}&packageId=podcast&duration=90`)).json()).slots as { start: string; status: string }[];
     const free = slots.find((s) => s.status === "available");
@@ -78,7 +78,7 @@ test.describe("Payments, My Booking and admin controls", () => {
 
   test("webhook confirms a pending booking once; guest finds and cancels it", async ({ page, request }) => {
     const phone = "9876500111";
-    const b = await pendingBooking(request, 61, phone);
+    const b = await pendingBooking(request, 44, phone);
     expect(b.orderId).toBeTruthy();
 
     // Unsigned / wrongly signed webhooks are refused.
@@ -168,7 +168,7 @@ test.describe("Customer account, dashboard and self-service reschedule", () => {
 
   test("signup claims booking history only with the matching email; guest moves the booking", async ({ page, request }) => {
     const phone = `98765${String(Date.now()).slice(-5)}`;
-    const b = await pendingBooking(request, 54, phone);
+    const b = await pendingBooking(request, 47, phone);
     const evt = { event: "payment.captured", payload: { payment: { entity: { id: `pay_acc_${Date.now()}`, order_id: b.orderId } } } };
     const { raw, sig } = signed(evt);
     expect((await request.post("/api/webhooks/razorpay", { data: raw, headers: { "content-type": "application/json", "x-razorpay-signature": sig, "x-razorpay-event-id": `evt_acc_${Date.now()}` } })).status()).toBe(200);
@@ -192,12 +192,15 @@ test.describe("Customer account, dashboard and self-service reschedule", () => {
     await expect(page).toHaveURL(/\/account$/);
     const row = page.getByTestId("account-upcoming").getByTestId("account-booking").filter({ hasText: b.bookingId });
     await expect(row).toBeVisible();
+    // Payment history and booking messages are listed in the account.
+    await expect(page.getByTestId("account-payment").first()).toContainText(b.bookingId);
+    await expect(page.getByTestId("account-message").first()).toContainText(b.bookingId);
 
     // Manage → reschedule to another free slot of the same length.
     await row.getByRole("link").click();
     await expect(page.getByTestId("reschedule-card")).toBeVisible();
     const before = (await page.getByTestId("receipt").innerText()).replace(/\s+/g, " ");
-    const day = new Date(Date.now() + 57 * 86400_000).toISOString().slice(0, 10);
+    const day = new Date(Date.now() + 52 * 86400_000).toISOString().slice(0, 10);
     await page.getByTestId("reschedule-date").fill(day);
     await page.getByTestId("reschedule-slot").first().click();
     await page.getByTestId("reschedule-submit").click();

@@ -15,7 +15,7 @@ import { createBooking, holds, SlotTakenError } from "@/server/slots";
 import { notifyBooking } from "@/server/notify";
 import { buildQuote, formatINR } from "@/lib/pricing";
 import { parseRupees } from "@/lib/money";
-import { post, InsufficientCreditsError } from "@/server/credits";
+import { post, postCredit, InsufficientCreditsError } from "@/server/credits";
 import { resolveSession } from "@/lib/session";
 import { hashPassword, requireRole, ROLES, type Permission } from "./auth";
 import type { ActionState } from "./actions";
@@ -299,7 +299,20 @@ export async function manualBookingAction(_: ActionState, f: FormData): Promise<
     return { error: e instanceof SlotTakenError ? "That time is taken (or inside a buffer/closure)." : "Time is outside opening hours or not on the slot grid." };
   }
   const quote = buildQuote(pkg, [], pkg.mode, s, 0)!;
-  const b = await createBooking(
+
+  // Optional: pay with the guest's Creator Plan hours instead of money (the plan was paid for already).
+  const planId = str(f, "membershipId");
+  let usePlan = false;
+  if (planId) {
+    const m = await db.creatorMembership.findUnique({ where: { id: planId }, include: { customer: true } });
+    if (!m || m.status !== "active" || m.customer.phone !== phone) return { error: "That plan does not belong to this guest or is not active." };
+    if (m.validUntil.getTime() < Date.parse(`${date}T${time}:00+05:30`)) return { error: "That plan expires before this booking." };
+    if (pkg.prepaidHours) return { error: "A plan cannot pay for the purchase of another plan." };
+    usePlan = true;
+  }
+  let b;
+  try {
+    b = await createBooking(
     {
       packageId: pkg.id,
       mode: pkg.mode,
@@ -309,17 +322,34 @@ export async function manualBookingAction(_: ActionState, f: FormData): Promise<
       guest: { name: str(f, "name"), phone, email: str(f, "email") || "not-given@thirdspace.invalid" },
       guestCount,
       locale: "en",
-      subtotal: quote.subtotal,
+      // Plan hours cover the session: nothing is charged now, and the ledger shows the minutes spent.
+      subtotal: usePlan ? 0 : quote.subtotal,
       discount: 0,
-      tax: quote.tax,
-      total: quote.total,
+      tax: usePlan ? 0 : quote.tax,
+      total: usePlan ? 0 : quote.total,
       specialRequests: str(f, "notes"),
       utm: { source: "admin" },
       acceptance: { locale: "en", allParticipantsAdult: true, guestsInformed: true, venueRulesAccepted: true, recordingConsent: undefined, promotionalConsent: false, marketingConsent: false },
     },
     hold.id,
-    { status: "confirmed", source: "admin", actor: who, payment: quote.total > 0 ? { provider: "venue", kind: "full", amount: quote.total, status: "pending" } : undefined },
+    {
+      status: "confirmed",
+      source: "admin",
+      actor: who,
+      payment: !usePlan && quote.total > 0 ? { provider: "venue", kind: "full", amount: quote.total, status: "pending" } : undefined,
+      inTransaction: usePlan
+        ? async (tx, booking) => {
+            // Same transaction as the booking: either both happen or neither. The database refuses a negative balance.
+            await postCredit(tx, { membershipId: planId, kind: "consume", minutes: -booking.durationMinutes, bookingId: booking.id, note: "Session booked with plan hours", actor: who, key: `consume:booking:${booking.id}` });
+          }
+        : undefined,
+    },
   );
+  } catch (e) {
+    if (e instanceof InsufficientCreditsError) return { error: `The plan has only ${e.balance} minutes left; this session needs ${s.durationMinutes}.` };
+    throw e;
+  }
+  if (usePlan) await audit(null, who, "booking.paid_with_plan_hours", "Booking", b.id, { membershipId: planId, minutes: s.durationMinutes });
   if (bool(f, "notify")) await notifyBooking(b.id, "booking_confirmed");
   redirect(`/admin/bookings/${b.id}`);
 }

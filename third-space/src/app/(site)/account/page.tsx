@@ -31,6 +31,12 @@ export default async function AccountPage() {
     db.creatorMembership.findMany({ where: { customerId: c.id, status: "active" }, orderBy: { validUntil: "desc" } }),
   ]);
   const planBalance = await balancesFor(plans.map((p) => p.id));
+  const ids = bookings.map((b) => b.id);
+  const [payments, messages] = await Promise.all([
+    db.payment.findMany({ where: { bookingId: { in: ids }, OR: [{ status: "captured" }, { kind: "refund" }] }, orderBy: { createdAt: "desc" }, take: 20 }),
+    db.notification.findMany({ where: { bookingId: { in: ids } }, orderBy: { createdAt: "desc" }, take: 10 }),
+  ]);
+  const dayLabel = (d: Date) => d.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric", timeZone: "Asia/Kolkata" });
   const { upcoming, past } = splitBookings(bookings);
   const statusLabel = (s: string) => t.myBooking.statusLabels[s as keyof typeof t.myBooking.statusLabels] ?? s;
   const Row = ({ b }: { b: (typeof bookings)[number] }) => (
@@ -82,6 +88,38 @@ export default async function AccountPage() {
                 </ul>
               </div>
             )}
+            <div data-testid="account-payments">
+              <h2 className="mb-3 text-2xl">{a.payments}</h2>
+              <ul className="space-y-2 text-sm">
+                {payments.map((p) => (
+                  <li key={p.id} className="ts-card flex flex-wrap items-center justify-between gap-2 p-3" data-testid="account-payment">
+                    <span>
+                      {dayLabel(p.createdAt)} · {p.bookingId} · {p.kind === "refund" ? a.refundLabel : a.paidLabel}
+                      {p.kind === "refund" && p.status === "pending" ? ` (${a.refundPending})` : ""}
+                    </span>
+                    <strong>
+                      {p.kind === "refund" ? "−" : ""}
+                      {formatINR(p.amount)}
+                    </strong>
+                  </li>
+                ))}
+                {payments.length === 0 && <li className="text-muted">{a.paymentsNone}</li>}
+              </ul>
+            </div>
+            <div data-testid="account-messages">
+              <h2 className="mb-3 text-2xl">{a.messages}</h2>
+              <ul className="space-y-2 text-sm">
+                {messages.map((m) => (
+                  <li key={m.id} className="ts-card flex flex-wrap items-center justify-between gap-2 p-3" data-testid="account-message">
+                    <span>
+                      {dayLabel(m.createdAt)} · {(a as Record<string, string>)[`mk_${m.kind}`] ?? m.kind} · {m.bookingId}
+                    </span>
+                    <span className="text-muted">{m.status === "sent" ? a.msgSent : a.msgWaiting}</span>
+                  </li>
+                ))}
+                {messages.length === 0 && <li className="text-muted">{a.messagesNone}</li>}
+              </ul>
+            </div>
           </div>
           <aside className="space-y-4">
             {plans.map((p) => (

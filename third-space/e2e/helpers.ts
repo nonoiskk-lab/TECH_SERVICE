@@ -88,7 +88,8 @@ export async function addTitle(page: Page, runtimeMinutes: number) {
 export async function freeApiSlot(request: APIRequestContext, fromDay: number, duration: number, step = 1) {
   // Random start offset so parallel tests (and both gate projects) rarely pick the same day.
   const jitter = Math.floor(Math.random() * 5) * step;
-  for (let k = fromDay + jitter; k < fromDay + jitter + 15 * step; k += step) {
+  // The booking window is 60 days from the first bookable date; never search past day 58.
+  for (let k = fromDay + jitter; k < Math.min(fromDay + jitter + 15 * step, 58); k += step) {
     const day = new Date(Date.now() + k * 86400_000).toISOString().slice(0, 10);
     const slots = (await (await request.get(`/api/availability?date=${day}&packageId=podcast&duration=${duration}`)).json()).slots as { start: string; status: string }[];
     const free = slots.find((s) => s.status === "available");

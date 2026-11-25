@@ -69,15 +69,19 @@ test("server prices the session itself and rejects a mismatched hold", async ({ 
 });
 
 test("every booking keeps a 30-minute gap before the next one", async ({ request }, info) => {
-  const { day, start } = await freeApiSlot(request, 52 + (info.project.name === "gate-open" ? 1 : 0), 90, 2);
-  const get = async () =>
-    (await (await request.get(`/api/availability?date=${day}&packageId=podcast&duration=90`)).json()).slots as { start: string; status: string }[];
-  const first = { start };
-  const r = await request.post("/api/holds", { data: { packageId: "podcast", start: first.start, durationMinutes: 90 } });
-  expect(r.status()).toBe(201);
-  const startMs = Date.parse(first.start);
-  const after = await get();
-  const at = (mins: number) => after.find((s) => Date.parse(s.start) === startMs + mins * 60_000)?.status;
-  expect(at(90)).toBe("held"); // ends at +90; the next 30 minutes stay free
-  expect(at(120)).toBe("available"); // +90 session + 30 gap
+  // Other specs book the studio at the same time, so another test may take the slot between "free" and "hold".
+  // Try a few different days; the rule under test is checked on the first attempt that gets its hold.
+  let checked = false;
+  for (let attempt = 0; attempt < 6 && !checked; attempt++) {
+    const { day, start } = await freeApiSlot(request, 33 + attempt * 4 + (info.project.name === "gate-open" ? 1 : 0), 90, 2);
+    const r = await request.post("/api/holds", { data: { packageId: "podcast", start, durationMinutes: 90 } });
+    if (r.status() !== 201) continue;
+    const slots = (await (await request.get(`/api/availability?date=${day}&packageId=podcast&duration=90`)).json()).slots as { start: string; status: string }[];
+    const startMs = Date.parse(start);
+    const at = (mins: number) => slots.find((s) => Date.parse(s.start) === startMs + mins * 60_000)?.status;
+    expect(at(90)).toBe("held"); // ends at +90; the next 30 minutes stay free
+    expect(at(120)).toBe("available"); // +90 session + 30 gap
+    checked = true;
+  }
+  expect(checked, "could not get a hold on any of six days").toBe(true);
 });

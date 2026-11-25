@@ -67,3 +67,34 @@ describe("credit ledger (database guarantees)", () => {
     expect(await bal()).toBe(0);
   });
 });
+
+describe("credits service (postCredit / restore / expire)", () => {
+  it("reports InsufficientCreditsError with the real balance and rolls the transaction back", async () => {
+    const prismaUrl = process.env.TEST_DATABASE_URL ?? "postgresql://thirdspace:thirdspace@localhost:5432/thirdspace_test";
+    process.env.DATABASE_URL = prismaUrl;
+    const { post, balancesFor, InsufficientCreditsError, restoreForBooking, expireMembership } = await import("@/server/credits");
+    // Top up (the previous describe left the balance at 0).
+    await post({ membershipId, kind: "adjust", minutes: 90, actor: TAG, note: "test top-up", key: `${TAG}:svc-topup` });
+    await expect(post({ membershipId, kind: "consume", minutes: -91, actor: TAG })).rejects.toBeInstanceOf(InsufficientCreditsError);
+    expect((await balancesFor([membershipId])).get(membershipId)).toBe(90);
+
+    // Idempotent key: posting the same key twice changes nothing.
+    const a = await post({ membershipId, kind: "consume", minutes: -30, bookingId: `${TAG}-bk`, actor: TAG, key: `${TAG}:svc-consume` });
+    const b = await post({ membershipId, kind: "consume", minutes: -30, bookingId: `${TAG}-bk`, actor: TAG, key: `${TAG}:svc-consume` });
+    expect(a.created).toBe(true);
+    expect(b.created).toBe(false);
+    expect((await balancesFor([membershipId])).get(membershipId)).toBe(60);
+
+    // Cancellation reversal gives back what the booking consumed, once.
+    const first = await prisma.$transaction((tx) => restoreForBooking(tx as never, `${TAG}-bk`, TAG));
+    const second = await prisma.$transaction((tx) => restoreForBooking(tx as never, `${TAG}-bk`, TAG));
+    expect(first).toBe(30);
+    expect(second).toBe(0);
+    expect((await balancesFor([membershipId])).get(membershipId)).toBe(90);
+
+    // Expiry writes off the rest, once.
+    expect(await prisma.$transaction((tx) => expireMembership(tx as never, membershipId, TAG))).toBe(90);
+    expect(await prisma.$transaction((tx) => expireMembership(tx as never, membershipId, TAG))).toBe(0);
+    expect((await balancesFor([membershipId])).get(membershipId)).toBe(0);
+  });
+});

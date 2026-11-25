@@ -5,8 +5,9 @@ import { isLegalGateOpen, siteUrl } from "@/config/site";
 import { getDict } from "@/lib/locale";
 
 // Display: a heavy, soft serif (Fraunces) for headlines; UI/body: a geometric sans (DM Sans). Both free (OFL).
-const serif = Fraunces({ variable: "--font-serif", subsets: ["latin"], weight: ["500", "600", "800", "900"], display: "swap" });
-const inter = DM_Sans({ variable: "--font-inter", subsets: ["latin"], weight: ["400", "500", "700"], display: "swap" });
+const serif = Fraunces({ variable: "--font-serif", subsets: ["latin"], weight: ["500", "600", "800", "900"], display: "optional" });
+// "optional": body text never swaps late, so slow connections do not get a layout shift (the font is cached for the next page).
+const inter = DM_Sans({ variable: "--font-inter", subsets: ["latin"], weight: ["400", "500", "700"], display: "optional" });
 const devanagari = Noto_Sans_Devanagari({
   variable: "--font-devanagari",
   subsets: ["devanagari"],
