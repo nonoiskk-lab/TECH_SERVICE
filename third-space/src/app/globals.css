@@ -38,6 +38,7 @@ body {
 /* The light staff and admin screens sit on a light page even when the browser overscrolls. */
 body:has(.theme-light-root) { background: var(--p-cream-50); }
 
+@layer base {
 h1, h2, h3, h4 {
   font-family: var(--font-heading);
   letter-spacing: -0.01em;
@@ -49,6 +50,7 @@ h1 { font-size: var(--text-display); line-height: var(--lh-display); font-weight
 h2 { font-size: var(--text-h1); line-height: var(--lh-h1); font-weight: var(--fw-h1); }
 h3 { font-size: var(--text-h2); line-height: var(--lh-h2); font-weight: var(--fw-h2); }
 h4 { font-size: var(--text-h3); line-height: var(--lh-h3); font-weight: var(--fw-h3); }
+}
 
 :focus-visible {
   outline: 2px solid var(--ts-ring);
@@ -180,9 +182,9 @@ h4 { font-size: var(--text-h3); line-height: var(--lh-h3); font-weight: var(--fw
   font-size: var(--text-caption); line-height: var(--lh-caption); font-weight: 600; border: 1px solid currentColor;
   color: var(--ts-text-muted); background: transparent;
 }
-.ts-status[data-tone="ok"] { color: var(--ts-ok); background: color-mix(in srgb, var(--ts-ok) 14%, transparent); }
-.ts-status[data-tone="warn"] { color: var(--ts-warm); background: color-mix(in srgb, var(--ts-gold) 16%, transparent); }
-.ts-status[data-tone="bad"] { color: var(--ts-danger); background: color-mix(in srgb, var(--ts-danger) 12%, transparent); }
+.ts-status[data-tone="ok"] { color: var(--ts-status-ok); background: color-mix(in srgb, var(--ts-status-ok) 10%, transparent); }
+.ts-status[data-tone="warn"] { color: var(--ts-status-warn); background: color-mix(in srgb, var(--p-amber-500) 10%, transparent); }
+.ts-status[data-tone="bad"] { color: var(--ts-status-bad); background: color-mix(in srgb, var(--ts-status-bad) 10%, transparent); }
 .ts-status[data-tone="muted"] { color: var(--ts-text-muted); }
 
 /* ---- Guest Stepper, Add-on Row, Summary Row ---- */

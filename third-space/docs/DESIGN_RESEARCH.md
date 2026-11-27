@@ -1,5 +1,8 @@
 # Design research update (2026-11-25)
 
+> **Update, same day:** the owner then supplied a full design file (`docs/DESIGN_SYSTEM.md`, v6). It **replaces** two decisions recorded below: the fonts (now Poppins instead of Fraunces and DM Sans) and the gold accent (now amber `#F2A33A` on a dark espresso theme for customers and a light theme for staff). The radius scale, semantic token names, early cancellation summary, sticky mobile action and the contrast fixes below still apply.
+
+
 **Source of the research.** The findings below were supplied by the owner from their own Chrome inspection of 22 live booking sites (Calendly, Cal.com, Fresha, Booksy, Vagaro, Square Appointments, Acuity, SimplyBook.me, Zoho Bookings, Setmore, GlossGenius, OpenTable, Airbnb, Mindbody, Eventbrite and others) and the public design systems of Square Market, Eventbrite Marmalade and Expedia. **The engineering side did not re-run that research or verify the individual measurements.** What was verified is our own site: every number about THIRD SPACE below was measured in this repository or in a browser.
 
 **Rules followed.** Patterns only: no brand's font, logo, icon, copy or asset is used. No database migration, no Razorpay change, no change to booking logic (availability, holds, pricing, checkout). Changes are small and reversible (mostly one token each). Tests pass; CLS and LCP stayed inside budget. Deployed to a **preview only**; production is untouched until the owner approves.

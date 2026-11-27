@@ -1,6 +1,6 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
-import { isOpen } from "./helpers";
+import { adminLogin, isOpen } from "./helpers";
 
 test.beforeEach(({}, info) => test.skip(isOpen(info), "runs once, on the gate-closed server"));
 
@@ -18,3 +18,34 @@ for (const path of PAGES) {
     ).toEqual([]);
   });
 }
+
+async function axeSerious(page: import("@playwright/test").Page) {
+  const results = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]).analyze();
+  return results.violations.filter((v) => v.impact === "serious" || v.impact === "critical").map((v) => `${v.id} (${v.impact}): ${v.nodes.length} node(s), e.g. ${v.nodes[0]?.target?.join(" ")}`);
+}
+
+// The light staff and admin theme gets the same checks as the dark customer theme.
+test("no serious accessibility violations on the light staff and admin screens", async ({ page }) => {
+  await page.goto("/admin/login", { waitUntil: "networkidle" });
+  expect(await axeSerious(page), "/admin/login").toEqual([]);
+  await adminLogin(page);
+  for (const path of ["/admin", "/staff", "/staff/checklist", "/admin/bookings", "/admin/bookings/new", "/admin/slots", "/admin/memberships"]) {
+    await page.goto(path, { waitUntil: "networkidle" });
+    expect(await axeSerious(page), path).toEqual([]);
+  }
+});
+
+test("no serious accessibility violations on the signed-in account page (tab bar, plan, payments)", async ({ page }) => {
+  const stamp = Date.now();
+  await page.goto("/account/signup");
+  const f = page.getByTestId("account-signup");
+  await f.getByTestId("signup-name").fill("A11y Guest");
+  await f.getByTestId("signup-phone").fill(`96${String(stamp).slice(-8)}`);
+  await f.getByTestId("signup-email").fill(`a11y-${stamp}@thirdspace.in`);
+  await f.getByTestId("signup-password").fill("a11y-pass-12345");
+  await f.getByTestId("signup-age").check();
+  await f.getByRole("button").click();
+  await expect(page).toHaveURL(/\/account$/);
+  await expect(page.getByTestId("tab-bar")).toBeVisible();
+  expect(await axeSerious(page), "/account").toEqual([]);
+});

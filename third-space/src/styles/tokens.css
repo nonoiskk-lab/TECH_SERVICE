@@ -60,7 +60,10 @@
   --ts-espresso: var(--p-espresso-800);
   --ts-ivory: var(--p-espresso-900);
   --ts-ok: var(--p-green-400);
-  --ts-danger: var(--p-red-400);
+  --ts-danger: #f28c84;                      /* the file's #E5635A, lightened: it is 4.4:1 on the deep surface, this is 5.3:1 */
+  --ts-status-ok: var(--p-green-400);        /* Status Badge text: 5:1 or better on every surface, tinted or not */
+  --ts-status-warn: var(--p-amber-500);
+  --ts-status-bad: #f4938b;
   --ts-ring: var(--p-amber-400);             /* focus ring */
   --ts-mode-theatre: var(--p-ember-500);
   --ts-mode-podcast: var(--p-amber-500);
@@ -151,6 +154,9 @@
   --ts-ivory: var(--p-cream-100);
   --ts-ok: var(--p-green-700);
   --ts-danger: var(--p-red-700);
+  --ts-status-ok: #1a6340;
+  --ts-status-warn: var(--p-amber-800);
+  --ts-status-bad: #932a24;
   --ts-ring: var(--p-amber-800);
   --ts-mode-theatre-text: var(--p-ember-700);
   --ts-mode-podcast-text: var(--p-amber-800);

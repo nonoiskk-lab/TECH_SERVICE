@@ -1,85 +1,119 @@
 {
   "$meta": {
     "name": "THIRD SPACE design tokens",
-    "version": "5.1.0",
+    "version": "6.0.0",
     "date": "2026-11-25",
-    "source": "src/styles/tokens.css (implemented). Values are THIRD SPACE's own: Proposed, pending MD-01 approval.",
-    "reference": "Perfect Venue audit (Measured) informed spacing, button sizes and section rhythm. Skedda Report 11: Unknown (document missing).",
-    "status": "Implemented, not approved"
+    "source": "src/styles/tokens.css. Built from the owner's 'Third Space: Cinema Design System Audit & Build Plan' (palette, type, spacing, radius, effects).",
+    "credit": "Based on Cinema tickets booking app by Yuriy Apretov (CC BY 4.0)",
+    "status": "Implemented, preview only, not owner-approved"
   },
   "color": {
+    "dark": {
+      "bg-main": "#14110F",
+      "bg-surface": "#231D18",
+      "bg-surface-deep": "#2E261F",
+      "border": "#3B3128",
+      "border-strong": "#85735F",
+      "text-main": "#FBF6EE",
+      "text-muted": "#A39484",
+      "primary": "#F2A33A",
+      "primary-hover": "#F7B455",
+      "primary-pressed": "#C77F1A",
+      "on-primary": "#100D0B",
+      "mode-theatre": "#E4572E",
+      "mode-podcast": "#F2A33A",
+      "mode-studio": "#3FB3A3",
+      "positive": "#5CC48E",
+      "negative": "#F28C84",
+      "ring": "#F7B455"
+    },
     "light": {
-      "bg": "#ffffff",
-      "bg-card": "#ffffff",
-      "bg-raised": "#f7f2ea",
-      "line": "#e8e0d4",
-      "text": "#222222",
-      "text-muted": "#585858",
-      "text-faint": "#666666",
-      "gold": "#c69b55",
-      "gold-strong": "#b5883f",
-      "warm": "#8a6428",
-      "warm-strong": "#6f4f1d",
-      "on-gold": "#11100f",
-      "espresso": "#201a17",
-      "ivory": "#f7efe4",
-      "ok": "#2f7a43",
-      "danger": "#b3261e",
-      "border-strong": "#8a8071",
-      "ring": "#6f4f1d"
-    },
-    "band-dark": {
-      "bg": "#201a17",
-      "bg-raised": "#2c2420",
-      "line": "rgba(243, 233, 216, 0.18)",
-      "text": "#f3e9d8",
-      "text-muted": "#e0d4c1",
-      "text-faint": "#bfb19c",
-      "warm": "#d6ad6a",
-      "warm-strong": "#e2bf86",
-      "ring": "#e2bf86"
-    },
-    "band-gold": {
-      "bg": "#c69b55",
-      "text": "#11100f",
-      "text-muted": "#2a221d",
-      "warm": "#11100f",
-      "line": "rgba(17, 16, 15, 0.25)"
+      "bg-main": "#FBF6EE",
+      "bg-surface": "#FFFFFF",
+      "bg-surface-deep": "#F3EBDD",
+      "border": "#E4D8C6",
+      "border-strong": "#857A68",
+      "text-main": "#14110F",
+      "text-muted": "#6B5D4F",
+      "primary": "#F2A33A",
+      "accent-text": "#8A5300",
+      "on-primary": "#100D0B",
+      "mode-theatre-text": "#B5361A",
+      "mode-podcast-text": "#8A5300",
+      "mode-studio-text": "#0E7C70",
+      "positive": "#2E7D55",
+      "negative": "#A8362E",
+      "ring": "#8A5300"
     }
   },
   "typography": {
-    "display": "Fraunces, serif",
-    "body": "DM Sans, sans-serif",
-    "devanagari": "Noto Sans Devanagari, sans-serif"
+    "family": "Poppins (latin, devanagari)",
+    "styles": {
+      "display": "32/40 700 (48/56 from 1024px)",
+      "h1": "24/32 600 (32/40)",
+      "h2": "20/28 600 (24/32)",
+      "h3": "16/24 600",
+      "body-l": "16/24",
+      "body-m": "14/20",
+      "body-s": "12/16",
+      "label-m": "14/20 500",
+      "label-button": "14/20 600",
+      "caption": "12/16",
+      "overline": "12/16 uppercase",
+      "price-l": "24/32 700"
+    }
+  },
+  "space": {
+    "xxs": "4px",
+    "xs": "8px",
+    "sm": "12px",
+    "md": "16px",
+    "lg": "20px",
+    "xl": "24px",
+    "2xl": "32px",
+    "3xl": "48px"
   },
   "radius": {
     "xs": "6px",
     "sm": "8px",
     "md": "12px",
     "lg": "16px",
+    "xl": "24px",
     "pill": "999px",
-    "card": "var(--ts-radius-lg)",
-    "button": "var(--ts-radius-pill)",
-    "input": "var(--ts-radius-md)"
+    "card": "16px",
+    "button": "999px",
+    "input": "12px"
   },
   "size": {
     "tap": "44px",
     "button": "44px",
-    "button-lg": "60px",
+    "button-lg": "56px",
     "max-width": "1200px"
   },
-  "space": {
-    "section-y": "64px",
-    "section-y-lg": "110px"
+  "effects": {
+    "glow-primary": "0 0 24px rgba(242,163,58,.35)",
+    "shadow-cover": "0 16px 40px rgba(0,0,0,.5)",
+    "shadow-card": "0 4px 16px rgba(0,0,0,.35)",
+    "glass": "rgba(35,29,24,.72) + blur(16px)"
   },
-  "shadow": {
-    "glow": "0 1px 10px rgba(32, 26, 23, 0.10)",
-    "card": "0 1px 10px rgba(179, 168, 153, 0.35)",
-    "nav": "0 0 20px rgba(0, 0, 0, 0.08)"
+  "semantic": {
+    "background": "--ts-bg",
+    "foreground": "--ts-text",
+    "card": "--ts-bg-card",
+    "primary": "--ts-gold",
+    "primary-foreground": "--ts-on-gold",
+    "muted": "--ts-bg-raised",
+    "muted-foreground": "--ts-text-muted",
+    "border": "--ts-line",
+    "input": "--ts-border-strong",
+    "ring": "--ts-ring",
+    "destructive": "--ts-danger",
+    "success": "--ts-ok",
+    "radius": "--ts-radius"
   },
   "motion": {
-    "ease": "cubic-bezier(.2, .7, .2, 1)",
-    "duration": "400ms"
+    "ease": "cubic-bezier(.2,.7,.2,1)",
+    "duration": "250ms"
   },
   "breakpoints": {
     "xs": "360px",
@@ -88,24 +122,5 @@
     "lg": "1024px",
     "xl": "1280px",
     "xxl": "1440px"
-  },
-  "semantic": {
-    "background": "--ts-bg",
-    "foreground": "--ts-text",
-    "card": "--ts-bg-card",
-    "primary": "--ts-gold",
-    "primary-foreground": "--ts-on-gold",
-    "primary-hover": "--ts-gold-strong",
-    "muted": "--ts-bg-raised",
-    "muted-foreground": "--ts-text-muted",
-    "border": "--ts-line",
-    "input": "--ts-border-strong",
-    "ring": "--ts-ring",
-    "destructive": "--ts-danger",
-    "success": "--ts-ok",
-    "radius": "--ts-radius",
-    "shadow-sm": "--ts-glow",
-    "shadow-md": "--ts-shadow-card",
-    "shadow-lg": "--ts-shadow-nav"
   }
 }

@@ -8,10 +8,10 @@ Run on 2026-11-23 against commit history of branch `claude/intelligent-ride-aojo
 |---|---|---|---|
 | Types | `tsc --noEmit` | whole project | pass |
 | Lint | ESLint | whole project | pass |
-| Unit / database / integration | Vitest 5 against Postgres | 6 files, 37 tests | 37 passed |
-| End to end | Playwright, Chromium, 390 px mobile viewport (plus 360, 768, 1024, 1280, 1440 px for the responsive spec), two Legal Gate servers plus a live-mode server | 14 spec files | 84 passed, 0 failed, 43 skipped by design (specs written to run once, on the gate-closed server, are skipped on the other two servers); three consecutive full runs passed |
+| Unit / database / integration | Vitest 5 against Postgres | 7 files, 46 tests | 46 passed |
+| End to end | Playwright, Chromium, 390 px mobile viewport (plus 360, 768, 1024, 1280, 1440 px for the responsive spec), two Legal Gate servers plus a live-mode server | 16 spec files | 93 passed, 0 failed, 52 skipped by design (specs written to run once, on the gate-closed server, are skipped on the other two servers); three consecutive full runs passed |
 | Content checks | `scripts/check-content.mjs` | 35 pages | passed |
-| Accessibility | axe-core (WCAG 2.1 A/AA), serious and critical | 11 pages | 11 passed |
+| Accessibility | axe-core (WCAG 2.1 A/AA), serious and critical | 20 pages in 13 tests (11 public dark pages, the account page, 8 light staff/admin pages) | 13 passed |
 | Production build | `next build` | | pass |
 | Dependency audit | `npm audit` | | 4 high (Prisma CLI), 0 critical |
 
@@ -24,6 +24,10 @@ Run on 2026-11-23 against commit history of branch `claude/intelligent-ride-aojo
 | TTFB (local server) | 150 to 320 ms | n/a (not representative of Vercel) |
 
 Findings fixed: the heavy display font made the home headline wrap to an extra line when it loaded (+48 px shift); Hinglish eyebrow row changed height when the body font loaded. Fixes: reserved headline height on phones, eyebrow stacked on phones, `font-display: optional` for both fonts. Trade-off: on a very slow first visit the page keeps the fallback fonts until the next page. **Not measured:** Lighthouse scores, JS bundle budgets, real-device or Vercel-edge timings, API response times under load.
+
+## Design system v6 verification (2026-11-25)
+
+CLS and LCP on 32 page/language combinations under mobile throttling after the Poppins and dark-theme change: **worst CLS 0.000, worst LCP 1.23 s**. New tests: `day-lanes` (lane rule, geometry, checklist state), `dashboard.spec` (three-lane calendar and stat cards in the light theme; daily checklist incl. audit entries and read-only past days), `a11y.spec` (light screens, account page), `responsive.spec` (staff and admin at four widths), `design-research.spec` (tokens, early policy, sticky action). Defects found by these tests during the build and fixed: page overflow from the date strip, headings overriding Tailwind sizes, staff header too wide on phones, an invalid `dl`, a non-focusable scroll region, status-badge and date-chip accessibility.
 
 ## API timing and a concurrency check over HTTP (local production build, Postgres on the same machine, 20 concurrent clients)
 

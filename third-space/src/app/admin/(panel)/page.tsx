@@ -10,6 +10,7 @@ import { formatINR } from "@/lib/pricing";
 import { paymentMode } from "@/server/payments";
 import { addDays, istDateTime, istToday } from "@/server/slots/time";
 import { BookingTable } from "@/components/admin/booking-table";
+import { DayLanes } from "@/components/admin/day-lanes";
 import { Card, H1 } from "@/components/admin/ui";
 
 export default async function AdminHome({ searchParams }: PageProps<"/admin">) {
@@ -20,12 +21,15 @@ export default async function AdminHome({ searchParams }: PageProps<"/admin">) {
   const date = typeof sp.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(sp.date) ? sp.date : istToday();
   const from = istDateTime(date, "00:00");
   const to = istDateTime(addDays(date, 1), "00:00");
-  const [bookings, openIncidents, queued, paidAfterExpiry] = await Promise.all([
+  const [bookings, openIncidents, queued, paidAfterExpiry, collectedToday] = await Promise.all([
     db.booking.findMany({ where: { start: { gte: from, lt: to } }, orderBy: { start: "asc" } }),
     db.incident.count({ where: { status: "open" } }),
     db.notification.count({ where: { status: "queued" } }),
     db.auditLog.count({ where: { action: "payment.captured_after_hold_expired" } }),
+    db.payment.aggregate({ where: { status: "captured", kind: { in: ["advance", "full", "balance"] }, createdAt: { gte: from, lt: to } }, _sum: { amount: true } }),
   ]);
+  const liveToday = bookings.filter((b) => ["confirmed", "checked_in", "in_progress", "completed"].includes(b.status));
+  const bookedValue = liveToday.reduce((a, b) => a + b.total, 0);
 
   const missing = missingLegalFields();
   const checks: { label: string; ok: boolean; note: string }[] = [
@@ -59,6 +63,33 @@ export default async function AdminHome({ searchParams }: PageProps<"/admin">) {
         </form>
       </div>
       {typeof sp.denied === "string" && <p className="ts-card mb-4 p-3 text-sm text-danger">Your role cannot open that page.</p>}
+      <dl className="mb-6 grid gap-3 sm:grid-cols-3" data-testid="day-stats">
+        <div className="ts-card ts-stat">
+          <dt>Bookings on {date}</dt>
+          <dd>
+            <span data-testid="stat-bookings">{liveToday.length}</span>
+            <small>{bookings.length - liveToday.length > 0 ? `${bookings.length - liveToday.length} waiting or cancelled` : "all live"}</small>
+          </dd>
+        </div>
+        <div className="ts-card ts-stat">
+          <dt>Advance collected</dt>
+          <dd>
+            <span data-testid="stat-collected">{formatINR(collectedToday._sum.amount ?? 0)}</span>
+            <small>payments received that day</small>
+          </dd>
+        </div>
+        <div className="ts-card ts-stat">
+          <dt>Booked value</dt>
+          <dd>
+            <span data-testid="stat-value">{formatINR(bookedValue)}</span>
+            <small>total of live bookings</small>
+          </dd>
+        </div>
+      </dl>
+      <Card title="Day calendar">
+        <DayLanes rows={bookings.filter((b) => !["cancelled", "stopped", "refunded", "refund_pending", "no_show"].includes(b.status))} />
+      </Card>
+      <div className="mb-6" />
       <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4" data-testid="kpis">
         {[
           ["Revenue this month", formatINR(m.revenueMonth)],
@@ -70,10 +101,10 @@ export default async function AdminHome({ searchParams }: PageProps<"/admin">) {
           ["New customers this month", String(m.newCustomers)],
           ["Cancellations this month", `${m.cancelledMonth} of ${m.bookingsMonth} (${m.cancellationRate}%)`],
         ].map(([k, v]) => (
-          <div key={k} className="ts-card p-4">
-            <p className="text-xs text-muted">{k}</p>
-            <p className="mt-1 font-heading text-2xl">{v}</p>
-          </div>
+          <dl key={k} className="ts-card ts-stat">
+            <dt>{k}</dt>
+            <dd>{v}</dd>
+          </dl>
         ))}
       </div>
       <div className="mb-6 grid gap-3 sm:grid-cols-3">

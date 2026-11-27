@@ -58,6 +58,13 @@ Customers have a separate account system and see only their own records. The V4 
 - **Credits:** append-only ledger; no negative balance; expiry writes off the remainder; cancellation restores consumed minutes once.
 - **Privacy:** recording consent separate from marketing consent; recordings never published automatically; staff see only the customer data needed to run a booking (no email, no payment detail beyond balance due).
 
+## Added in the v6 design build
+
+- Booking confirmation shows a **check-in QR ticket** and says only what was really sent.
+- Account shows **plan hours used**, payment history, messages and a phone tab bar.
+- Staff dashboard: **three-lane day calendar** (Theatre, Podcast, Studio), stat cards, and a **daily report and checklist** (`/staff/checklist`, five items, audited, stored without a migration).
+- Home: mode tabs, service cards and the Monthly Creator Plan banner.
+
 ## Screens
 
 Public: home, about, private theatre, podcast studio, creative studio, celebrations, pricing, creator plans, gallery, FAQs, contact, visit, book, booking confirmation, My Booking (find and manage), feedback, policies (index and each), terms, privacy, cancellation and refund, two Dhanbad SEO pages. Customer: signup, login, forgot password, reset password, account. Staff: today, booking detail. Admin: login, today, bookings (list, new, detail), schedule, calendar, customers (list, detail), packages (list, new, edit), add-ons, coupons, payments, creator plans, recordings, reports, titles, incidents (list, new, detail), leads, messages, gallery and reviews, staff accounts, settings, policies, audit log, CSV exports.

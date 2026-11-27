@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { isOpen } from "./helpers";
+import { adminLogin, isOpen } from "./helpers";
 
 test.beforeEach(({}, info) => test.skip(isOpen(info), "runs once, on the gate-closed server"));
 
@@ -33,3 +33,18 @@ test("primary booking button is visible and tappable at 360 px and 1440 px", asy
     expect(box!.x + box!.width).toBeLessThanOrEqual(width);
   }
 });
+
+// Staff and admin screens are used on phones too (the staff portal especially): no sideways scrolling.
+for (const width of [360, 390, 768, 1280]) {
+  test(`staff and admin screens have no horizontal scroll at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 900 });
+    await adminLogin(page);
+    const wide: string[] = [];
+    for (const path of ["/staff", "/staff/checklist", "/admin", "/admin/bookings", "/admin/slots", "/admin/bookings/new", "/admin/memberships"]) {
+      await page.goto(path, { waitUntil: "load" });
+      const over = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+      if (over > 1) wide.push(`${path} (+${over}px)`);
+    }
+    expect(wide).toEqual([]);
+  });
+}

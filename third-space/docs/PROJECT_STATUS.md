@@ -2,6 +2,10 @@
 
 Updated 2026-11-23. Companion documents: PRODUCT_REQUIREMENTS, SYSTEM_ARCHITECTURE, DESIGN_SYSTEM, DATABASE_SCHEMA, BOOKING_ENGINE, API_DOCUMENTATION, RAZORPAY_INTEGRATION, SECURITY_AUDIT, TESTING_REPORT, DEPLOYMENT_GUIDE, ASSUMPTIONS_AND_DECISIONS, RELEASE_CHECKLIST. Earlier discovery work: `docs/v4/`.
 
+## Latest (2026-11-25): design system v6
+
+The owner's *Cinema Design System Audit & Build Plan* is built in code (`docs/DESIGN_SYSTEM.md`): Poppins, dark customer theme, light staff theme, amber primary, mode colours, the component list, the customer screens (incl. QR ticket, plan hours used, tab bar) and the staff dashboard (three-lane calendar, daily checklist and report). 46 unit and 93 e2e tests pass; 20 pages pass axe; worst CLS 0.000 and LCP 1.23 s. **Preview only; production still runs the previous design until the owner approves.**
+
 ## One-line status
 
 The application is built, tested and **deployed** at https://third-space-gamma.vercel.app in **pay-at-venue mode**. It is **not ready to take online payments**: Razorpay has never been exercised against the real API, and backups, monitoring, staging and the daily-only cron are open. No email, WhatsApp or SMS message is sent (no provider is connected).
