@@ -1,10 +1,10 @@
 /**
  * Original flat illustrations of THIRD SPACE's rooms, used until real
- * photos of the venue exist. Palette from tokens: cream, gold, near-black.
+ * photos of the venue exist. Palette from tokens: warm white, orange, near-black.
  * Decorative only (aria-hidden); every place that uses them also has text.
  */
 type P = { className?: string };
-const C = { cream: "#F7F1E6", sand: "#EADFCB", gold: "#CAA05C", goldDeep: "#8A6428", ink: "#1C1C1D", grey: "#3B3A37", white: "#FFFFFF" };
+const C = { cream: "#FFF8F2", sand: "#FFE3CC", gold: "#FF7A1A", goldDeep: "#A84300", ink: "#1C1410", grey: "#4A3A30", white: "#FFFFFF" };
 
 export function PodcastScene({ className }: P) {
   return (
@@ -12,7 +12,7 @@ export function PodcastScene({ className }: P) {
       <rect width="400" height="300" fill={C.cream} />
       {/* acoustic panels */}
       {[0, 1, 2, 3].map((i) => (
-        <rect key={i} x={40 + i * 82} y="34" width="66" height="96" rx="10" fill={i % 2 ? C.sand : "#E2D3B8"} />
+        <rect key={i} x={40 + i * 82} y="34" width="66" height="96" rx="10" fill={i % 2 ? C.sand : "#FFD2AE"} />
       ))}
       {/* on-air sign */}
       <rect x="160" y="148" width="80" height="24" rx="12" fill={C.ink} />
@@ -40,22 +40,22 @@ export function PodcastScene({ className }: P) {
 export function RoomScene({ className }: P) {
   return (
     <svg viewBox="0 0 400 300" className={className} aria-hidden="true" preserveAspectRatio="xMidYMid slice">
-      <rect width="400" height="300" fill={C.ink} />
+      <rect width="400" height="300" fill={C.sand} />
       {/* screen glow */}
       <ellipse cx="200" cy="96" rx="170" ry="70" fill={C.gold} opacity="0.18" />
-      <rect x="70" y="36" width="260" height="120" rx="10" fill="#2A2926" stroke={C.gold} strokeWidth="3" />
-      <rect x="84" y="50" width="232" height="92" rx="6" fill="#F3E3C3" opacity="0.92" />
+      <rect x="70" y="36" width="260" height="120" rx="10" fill="#4A3A30" stroke={C.gold} strokeWidth="3" />
+      <rect x="84" y="50" width="232" height="92" rx="6" fill="#FFFFFF" opacity="0.92" />
       <circle cx="200" cy="96" r="18" fill={C.gold} />
       <path d="M194 86 v20 l16 -10z" fill={C.ink} />
       {/* floor */}
-      <rect y="230" width="400" height="70" fill="#262522" />
+      <rect y="230" width="400" height="70" fill="#FFD9B8" />
       {/* recliner sofa */}
-      <rect x="60" y="186" width="280" height="54" rx="20" fill="#5A4636" />
+      <rect x="60" y="186" width="280" height="54" rx="20" fill="#FF9240" />
       {[0, 1, 2].map((i) => (
-        <rect key={i} x={76 + i * 86} y="172" width="76" height="48" rx="16" fill="#6E5642" />
+        <rect key={i} x={76 + i * 86} y="172" width="76" height="48" rx="16" fill="#FF7A1A" />
       ))}
-      <rect x="46" y="192" width="24" height="52" rx="10" fill="#4B3A2D" />
-      <rect x="330" y="192" width="24" height="52" rx="10" fill="#4B3A2D" />
+      <rect x="46" y="192" width="24" height="52" rx="10" fill="#E2620B" />
+      <rect x="330" y="192" width="24" height="52" rx="10" fill="#E2620B" />
       {/* lamp */}
       <rect x="364" y="120" width="4" height="110" fill={C.grey} />
       <path d="M350 120 h32 l-8 -24 h-16z" fill={C.gold} />

@@ -1,50 +1,37 @@
 {
   "$meta": {
     "name": "THIRD SPACE design tokens",
-    "version": "6.0.0",
+    "version": "6.1.0",
     "date": "2026-11-25",
-    "source": "src/styles/tokens.css. Built from the owner's 'Third Space: Cinema Design System Audit & Build Plan' (palette, type, spacing, radius, effects).",
+    "source": "src/styles/tokens.css. Structure from the owner's 'Third Space: Cinema Design System Audit & Build Plan'; colour theme orange and white by the owner's later instruction (2026-11-25).",
     "credit": "Based on Cinema tickets booking app by Yuriy Apretov (CC BY 4.0)",
     "status": "Implemented, preview only, not owner-approved"
   },
   "color": {
-    "dark": {
-      "bg-main": "#14110F",
-      "bg-surface": "#231D18",
-      "bg-surface-deep": "#2E261F",
-      "border": "#3B3128",
-      "border-strong": "#85735F",
-      "text-main": "#FBF6EE",
-      "text-muted": "#A39484",
-      "primary": "#F2A33A",
-      "primary-hover": "#F7B455",
-      "primary-pressed": "#C77F1A",
-      "on-primary": "#100D0B",
-      "mode-theatre": "#E4572E",
-      "mode-podcast": "#F2A33A",
-      "mode-studio": "#3FB3A3",
-      "positive": "#5CC48E",
-      "negative": "#F28C84",
-      "ring": "#F7B455"
-    },
-    "light": {
-      "bg-main": "#FBF6EE",
-      "bg-surface": "#FFFFFF",
-      "bg-surface-deep": "#F3EBDD",
-      "border": "#E4D8C6",
-      "border-strong": "#857A68",
-      "text-main": "#14110F",
-      "text-muted": "#6B5D4F",
-      "primary": "#F2A33A",
-      "accent-text": "#8A5300",
-      "on-primary": "#100D0B",
-      "mode-theatre-text": "#B5361A",
-      "mode-podcast-text": "#8A5300",
-      "mode-studio-text": "#0E7C70",
-      "positive": "#2E7D55",
-      "negative": "#A8362E",
-      "ring": "#8A5300"
-    }
+    "theme": "orange and white (one theme for customer site and staff screens)",
+    "bg-main": "#FFFFFF",
+    "bg-surface": "#FFF8F2",
+    "bg-raised": "#FFEEDD",
+    "border": "#F1D9C6",
+    "border-strong": "#9C7E65",
+    "text-main": "#1C1410",
+    "text-muted": "#6A5646",
+    "primary": "#FF7A1A",
+    "primary-hover": "#FF9240",
+    "primary-pressed": "#E2620B",
+    "on-primary": "#1C1410",
+    "orange-text": "#A84300",
+    "deep-orange-band": "#A63500",
+    "on-deep-orange": "#FFFFFF",
+    "mode-theatre": "#E4572E",
+    "mode-podcast": "#F2A33A",
+    "mode-studio": "#3FB3A3",
+    "mode-theatre-text": "#B5361A",
+    "mode-podcast-text": "#8A5300",
+    "mode-studio-text": "#0B6E63",
+    "positive": "#1A6340",
+    "negative": "#932A24",
+    "ring": "#A84300"
   },
   "typography": {
     "family": "Poppins (latin, devanagari)",
@@ -91,10 +78,10 @@
     "max-width": "1200px"
   },
   "effects": {
-    "glow-primary": "0 0 24px rgba(242,163,58,.35)",
-    "shadow-cover": "0 16px 40px rgba(0,0,0,.5)",
-    "shadow-card": "0 4px 16px rgba(0,0,0,.35)",
-    "glass": "rgba(35,29,24,.72) + blur(16px)"
+    "glow-primary": "0 0 24px rgba(255,122,26,.35)",
+    "shadow-cover": "0 16px 40px rgba(120,60,10,.2)",
+    "shadow-card": "0 2px 12px rgba(120,60,10,.1)",
+    "glass": "rgba(255,255,255,.86) + blur(16px)"
   },
   "semantic": {
     "background": "--ts-bg",

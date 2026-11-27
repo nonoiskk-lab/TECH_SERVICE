@@ -4,7 +4,7 @@ Updated 2026-11-23. Companion documents: PRODUCT_REQUIREMENTS, SYSTEM_ARCHITECTU
 
 ## Latest (2026-11-25): design system v6
 
-The owner's *Cinema Design System Audit & Build Plan* is built in code (`docs/DESIGN_SYSTEM.md`): Poppins, dark customer theme, light staff theme, amber primary, mode colours, the component list, the customer screens (incl. QR ticket, plan hours used, tab bar) and the staff dashboard (three-lane calendar, daily checklist and report). 46 unit and 93 e2e tests pass; 20 pages pass axe; worst CLS 0.000 and LCP 1.23 s. **Preview only; production still runs the previous design until the owner approves.**
+The owner's *Cinema Design System Audit & Build Plan* is built in code (`docs/DESIGN_SYSTEM.md`): Poppins, an **orange and white** theme (owner's later instruction; the plan's espresso and amber palette was replaced), mode colours, the component list, the customer screens (incl. QR ticket, plan hours used, tab bar) and the staff dashboard (three-lane calendar, daily checklist and report). 46 unit and 93 e2e tests pass; 20 pages pass axe; worst CLS 0.000 and LCP 1.23 s. **Preview only; production still runs the previous design until the owner approves.**
 
 ## One-line status
 

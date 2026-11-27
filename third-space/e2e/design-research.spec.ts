@@ -44,8 +44,8 @@ test("design tokens: one tokens file, semantic names, radius scale, UI borders a
   expect(ratio(rgbOf(t.inputBorder), rgbOf(t.inputBg)), "input border vs its background").toBeGreaterThanOrEqual(3);
   expect(parseFloat(t.btnRadius)).toBeGreaterThanOrEqual(999 / 2); // pill (a huge radius computes to the full value)
   expect(parseFloat(t.inputRadius)).toBe(12);
-  // The primary button: dark text on gold, never white (white on gold is 2.55:1).
-  expect(ratio(rgbOf(t.btnColor), rgbOf(t.btnBg)), "primary button text").toBeGreaterThanOrEqual(7);
+  // The primary button: dark ink on orange, never white (white on this orange is 2.6:1).
+  expect(ratio(rgbOf(t.btnColor), rgbOf(t.btnBg)), "primary button text").toBeGreaterThanOrEqual(4.5);
 });
 
 test("booking: price and cancellation rules show before a time is chosen (English and Hinglish)", async ({ page, context, baseURL }) => {

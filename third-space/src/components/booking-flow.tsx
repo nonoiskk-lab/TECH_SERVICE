@@ -1014,7 +1014,7 @@ function openRazorpay(o: { keyId: string; orderId: string; amount: number; name:
         currency: "INR",
         name: "THIRD SPACE",
         prefill: { name: o.name, email: o.email, contact: o.phone },
-        theme: { color: "#f2a33a" },
+        theme: { color: "#ff7a1a" },
         handler: (r: { razorpay_payment_id: string; razorpay_signature: string }) => resolve({ paymentId: r.razorpay_payment_id, signature: r.razorpay_signature }),
         modal: { ondismiss: () => resolve(null) },
       }).open();

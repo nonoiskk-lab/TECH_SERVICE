@@ -7,10 +7,10 @@ import { LocaleToggle } from "./client-bits";
 export function LogoMark({ className = "h-9 w-9" }: { className?: string }) {
   return (
     <svg viewBox="0 0 64 64" className={className} aria-hidden="true">
-      <circle cx="32" cy="32" r="30" fill="#F2A33A" />
-      <path d="M20 50V30a12 12 0 0 1 24 0v20z" fill="#100D0B" />
-      <path d="M26 50V32a6 6 0 0 1 12 0v18z" fill="#FBF6EE" />
-      <circle cx="35" cy="41" r="1.6" fill="#F2A33A" />
+      <circle cx="32" cy="32" r="30" fill="#FF7A1A" />
+      <path d="M20 50V30a12 12 0 0 1 24 0v20z" fill="#1C1410" />
+      <path d="M26 50V32a6 6 0 0 1 12 0v18z" fill="#FFFFFF" />
+      <circle cx="35" cy="41" r="1.6" fill="#FF7A1A" />
     </svg>
   );
 }

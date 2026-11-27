@@ -35,8 +35,6 @@ body {
   line-height: var(--lh-body-m);
   -webkit-font-smoothing: antialiased;
 }
-/* The light staff and admin screens sit on a light page even when the browser overscrolls. */
-body:has(.theme-light-root) { background: var(--p-cream-50); }
 
 @layer base {
 h1, h2, h3, h4 {
@@ -90,15 +88,20 @@ h4 { font-size: var(--text-h3); line-height: var(--lh-h3); font-weight: var(--fw
 .ts-btn-ghost:hover { background: color-mix(in srgb, var(--ts-gold) 14%, transparent); }
 .ts-btn-dark { border-color: var(--ts-border-strong); color: var(--ts-text); background: transparent; }
 .ts-btn-dark:hover { background: var(--ts-gold); border-color: var(--ts-gold); color: var(--ts-on-gold); }
-.ts-btn-white { background: var(--p-ink); color: var(--p-amber-500); }
-.ts-btn-white:hover { background: var(--p-espresso-900); }
+.ts-btn-white { background: var(--p-white); color: var(--p-orange-900); }
+.ts-btn-white:hover { background: var(--p-warm-50); }
 .ts-btn:active:not([disabled]) { transform: translateY(1px); }
 .ts-btn:focus-visible { outline: 2px solid var(--ts-ring); outline-offset: 3px; }
 .ts-btn-lg { min-height: var(--ts-btn-h-lg); padding: 0 var(--space-2xl); font-size: var(--text-body-l); line-height: var(--lh-body-l); }
 .ts-btn-text { min-height: var(--ts-tap); padding: 0; border: 0; color: var(--ts-warm); background: none; font-weight: 600; }
 .ts-btn-text:hover { text-decoration: underline; text-underline-offset: 4px; }
-.ts-band-gold .ts-btn-primary { background: var(--p-ink); color: var(--p-amber-500); }
-.ts-band-gold .ts-btn-primary:hover { background: var(--p-espresso-900); box-shadow: none; }
+.ts-band-gold .ts-btn-primary { background: var(--p-ink); color: var(--p-orange-500); }
+.ts-band-gold .ts-btn-primary:hover { background: #3a2a20; box-shadow: none; }
+.ts-band-dark .ts-btn-primary, .ts-dark .ts-btn-primary { background: var(--p-white); color: var(--p-orange-900); }
+.ts-band-dark .ts-btn-primary:hover, .ts-dark .ts-btn-primary:hover { background: var(--p-warm-50); box-shadow: none; }
+.ts-band-dark .ts-btn-ghost, .ts-dark .ts-btn-ghost { border-color: var(--p-white); color: var(--p-white); }
+.ts-band-dark .ts-card .ts-btn-primary, .ts-dark .ts-card .ts-btn-primary { background: var(--ts-gold); color: var(--ts-on-gold); }
+.ts-band-dark .ts-card .ts-btn-ghost, .ts-dark .ts-card .ts-btn-ghost { border-color: var(--ts-warm); color: var(--ts-warm); }
 .ts-band-gold .ts-btn-ghost { border-color: var(--p-ink); color: var(--p-ink); }
 .ts-btn-arrow::after { content: none; }
 .ts-btn[disabled], .ts-btn[aria-disabled="true"] { opacity: .45; cursor: not-allowed; box-shadow: none; }

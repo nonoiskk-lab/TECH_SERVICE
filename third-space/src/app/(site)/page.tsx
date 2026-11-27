@@ -178,7 +178,7 @@ export default async function Home() {
               <x.Art className="h-full w-full object-cover" />
             </div>
             <div className="ts-band-dark relative flex flex-col justify-center gap-5 px-6 py-14 sm:px-12 lg:px-20">
-              <span className="ts-icon !bg-gold/15 !text-gold">
+              <span className="ts-icon !bg-white/15 !text-white">
                 <x.Icon className="h-7 w-7" />
               </span>
               <p className="ts-eyebrow !text-faint">

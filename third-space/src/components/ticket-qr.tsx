@@ -22,11 +22,11 @@ export function TicketQr({ value, label }: { value: string; label: string }) {
       role="img"
       aria-label={label}
       viewBox={`0 0 ${size} ${size}`}
-      className="h-44 w-44 rounded-xl bg-[#fbf6ee]"
+      className="h-44 w-44 rounded-xl bg-white"
       shapeRendering="crispEdges"
       data-testid="ticket-qr"
     >
-      <path d={cells.join("")} fill="#100d0b" />
+      <path d={cells.join("")} fill="#1c1410" />
     </svg>
   );
 }

@@ -15,9 +15,9 @@ test("staff dashboard (light theme): three-lane day calendar with a booking bloc
   const day = new Date(b.start.getTime() + 330 * 60_000).toISOString().slice(0, 10);
   await page.goto(`/admin?date=${day}`);
 
-  // Light theme on the staff side, dark on the customer side.
+  // Orange and white: the staff screens sit on white.
   const bg = await page.evaluate(() => getComputedStyle(document.querySelector(".theme-light")!).backgroundColor);
-  expect(bg).toBe("rgb(251, 246, 238)");
+  expect(bg).toBe("rgb(255, 255, 255)");
 
   for (const lane of ["theatre", "podcast", "studio"]) await expect(page.getByTestId(`lane-title-${lane}`)).toBeVisible();
   const block = page.getByTestId("lane-podcast").locator(`[data-testid="booking-block"][href="/admin/bookings/${id}"]`);
