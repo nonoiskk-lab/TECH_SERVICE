@@ -688,14 +688,10 @@ export function BookingFlow(props: BookingFlowProps) {
                   data-testid="slot"
                   data-start={s.start}
                   data-status={mine ? "mine" : s.status}
-                  className={`min-h-11 rounded-xl border px-2 text-sm font-semibold ${
-                    mine ? "border-warm bg-warm text-white" : disabled ? "border-line/50 text-faint line-through" : "border-[var(--ts-border-strong)] hover:border-warm"
-                  }`}
+                  className="ts-chip"
                 >
                   {timeLabel(s.start)}
-                  <span className={`block text-[11px] font-normal ${mine ? "" : "opacity-75"}`}>
-                    {t.book.until.replace("{time}", timeLabel(s.end))}
-                  </span>
+                  <small>{t.book.until.replace("{time}", timeLabel(s.end))}</small>
                   {disabled && <span className="sr-only"> ({s.status === "booked" ? t.book.booked : t.book.held})</span>}
                 </button>
               );
@@ -978,7 +974,7 @@ export function BookingFlow(props: BookingFlowProps) {
       </aside>
 
       {hold && !checkoutVisible && quote && (
-        <div className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-white px-4 py-3 shadow-[0_-4px_16px_rgba(32,26,23,0.10)] lg:hidden" data-testid="sticky-cta">
+        <div className="fixed inset-x-0 bottom-0 z-30 border-t border-line ts-glass px-4 py-3 shadow-[var(--ts-shadow-cover)] lg:hidden" data-testid="sticky-cta">
           <div className="mx-auto flex max-w-xl items-center justify-between gap-3">
             <span className="text-sm">
               <span className="block text-muted">{t.book.stickyTotal}</span>
@@ -1009,7 +1005,7 @@ function openRazorpay(o: { keyId: string; orderId: string; amount: number; name:
         currency: "INR",
         name: "THIRD SPACE",
         prefill: { name: o.name, email: o.email, contact: o.phone },
-        theme: { color: "#ffb46b" },
+        theme: { color: "#f2a33a" },
         handler: (r: { razorpay_payment_id: string; razorpay_signature: string }) => resolve({ paymentId: r.razorpay_payment_id, signature: r.razorpay_signature }),
         modal: { ondismiss: () => resolve(null) },
       }).open();

@@ -29,7 +29,7 @@ export function SiteFooter({ t, biz, gateOpen }: { t: Dict; biz: PublicBusiness;
     ...(gateOpen ? ([["/private-theatre-in-dhanbad", t.seo.theatreTitle]] as [string, string][]) : []),
   ];
   return (
-    <footer className="mt-0 border-t border-line bg-white pb-28 sm:pb-10" data-testid="site-footer">
+    <footer className="mt-0 border-t border-line bg-card pb-28 sm:pb-10" data-testid="site-footer">
       <div className="mx-auto grid max-w-[var(--ts-maxw)] gap-10 px-4 py-14 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1.3fr]">
         <div className="space-y-3">
           <Wordmark />

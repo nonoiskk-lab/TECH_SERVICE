@@ -1,104 +1,203 @@
 /*
- * THIRD SPACE brand tokens (v3, cinematic, per the master project prompt).
- *   Midnight Black #11100F · Deep Espresso #201A17 · Champagne Gold #C69B55 · Warm Ivory #F3E9D8
- * Gold text on midnight black is 7.4:1; ivory text is 15:1.
+ * THIRD SPACE design tokens (v6): the single tokens file.
+ *
+ * Source: "Third Space: Cinema Design System Audit & Build Plan" (owner, 2026-11-25). Warm espresso and amber
+ * (matches the 3000 K warm lighting of the rooms) instead of the cool navy and orange of the reference file.
+ *   - Customer app and public site: DARK theme (default, :root).
+ *   - Staff dashboard and admin: LIGHT theme (.theme-light on their layout).
+ * Every text pair below was checked with the WCAG 2.x formula (see docs/DESIGN_SYSTEM.md). Text on amber, ember and
+ * teal fills is always the dark ink #100D0B (white on ember is only 3.68:1, white on amber 2.5:1).
+ *
+ * Layers: primitives (--p-*) -> semantic (--ts-*, and the shadcn-style aliases at the end) -> components (globals.css).
+ * The older --ts-* names are kept on purpose so existing components keep working.
  */
 :root {
-  /* v5 — light, Perfect-Venue-style structure in THIRD SPACE colours (docs/audit DOCUMENT 11). */
-  --ts-bg: #ffffff;
-  --ts-bg-card: #ffffff;
-  --ts-bg-raised: #f7f2ea;     /* inputs, selected rows */
-  --ts-line: #e8e0d4;
-  --ts-text: #222222;
-  --ts-text-muted: #585858;
-  --ts-text-faint: #666666;
-  --ts-gold: #c69b55;          /* Champagne Gold: primary fill */
-  --ts-gold-strong: #b5883f;   /* primary hover */
-  --ts-warm: #8a6428;          /* gold text on white, 5.4:1 */
-  --ts-warm-strong: #6f4f1d;
-  --ts-warm-ink: #11100f;
-  --ts-on-gold: #11100f;
-  --ts-espresso: #201a17;      /* dark bands (title banners, feature band, form panel) */
-  --ts-ivory: #f7efe4;         /* alternating light band */
-  --ts-ok: #2f7a43;
-  --ts-danger: #b3261e;
-  --ts-glow: 0 1px 10px rgba(32, 26, 23, 0.10);
-  /* One radius scale for everything (research: cards 8-16 px, primary CTA pill). To go back to square buttons set --ts-btn-radius: 6px. */
+  color-scheme: dark;
+
+  /* ---- Primitives ------------------------------------------------------------------------------------------ */
+  --p-ink: #100d0b;            /* text on amber, ember, teal */
+  --p-espresso-950: #14110f;   /* dark bg */
+  --p-espresso-900: #231d18;   /* dark surface */
+  --p-espresso-800: #2e261f;   /* dark surface deep */
+  --p-espresso-700: #3b3128;   /* dark border */
+  --p-espresso-500: #85735f;   /* dark UI border (inputs, chips): 3.3:1 or better on every dark surface */
+  --p-sand-400: #a39484;       /* dark muted text */
+  --p-cream-50: #fbf6ee;       /* dark text, light bg */
+  --p-white: #ffffff;
+  --p-cream-100: #f3ebdd;      /* light surface deep */
+  --p-cream-300: #e4d8c6;      /* light border */
+  --p-taupe-500: #857a68;      /* light UI border: 3.6:1 or better */
+  --p-taupe-700: #6b5d4f;      /* light muted text */
+  --p-amber-400: #f7b455;      /* amber hover */
+  --p-amber-500: #f2a33a;      /* amber (primary) */
+  --p-amber-600: #c77f1a;      /* amber pressed (ink on it 5.97:1) */
+  --p-amber-800: #8a5300;      /* amber as TEXT on light surfaces (5.3:1 or better) */
+  --p-ember-500: #e4572e;      /* theatre */
+  --p-ember-700: #b5361a;      /* theatre as text on light */
+  --p-teal-500: #3fb3a3;       /* studio */
+  --p-teal-700: #0e7c70;       /* studio as text on light */
+  --p-green-400: #5cc48e;      /* positive on dark */
+  --p-green-700: #2e7d55;      /* positive on light */
+  --p-red-400: #e5635a;        /* negative on dark */
+  --p-red-700: #a8362e;        /* negative on light */
+
+  /* ---- Semantic: DARK theme (customer app, public site) ------------------------------------------------------- */
+  --ts-bg: var(--p-espresso-950);
+  --ts-bg-card: var(--p-espresso-900);
+  --ts-bg-raised: var(--p-espresso-800);
+  --ts-line: var(--p-espresso-700);          /* decorative dividers and card edges */
+  --ts-border-strong: var(--p-espresso-500); /* anything that must be *found* by its edge: inputs, chips */
+  --ts-text: var(--p-cream-50);
+  --ts-text-muted: var(--p-sand-400);
+  --ts-text-faint: var(--p-sand-400);        /* one muted level keeps every pair above 5:1 */
+  --ts-gold: var(--p-amber-500);             /* primary fill (name kept from v5) */
+  --ts-gold-strong: var(--p-amber-400);      /* hover */
+  --ts-gold-pressed: var(--p-amber-600);     /* pressed */
+  --ts-on-gold: var(--p-ink);
+  --ts-warm: var(--p-amber-500);             /* accent used as text */
+  --ts-warm-strong: var(--p-amber-400);
+  --ts-warm-ink: var(--p-ink);
+  --ts-espresso: var(--p-espresso-800);
+  --ts-ivory: var(--p-espresso-900);
+  --ts-ok: var(--p-green-400);
+  --ts-danger: var(--p-red-400);
+  --ts-ring: var(--p-amber-400);             /* focus ring */
+  --ts-mode-theatre: var(--p-ember-500);
+  --ts-mode-podcast: var(--p-amber-500);
+  --ts-mode-studio: var(--p-teal-500);
+  --ts-mode-theatre-text: var(--p-ember-500); /* 4.5:1 on the dark surface */
+  --ts-mode-podcast-text: var(--p-amber-500);
+  --ts-mode-studio-text: var(--p-teal-500);
+  --ts-on-mode: var(--p-ink);
+
+  /* ---- Effects (TS/Shadow/Glow Primary, Cover, Card, Blur Glass) ------------------------------------------------ */
+  --ts-glow-primary: 0 0 24px rgba(242, 163, 58, 0.35);
+  --ts-shadow-cover: 0 16px 40px rgba(0, 0, 0, 0.5);
+  --ts-shadow-card: 0 4px 16px rgba(0, 0, 0, 0.35);
+  --ts-shadow-nav: 0 1px 0 var(--p-espresso-700);
+  --ts-glow: var(--ts-shadow-card);
+  --ts-glass-bg: rgba(35, 29, 24, 0.72);
+  --ts-glass-blur: blur(16px);
+
+  /* ---- Spacing (space/xxs to space/3xl) ------------------------------------------------------------------------- */
+  --space-xxs: 4px;
+  --space-xs: 8px;
+  --space-sm: 12px;
+  --space-md: 16px;
+  --space-lg: 20px;
+  --space-xl: 24px;
+  --space-2xl: 32px;
+  --space-3xl: 48px;
+  --ts-section-y: 64px;
+  --ts-section-y-lg: 96px;
+  --ts-maxw: 1200px;
+
+  /* ---- Radius (radius/sm to radius/full) ------------------------------------------------------------------------ */
   --ts-radius-xs: 6px;
   --ts-radius-sm: 8px;
   --ts-radius-md: 12px;
   --ts-radius-lg: 16px;
+  --ts-radius-xl: 24px;
   --ts-radius-pill: 999px;
-  --ts-radius: var(--ts-radius-lg);       /* cards */
-  --ts-border-strong: #8a8071;            /* input and chip borders: 3.4:1 or better on white, ivory and raised */
-  --ts-ring: #6f4f1d;                     /* focus ring: 7.5:1 on white (the gold fill is only 2.6:1) */
-  --ts-tap: 44px;
-  --ts-maxw: 1200px;
+  --ts-radius: var(--ts-radius-lg);          /* cards */
+  --ts-btn-radius: var(--ts-radius-pill);    /* set to var(--ts-radius-md) for rounded-square buttons */
 
-  --ts-btn-radius: var(--ts-radius-pill);
-  --ts-btn-h: 44px;          /* nav + default */
-  --ts-btn-h-lg: 60px;       /* hero + section CTA */
-  --ts-section-y: 64px;
-  --ts-section-y-lg: 110px;
-  --ts-ease: cubic-bezier(.2, .7, .2, 1);
-  --ts-dur: 400ms;
-  --ts-shadow-card: 0 1px 10px rgba(179, 168, 153, 0.35);
-  --ts-shadow-nav: 0 0 20px rgba(0, 0, 0, 0.08);
+  /* ---- Sizes ---------------------------------------------------------------------------------------------------- */
+  --ts-tap: 44px;                            /* minimum touch target everywhere */
+  --ts-btn-h: 44px;                          /* Button Small (the file says 40 px; 44 px keeps every target tappable) */
+  --ts-btn-h-lg: 56px;                       /* Button Large */
+
+  /* ---- Type scale (Poppins): size / line-height, weight -------------------------------------------------------- */
+  --text-display: 32px;   --lh-display: 40px;   --fw-display: 700;
+  --text-h1: 24px;        --lh-h1: 32px;        --fw-h1: 600;
+  --text-h2: 20px;        --lh-h2: 28px;        --fw-h2: 600;
+  --text-h3: 16px;        --lh-h3: 24px;        --fw-h3: 600;
+  --text-body-l: 16px;    --lh-body-l: 24px;
+  --text-body-m: 14px;    --lh-body-m: 20px;
+  --text-body-s: 12px;    --lh-body-s: 16px;
+  --text-label-m: 14px;   --lh-label-m: 20px;   --fw-label: 500;
+  --text-label-btn: 14px; --lh-label-btn: 20px; --fw-label-btn: 600;
+  --text-caption: 12px;   --lh-caption: 16px;
+  --text-overline: 12px;  --lh-overline: 16px;
+  --text-price: 24px;     --lh-price: 32px;     --fw-price: 700;
+
+  --ts-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --ts-dur: 250ms;
 }
 
+/* Larger screens: the web scales Display and H1 up (the file defines the 375 px app sizes). */
+@media (min-width: 1024px) {
+  :root {
+    --text-display: 48px; --lh-display: 56px;
+    --text-h1: 32px;      --lh-h1: 40px;
+    --text-h2: 24px;      --lh-h2: 32px;
+  }
+}
 
-/* Ivory band (alternating light section). */
+/* ---- LIGHT theme (staff dashboard and admin) ---------------------------------------------------------------------- */
+.theme-light {
+  color-scheme: light;
+  --ts-bg: var(--p-cream-50);
+  --ts-bg-card: var(--p-white);
+  --ts-bg-raised: var(--p-cream-100);
+  --ts-line: var(--p-cream-300);
+  --ts-border-strong: var(--p-taupe-500);
+  --ts-text: var(--p-espresso-950);
+  --ts-text-muted: var(--p-taupe-700);
+  --ts-text-faint: var(--p-taupe-700);
+  --ts-warm: var(--p-amber-800);
+  --ts-warm-strong: var(--p-amber-800);
+  --ts-espresso: var(--p-cream-100);
+  --ts-ivory: var(--p-cream-100);
+  --ts-ok: var(--p-green-700);
+  --ts-danger: var(--p-red-700);
+  --ts-ring: var(--p-amber-800);
+  --ts-mode-theatre-text: var(--p-ember-700);
+  --ts-mode-podcast-text: var(--p-amber-800);
+  --ts-mode-studio-text: var(--p-teal-700);
+  --ts-shadow-card: 0 1px 8px rgba(20, 17, 15, 0.1);
+  --ts-shadow-nav: 0 1px 0 var(--p-cream-300);
+  --ts-glow: var(--ts-shadow-card);
+  --ts-glass-bg: rgba(251, 246, 238, 0.8);
+  background: var(--ts-bg);
+  color: var(--ts-text);
+}
+
+/* ---- Bands: alternating sections on the public site ---------------------------------------------------------------- */
+/* Surface band (the "light" name is kept from v5): a step above the page background. */
 .ts-band-light {
-  --ts-bg: #f7efe4;
+  --ts-bg: var(--p-espresso-900);
+  --ts-bg-card: var(--p-espresso-800);
+  --ts-bg-raised: var(--p-espresso-950);
   background: var(--ts-bg);
   color: var(--ts-text);
 }
-
-/* Dark espresso band: title banners, feature band, form panels. Cards inside it stay white. */
 .ts-band-dark, .ts-dark {
-  --ts-bg: #201a17;
-  --ts-bg-raised: #2c2420;
-  --ts-line: rgba(243, 233, 216, 0.18);
-  --ts-text: #f3e9d8;
-  --ts-text-muted: #e0d4c1;
-  --ts-text-faint: #bfb19c;
-  --ts-warm: #d6ad6a;
-  --ts-warm-strong: #e2bf86;
-  --ts-ring: #e2bf86;   /* light focus ring on the dark band (11:1 on espresso) */
+  --ts-bg: var(--p-espresso-950);
+  --ts-bg-card: var(--p-espresso-900);
+  --ts-bg-raised: var(--p-espresso-800);
   background: var(--ts-bg);
   color: var(--ts-text);
 }
-.ts-band-dark .ts-card, .ts-dark .ts-card {
-  --ts-bg-card: #ffffff;
-  --ts-bg-raised: #f7f2ea;
-  --ts-line: #e8e0d4;
-  --ts-text: #222222;
-  --ts-text-muted: #585858;
-  --ts-text-faint: #666666;
-  --ts-warm: #8a6428;
-  --ts-ring: #6f4f1d;
-  color: var(--ts-text);
-}
-
-/* Gold statement band. */
+/* Amber statement band: ink text (9.3:1). */
 .ts-band-gold {
-  --ts-bg: #c69b55;
-  --ts-text: #11100f;
-  --ts-text-muted: #2a221d;
-  --ts-warm: #11100f;
-  --ts-line: rgba(17, 16, 15, .25);
+  --ts-bg: var(--p-amber-500);
+  --ts-text: var(--p-ink);
+  --ts-text-muted: #2b1d08;
+  --ts-text-faint: #2b1d08;
+  --ts-warm: var(--p-ink);
+  --ts-line: rgba(16, 13, 11, 0.3);
   background: var(--ts-bg);
   color: var(--ts-text);
 }
-
 
 /*
- * Semantic names (shadcn / Cal.com style) over the ts-* tokens above, so new code can use
+ * Semantic names (shadcn / Cal.com style) over the ts-* tokens, so new code can use
  * --background, --foreground, --primary, --muted, --border, --radius, --ring and the shadow scale.
  * Declared on every surface that re-themes the ts-* tokens, because a custom property that
  * references another is resolved where it is declared.
  */
-:root, .ts-band-light, .ts-band-dark, .ts-dark, .ts-band-gold, .ts-band-dark .ts-card, .ts-dark .ts-card {
+:root, .theme-light, .ts-band-light, .ts-band-dark, .ts-dark, .ts-band-gold {
   --background: var(--ts-bg);
   --foreground: var(--ts-text);
   --card: var(--ts-bg-card);
@@ -106,6 +205,7 @@
   --primary: var(--ts-gold);
   --primary-foreground: var(--ts-on-gold);
   --primary-hover: var(--ts-gold-strong);
+  --primary-pressed: var(--ts-gold-pressed);
   --accent-text: var(--ts-warm);
   --muted: var(--ts-bg-raised);
   --muted-foreground: var(--ts-text-muted);
@@ -117,5 +217,5 @@
   --radius: var(--ts-radius);
   --shadow-sm: var(--ts-glow);
   --shadow-md: var(--ts-shadow-card);
-  --shadow-lg: var(--ts-shadow-nav);
+  --shadow-lg: var(--ts-shadow-cover);
 }

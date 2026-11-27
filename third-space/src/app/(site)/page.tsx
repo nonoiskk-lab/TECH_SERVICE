@@ -45,7 +45,7 @@ export default async function Home() {
   return (
     <>
       {/* 1. Hero: heavy serif headline, value line, filled + outlined CTA pair, helper facts; framed illustration right. */}
-      <section className="relative overflow-hidden bg-white">
+      <section className="relative overflow-hidden bg-bg">
         <Container className="grid items-center gap-12 pb-16 pt-12 sm:pt-16 lg:grid-cols-[1.05fr_1fr] lg:pb-24 lg:pt-20">
           <div>
             <p className="flex flex-col items-start gap-3 sm:flex-row sm:flex-wrap sm:items-center" data-testid="launch">
@@ -54,8 +54,8 @@ export default async function Home() {
                 {t.home.adultsOnly}
               </span>
             </p>
-            {/* min-h reserves the three lines the heavy display font needs on phones, so the headline does not push the page down when the font swaps in (CLS). */}
-            <h1 className="mt-5 min-h-[8.9rem] text-[2.75rem] leading-[1.08] sm:min-h-0 sm:text-[4.375rem] sm:leading-[1.1]" style={{ fontWeight: 900 }}>
+            {/* min-h reserves the two lines the display font needs on phones, so the headline does not push the page down when the font swaps in (CLS). */}
+            <h1 className="mt-5 min-h-[5rem] sm:min-h-0 sm:text-[3.5rem] sm:leading-[1.1] lg:text-[4.25rem]">
               {t.home.heroAccent} <span className="ts-mark">{t.home.heroRest}</span>
             </h1>
             <p className="mt-6 max-w-xl text-lg leading-[1.7] text-text sm:text-xl">{t.home.heroLine}</p>
@@ -83,13 +83,13 @@ export default async function Home() {
             <div className="ts-blob aspect-[5/4] w-full">
               <RoomScene className="h-full w-full" />
             </div>
-            <span className="absolute -bottom-3 left-6 h-4 w-4 rounded-full border-2 border-text bg-white" />
+            <span className="absolute -bottom-3 left-6 h-4 w-4 rounded-full border-2 border-text bg-bg" />
           </div>
         </Container>
       </section>
 
       {/* 2. Trust row (the reference's logo strip); factual promises only. */}
-      <div className="border-y border-line bg-white">
+      <div className="border-y border-line bg-card">
         <Container>
           <ul className="grid grid-cols-2 gap-x-6 gap-y-4 py-8 text-[15px] text-muted lg:grid-cols-4" data-testid="trust-strip">
             {h.trust.map((x, i) => {
@@ -127,7 +127,7 @@ export default async function Home() {
               <x.Art className="h-full w-full object-cover" />
             </div>
             <div className="ts-band-dark relative flex flex-col justify-center gap-5 px-6 py-14 sm:px-12 lg:px-20">
-              <span className="ts-icon !bg-white/10 !text-gold">
+              <span className="ts-icon !bg-gold/15 !text-gold">
                 <x.Icon className="h-7 w-7" />
               </span>
               <p className="ts-eyebrow !text-faint">
@@ -224,7 +224,7 @@ export default async function Home() {
 
       {/* 8. Gold statement band: one large serif sentence and a white CTA. */}
       <section className="ts-band-gold ts-section relative overflow-hidden" data-testid="statement-band">
-        <Sparkle className="absolute right-[6%] top-8 h-16 w-16 text-white/70" />
+        <Sparkle className="absolute right-[6%] top-8 h-16 w-16 text-ink/40" />
         <Container>
           <p className="max-w-4xl text-3xl leading-[1.25] sm:text-[3.25rem]" style={{ fontFamily: "var(--font-heading)", fontWeight: 600 }}>
             {h.bandFrom.replace("{price}", from)}. <span className="opacity-80">{h.bandLine}.</span>

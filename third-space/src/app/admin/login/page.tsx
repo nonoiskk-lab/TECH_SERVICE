@@ -10,6 +10,7 @@ export const metadata: Metadata = { title: "Admin login | THIRD SPACE", robots: 
 export default async function LoginPage() {
   if (await currentStaff()) redirect("/admin");
   return (
+    <div className="theme-light theme-light-root min-h-dvh">
     <main id="main" className="mx-auto flex min-h-dvh max-w-sm flex-col justify-center px-4">
       <Wordmark className="mb-6 text-2xl" />
       {adminEnabled() ? (
@@ -27,5 +28,6 @@ export default async function LoginPage() {
         <p className="ts-card p-4 text-sm text-muted">The admin panel is off. Set AUTH_SECRET (and ADMIN_PASSWORD for the first owner login) on the server.</p>
       )}
     </main>
+    </div>
   );
 }

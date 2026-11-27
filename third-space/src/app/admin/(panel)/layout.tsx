@@ -33,7 +33,7 @@ const NAV: [string, string, Permission][] = [
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const me = await requireRole("dashboard");
   return (
-    <div className="min-h-dvh">
+    <div className="theme-light theme-light-root min-h-dvh">
       <header className="sticky top-0 z-30 border-b border-line bg-bg/95 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-2">
           <Link href="/admin" className="flex min-h-11 items-center gap-2">

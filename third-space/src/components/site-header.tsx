@@ -7,10 +7,10 @@ import { LocaleToggle } from "./client-bits";
 export function LogoMark({ className = "h-9 w-9" }: { className?: string }) {
   return (
     <svg viewBox="0 0 64 64" className={className} aria-hidden="true">
-      <circle cx="32" cy="32" r="30" fill="#CAA05C" />
-      <path d="M20 50V30a12 12 0 0 1 24 0v20z" fill="#1C1C1D" />
-      <path d="M26 50V32a6 6 0 0 1 12 0v18z" fill="#F7F1E6" />
-      <circle cx="35" cy="41" r="1.6" fill="#CAA05C" />
+      <circle cx="32" cy="32" r="30" fill="#F2A33A" />
+      <path d="M20 50V30a12 12 0 0 1 24 0v20z" fill="#100D0B" />
+      <path d="M26 50V32a6 6 0 0 1 12 0v18z" fill="#FBF6EE" />
+      <circle cx="35" cy="41" r="1.6" fill="#F2A33A" />
     </svg>
   );
 }
@@ -46,7 +46,7 @@ export function SiteHeader({ t, locale }: { t: Dict; locale: Locale }) {
     { href: "/policies", label: t.nav.policies },
   ];
   return (
-    <header className="sticky top-0 z-40 bg-white shadow-[var(--ts-shadow-nav)]">
+    <header className="ts-topbar ts-glass">
       <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-2 focus:rounded focus:bg-warm focus:px-3 focus:py-2 focus:text-warm-ink">
         {t.nav.skip}
       </a>
