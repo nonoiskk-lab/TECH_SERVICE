@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { enquiryPurposes, isLegalGateOpen } from "@/config/site";
-import { bookablePackages, fromPrice } from "@/config/packages";
+import { bookablePackages, fromPrice, getPackage } from "@/config/packages";
+import { ModeServices, type ServiceItem } from "@/components/mode-services";
+import { durationText, priceLabel } from "@/lib/session";
 import { PriceList } from "@/components/price-list";
 import { getDict } from "@/lib/locale";
 import { faqItems } from "@/lib/faq";
@@ -38,6 +40,30 @@ export default async function Home() {
     .filter((p): p is NonNullable<typeof p> => Boolean(p))
     .slice(0, 3);
   const [photos, reviews] = await Promise.all([galleryImages(6), testimonials(6)]);
+  // Mode Tabs and Service Cards: Theatre (ember), Podcast (amber), Studio (teal).
+  const serviceItems: ServiceItem[] = (
+    [
+      ["theatre-classic", "theatre"],
+      ["podcast", "podcast"],
+      ["creator-shoot", "studio"],
+    ] as const
+  )
+    .map(([id, mode]): ServiceItem | null => {
+      const p = getPackage(id);
+      if (!p) return null;
+      return {
+        id,
+        mode,
+        name: tl(p.name, locale),
+        meta: `${p.pricing.kind === "fixed" ? durationText(p.durationMinutes) : t.book.timeAuto} · ${t.common.upTo} ${p.capacity} ${t.common.guests}`,
+        price: priceLabel(p, formatINR, t.common.free),
+        summary: tl(p.summary, locale),
+        href: `/book?package=${id}`,
+        soon: !bookable.some((b) => b.id === id),
+      };
+    })
+    .filter((x): x is ServiceItem => x !== null);
+  const plan = getPackage("creator-plan");
   const featIcons = [CalendarIcon, LockIcon, ClockIcon, UserIcon, WalletIcon, ShieldIcon];
   const feats = h.feats.map((f) => ({ ...f, d: f.d.replace("{payments}", advancePercent > 0 ? h.payOnline : h.payVenue) }));
   const purposes = enquiryPurposes.filter((p) => !p.gated || gateOpen).map((p) => ({ id: p.id, label: tl(p.label, locale) }));
@@ -89,6 +115,31 @@ export default async function Home() {
       </section>
 
       {/* 2. Trust row (the reference's logo strip); factual promises only. */}
+      <section className="ts-section bg-bg" data-testid="choose-space" aria-labelledby="choose-space-title">
+        <Container>
+          <h2 id="choose-space-title" className="mb-5">
+            {t.home.chooseSpace}
+          </h2>
+          <ModeServices
+            items={serviceItems}
+            labels={{ title: t.home.chooseSpace, all: t.home.modeAll, theatre: t.home.modeTheatre, podcast: t.home.modePodcast, studio: t.home.modeStudio, book: t.home.serviceBook, soon: t.home.serviceSoon }}
+          />
+          {plan && bookable.some((b) => b.id === plan.id) && (
+            <div className="ts-card ts-glow mt-6 flex flex-wrap items-center justify-between gap-4 border-gold p-6" data-testid="plan-banner" style={{ boxShadow: "var(--ts-glow-primary)" }}>
+              <div>
+                <p className="t-overline text-warm">{t.home.planBannerTitle}</p>
+                <p className="t-h2 mt-1">{tl(plan.summary, locale)}</p>
+              </div>
+              <div className="flex items-center gap-4">
+                <span className="t-price">{priceLabel(plan, formatINR, t.common.free)}</span>
+                <Link href="/creator-plans" className="ts-btn ts-btn-primary">
+                  {t.home.planBannerCta}
+                </Link>
+              </div>
+            </div>
+          )}
+        </Container>
+      </section>
       <div className="border-y border-line bg-card">
         <Container>
           <ul className="grid grid-cols-2 gap-x-6 gap-y-4 py-8 text-[15px] text-muted lg:grid-cols-4" data-testid="trust-strip">

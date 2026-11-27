@@ -59,11 +59,48 @@ export function BookingCalendar({
     setMonth(`${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}`);
   };
   const label = new Date(`${month}-01T12:00:00Z`).toLocaleDateString("en-IN", { month: "long", year: "numeric", timeZone: "UTC" });
+  // Date Chip strip: the next two weeks at a glance. Day status is known for the month on screen only,
+  // so days outside it stay tappable and the slot list tells the truth.
+  const strip = useMemo(() => {
+    const out: string[] = [];
+    const start = new Date(`${minDate}T12:00:00Z`);
+    for (let i = 0; i < 14; i++) {
+      const d = new Date(start.getTime() + i * 86400_000).toISOString().slice(0, 10);
+      if (d > maxDate) break;
+      out.push(d);
+    }
+    return out;
+  }, [minDate, maxDate]);
   const canPrev = month > minDate.slice(0, 7);
   const canNext = month < maxDate.slice(0, 7);
 
   return (
     <div className="rounded-2xl border border-line p-3 sm:p-4" data-testid="calendar">
+      <div className="-mx-1 mb-3 flex gap-2 overflow-x-auto px-1 pb-2" role="group" aria-label={t.book.nextDays} data-testid="date-strip">
+        {strip.map((d) => {
+          const st = d.slice(0, 7) === month ? (days?.[d] ?? (days ? "unavailable" : undefined)) : undefined;
+          const off = st === "full" || st === "unavailable";
+          const wd = new Date(`${d}T12:00:00Z`).toLocaleDateString("en-IN", { weekday: "short", timeZone: "UTC" });
+          const monthLong = new Date(`${d}T12:00:00Z`).toLocaleDateString("en-IN", { month: "long", timeZone: "UTC" });
+          return (
+            <button
+              key={d}
+              type="button"
+              className="ts-chip shrink-0"
+              style={{ minWidth: 56 }}
+              disabled={off}
+              data-selected={d === selected}
+              aria-pressed={d === selected}
+              aria-label={`${wd} ${Number(d.slice(8))} ${monthLong}${off ? `, ${t.book.calendarLegend[st as DayStatus]}` : ""}`}
+              data-testid="date-chip"
+              data-date={d}
+              onClick={() => onSelect(d)}
+            >
+              <small>{wd}</small> {Number(d.slice(8))}
+            </button>
+          );
+        })}
+      </div>
       <div className="mb-3 flex items-center justify-between">
         <button type="button" className="ts-btn ts-btn-ghost h-11 w-11 !p-0" onClick={() => shift(-1)} disabled={!canPrev} aria-label={t.book.prevMonth}>
           ‹

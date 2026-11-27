@@ -18,7 +18,8 @@ const contactEnv = {
   RAZORPAY_WEBHOOK_SECRET: "test-webhook-secret",
 };
 
-const use = { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, deviceScaleFactor: 2 };
+// reducedMotion: transitions are switched off by the stylesheet, so axe never measures a colour half-way through a 250 ms transition.
+const use = { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, deviceScaleFactor: 2, reducedMotion: "reduce" as const };
 
 export default defineConfig({
   testDir: "./e2e",

@@ -7,6 +7,8 @@ import { db } from "@/server/db";
 import { currentCustomer } from "@/server/customer-auth";
 import { customerLogoutAction } from "@/server/customer-actions";
 import { formatINR } from "@/lib/pricing";
+import { StatusBadge } from "@/components/status-badge";
+import { TabBar } from "@/components/tab-bar";
 import { PageHeader, Section } from "@/components/ui";
 import { ProfileForm } from "@/components/account-forms";
 
@@ -49,9 +51,7 @@ export default async function AccountPage() {
         </p>
       </div>
       <div className="flex items-center gap-3">
-        <span className="rounded-full border border-line px-3 py-1 text-xs" data-status={b.status}>
-          {statusLabel(b.status)}
-        </span>
+        <StatusBadge status={b.status} label={statusLabel(b.status)} />
         <Link href={`/my-booking/${b.id}?t=${b.accessToken}`} className="ts-btn ts-btn-ghost text-sm">
           {a.manage}
         </Link>
@@ -124,7 +124,22 @@ export default async function AccountPage() {
           <aside className="space-y-4">
             {plans.map((p) => (
               <div key={p.id} className="ts-card p-5" data-testid="account-plan">
-                <h2 className="text-lg">{a.plan}</h2>
+                <h2 className="t-h3">{a.plan}</h2>
+                {(() => {
+                  const left = Math.max(0, (planBalance.get(p.id) ?? 0) / 60);
+                  const used = Math.max(0, p.hoursTotal - left);
+                  const pct = Math.min(100, Math.round((used / p.hoursTotal) * 100));
+                  return (
+                    <div className="mt-3" data-testid="plan-usage">
+                      <p className="t-body-m">
+                        <strong>{Number(used.toFixed(1))}</strong> / {p.hoursTotal} {t.common.hours} {a.planUsed}
+                      </p>
+                      <div className="mt-2 h-2 overflow-hidden rounded-full bg-raised" role="progressbar" aria-valuemin={0} aria-valuemax={p.hoursTotal} aria-valuenow={Number(used.toFixed(1))} aria-label={a.plan}>
+                        <div className="h-full rounded-full bg-gold" style={{ width: `${pct}%` }} />
+                      </div>
+                    </div>
+                  );
+                })()}
                 <p className="mt-1 text-sm text-muted">
                   {a.planLeft
                     .replace("{left}", String(Math.max(0, (planBalance.get(p.id) ?? 0) / 60).toFixed(1).replace(/\.0$/, "")))
@@ -133,7 +148,7 @@ export default async function AccountPage() {
                 </p>
               </div>
             ))}
-            <div className="ts-card p-5">
+            <div className="ts-card p-5" id="profile">
               <h2 className="mb-3 text-lg">{a.profile}</h2>
               <p className="mb-3 text-sm text-muted">
                 {a.phone}: {c.phone}
@@ -148,6 +163,7 @@ export default async function AccountPage() {
           </aside>
         </div>
       </Section>
+      <TabBar current="bookings" labels={{ home: a.tabHome, bookings: a.tabBookings, profile: a.tabProfile, nav: a.tabNav }} />
     </>
   );
 }

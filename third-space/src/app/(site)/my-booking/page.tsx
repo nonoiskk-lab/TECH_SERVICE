@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { getDict } from "@/lib/locale";
 import { PageHeader, Section } from "@/components/ui";
 import { FindBookingForm } from "@/components/guest-forms";
+import { TabBar } from "@/components/tab-bar";
 
 export async function generateMetadata(): Promise<Metadata> {
   const { t } = await getDict();
@@ -19,6 +20,7 @@ export default async function MyBookingPage() {
           <FindBookingForm labels={{ id: m.id, phone: m.phone, email: m.email, submit: m.find }} />
         </div>
       </Section>
+      <TabBar current="bookings" labels={{ home: t.account.tabHome, bookings: t.account.tabBookings, profile: t.account.tabProfile, nav: t.account.tabNav }} />
     </>
   );
 }

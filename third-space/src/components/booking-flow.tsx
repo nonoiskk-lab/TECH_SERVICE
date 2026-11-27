@@ -395,7 +395,7 @@ export function BookingFlow(props: BookingFlowProps) {
 
   return (
     <div className={`grid gap-6 lg:grid-cols-[1fr_360px] ${hold ? "pb-24 lg:pb-0" : ""}`} data-testid="booking-flow">
-      <div className="space-y-6">
+      <div className="min-w-0 space-y-6">
         {hold && (
           <div
             className="ts-card ts-glow sticky top-[4.5rem] z-20 flex items-center justify-between gap-3 px-4 py-3"
@@ -454,7 +454,8 @@ export function BookingFlow(props: BookingFlowProps) {
             {packages.map((p) => (
               <label
                 key={p.id}
-                className={`flex min-h-11 cursor-pointer flex-col rounded-xl border p-4 ${p.id === packageId ? "border-warm bg-raised" : "border-line"}`}
+                data-selected={p.id === packageId}
+                className={`ts-package-card flex min-h-11 cursor-pointer flex-col rounded-2xl border p-4 ${p.id === packageId ? "border-gold bg-raised" : "border-line"}`}
               >
                 <span className="flex items-center justify-between gap-2">
                   <span className="flex items-center gap-2 font-semibold">
@@ -613,7 +614,7 @@ export function BookingFlow(props: BookingFlowProps) {
               {availableAddOns.map((a) => {
                 const on = addOnIds.includes(a.id);
                 return (
-                  <label key={a.id} className={`flex min-h-11 cursor-pointer items-center justify-between gap-3 rounded-xl border px-4 py-2 ${on ? "border-warm bg-raised" : "border-line"}`}>
+                  <label key={a.id} className="ts-option-row" data-selected={on}>
                     <span className="flex items-center gap-3">
                       <input
                         type="checkbox"
@@ -703,17 +704,25 @@ export function BookingFlow(props: BookingFlowProps) {
         <section className="ts-card space-y-4 p-5">
           <StepTitle n={4 + stepOffset} title={t.book.stepDetails} done={detailsOk} />
           <div className="grid gap-3 sm:grid-cols-2">
-            <label className="block">
-              <span className="mb-1 block text-sm text-muted">{t.book.guestCount}</span>
-              <select className="ts-input" value={Math.min(guestCount, capacity)} onChange={(e) => setGuestCount(Number(e.target.value))} data-testid="guest-count">
-                {Array.from({ length: capacity }, (_, i) => i + 1).map((n) => (
-                  <option key={n} value={n}>
-                    {n}
-                  </option>
-                ))}
-              </select>
-              <span className="mt-1 block text-xs text-faint">{t.book.adultsOnly}</span>
-            </label>
+            <div>
+              <span id="guest-count-label" className="mb-1 block text-sm text-muted">
+                {t.book.guestCount}
+              </span>
+              <div className="ts-stepper" role="group" aria-labelledby="guest-count-label">
+                <button type="button" aria-label={t.book.guestMinus} onClick={() => setGuestCount(Math.max(1, Math.min(guestCount, capacity) - 1))} disabled={Math.min(guestCount, capacity) <= 1} data-testid="guest-minus">
+                  −
+                </button>
+                <output data-testid="guest-count" aria-live="polite">
+                  {Math.min(guestCount, capacity)}
+                </output>
+                <button type="button" aria-label={t.book.guestPlus} onClick={() => setGuestCount(Math.min(capacity, Math.min(guestCount, capacity) + 1))} disabled={Math.min(guestCount, capacity) >= capacity} data-testid="guest-plus">
+                  +
+                </button>
+              </div>
+              <span className="mt-1 block text-xs text-faint">
+                {t.common.upTo} {capacity} {t.common.guests} · {t.book.adultsOnly}
+              </span>
+            </div>
             <label className="block">
               <span className="mb-1 block text-sm text-muted">{t.book.name}</span>
               <input className="ts-input" autoComplete="name" value={name} onChange={(e) => setName(e.target.value)} data-testid="guest-name" />
@@ -933,17 +942,17 @@ export function BookingFlow(props: BookingFlowProps) {
                   <dd>−{formatINR(quote.discount)}</dd>
                 </div>
               )}
-              <div className="flex justify-between gap-3 border-t border-line pt-2">
+              <div className="ts-summary-row border-t border-line pt-2">
                 <dt className="text-muted">{t.book.subtotal}</dt>
                 <dd>{formatINR(quote.subtotal)}</dd>
               </div>
-              <div className="flex justify-between gap-3">
+              <div className="ts-summary-row">
                 <dt className="text-muted">
                   {tl(bookingCfg.taxLabel, locale)} ({catalog.taxPercent}%)
                 </dt>
                 <dd>{formatINR(quote.tax)}</dd>
               </div>
-              <div className="flex justify-between gap-3 border-t border-line pt-2 text-base font-bold">
+              <div className="ts-summary-row" data-emphasis="true">
                 <dt>{t.book.total}</dt>
                 <dd data-testid="quote-total">{formatINR(quote.total)}</dd>
               </div>

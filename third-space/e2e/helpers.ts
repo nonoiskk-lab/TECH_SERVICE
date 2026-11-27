@@ -26,6 +26,17 @@ export async function firstAvailableSlot(page: Page) {
   return page.locator('[data-testid="slot"][data-status="available"]').first();
 }
 
+/** Guest Stepper: click + or - until the count shows `n`. */
+export async function setGuests(page: Page, n: number) {
+  const out = page.getByTestId("guest-count");
+  for (let i = 0; i < 12; i++) {
+    const cur = Number((await out.innerText()).trim());
+    if (cur === n) return;
+    await page.getByTestId(cur < n ? "guest-plus" : "guest-minus").click();
+  }
+  await expect(out).toHaveText(String(n));
+}
+
 export async function fillDetailsAndVerify(page: Page) {
   await page.getByTestId("guest-name").fill("Test Guest");
   await page.getByTestId("guest-email").fill("guest@thirdspace.in");
@@ -57,7 +68,7 @@ export async function bookPodcast(page: Page, offset: number) {
   await chooseDate(page, offset);
   await (await firstAvailableSlot(page)).click();
   await expect(page.getByTestId("hold-banner")).toBeVisible();
-  await page.getByTestId("guest-count").selectOption("2");
+  await setGuests(page, 2);
   await fillDetailsAndVerify(page);
   await acceptTerms(page, { recording: true });
   await page.getByTestId("pay-button").click();

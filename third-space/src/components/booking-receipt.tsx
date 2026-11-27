@@ -6,6 +6,9 @@ import type { Locale } from "@/config/site";
 import { formatINR } from "@/lib/pricing";
 import { durationText } from "@/lib/session";
 import { istTimeLabel, toIstIso } from "@/server/slots/time";
+import { StatusBadge } from "./status-badge";
+import { TicketQr } from "./ticket-qr";
+import { siteUrl } from "@/config/site";
 
 /** Receipt + booking summary shown on the confirmation and My Booking pages (guest's own booking only). */
 export function BookingReceipt({ b, t, locale, token }: { b: Booking & { payments: Payment[]; recordings?: RecordingFile[] }; t: Dict; locale: Locale; token: string }) {
@@ -16,14 +19,19 @@ export function BookingReceipt({ b, t, locale, token }: { b: Booking & { payment
   const files = (b.recordings ?? []).filter((r) => r.expiresAt > now);
   return (
     <div className="space-y-4" data-testid="receipt">
+      {["confirmed", "checked_in", "in_progress"].includes(b.status) && (
+        <div className="ts-card flex flex-col items-center gap-3 p-6 text-center" data-testid="ticket">
+          <h2 className="t-h3">{t.confirmation.ticketTitle}</h2>
+          <TicketQr value={`${siteUrl()}/staff/${b.id}`} label={t.confirmation.ticketAlt.replace("{id}", b.id)} />
+          <p className="text-sm text-muted">{t.confirmation.ticketHelp}</p>
+        </div>
+      )}
       <div className="ts-card p-6">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <p className="font-heading text-3xl tracking-wide text-warm" data-testid="receipt-id">
             {b.id}
           </p>
-          <span className="rounded-full border border-gold px-3 py-1 text-sm" data-testid="receipt-status" data-status={b.status}>
-            {m.statusLabels[b.status as keyof typeof m.statusLabels] ?? b.status}
-          </span>
+          <StatusBadge status={b.status} label={m.statusLabels[b.status as keyof typeof m.statusLabels] ?? b.status} testId="receipt-status" />
         </div>
         <dl className="mt-4 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm">
           <dt className="text-muted">{t.confirmation.package}</dt>
