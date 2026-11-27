@@ -25,6 +25,17 @@ Run on 2026-11-23 against commit history of branch `claude/intelligent-ride-aojo
 
 Findings fixed: the heavy display font made the home headline wrap to an extra line when it loaded (+48 px shift); Hinglish eyebrow row changed height when the body font loaded. Fixes: reserved headline height on phones, eyebrow stacked on phones, `font-display: optional` for both fonts. Trade-off: on a very slow first visit the page keeps the fallback fonts until the next page. **Not measured:** Lighthouse scores, JS bundle budgets, real-device or Vercel-edge timings, API response times under load.
 
+## API timing and a concurrency check over HTTP (local production build, Postgres on the same machine, 20 concurrent clients)
+
+| Request | n | p50 | p95 | 5xx |
+|---|--:|--:|--:|--:|
+| `GET /api/availability` | 200 | 44 ms | 103 ms | 0 |
+| `GET /api/calendar` | 200 | 61 ms | 70 ms | 0 |
+| `GET /` (HTML, server-rendered) | 100 | 157 ms | 343 ms | 0 |
+| `GET /pricing` (HTML) | 100 | 100 ms | 140 ms | 0 |
+
+**50 simultaneous `POST /api/holds` for one slot: exactly one 201 and 49 `409 SLOT_TAKEN`, no other status** (231 ms in total). These numbers are local and do not include network or Vercel cold starts; they show the application and database are not the bottleneck, nothing more. Not measured: Lighthouse scores, bundle budgets, Vercel edge timings.
+
 ## Unit and database tests (37)
 
 | File | Tests | What it proves |
@@ -43,8 +54,8 @@ Customer visits, selects a service, checks availability, selects a slot, fills d
 ## What was *not* tested (do not read this report as more than it is)
 
 - **Razorpay against the real API.** Payment logic is tested with a controllable fake gateway and the mock mode. No test-mode transaction has been made.
-- **Load.** Concurrency is tested at the database and service level (parallel callers); there is no multi-user load test and no API response-time measurement.
-- **Browsers and devices.** Chromium only. No Safari, Firefox or real phone. Layout is automated at 360, 390, 768, 1024, 1280 and 1440 px (no sideways scroll; the 1280 px check found and fixed a header overflow of 28 px).
+- **Load.** Concurrency is tested at the database, service and HTTP level (50 parallel holds); there is no sustained multi-user load test and no production response-time measurement.
+- **Browsers and devices.** Chromium only (Firefox and WebKit are not installed in the build environment and could not be added). No Safari, Firefox or real phone. Layout is automated at 360, 390, 768, 1024, 1280 and 1440 px (no sideways scroll; the 1280 px check found and fixed a header overflow of 28 px).
 - **Keyboard and screen-reader review.** axe finds only a subset of accessibility problems; no manual review was done.
 - **Email, WhatsApp and SMS delivery.** No provider is configured; only queueing is tested.
 - **Restore from backup, rollback drill, monitoring alerts.**
