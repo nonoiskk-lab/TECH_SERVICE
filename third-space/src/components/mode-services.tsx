@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { ModeBadge } from "./mode-badge";
+import { CreatorScene, PodcastScene, RoomScene } from "./illustrations";
 
 export type ServiceItem = {
   id: string;
@@ -53,7 +55,11 @@ export function ModeServices({ items, labels }: { items: ServiceItem[]; labels: 
       <div id="mode-panel" role="tabpanel" aria-labelledby={`mode-tab-${mode}`} className="mt-4 grid gap-4 md:grid-cols-3">
         {shown.map((s) => (
           <article key={s.id} className="ts-card ts-service-card flex flex-col p-6 pt-7" data-mode={s.mode} data-testid="service-card">
-            <p className="t-overline" style={{ color: `var(--ts-mode-${s.mode}-text)` }}>
+            <div className="-mx-6 -mt-7 mb-5 overflow-hidden" style={{ aspectRatio: "16 / 9" }} data-testid="service-cover">
+              {s.mode === "theatre" ? <RoomScene className="h-full w-full" /> : s.mode === "podcast" ? <PodcastScene className="h-full w-full" /> : <CreatorScene className="h-full w-full" />}
+            </div>
+            <p className="t-overline flex items-center gap-2" style={{ color: `var(--ts-mode-${s.mode}-text)` }}>
+              <ModeBadge mode={s.mode} className="h-7 w-7 shrink-0" />
               {s.mode === "theatre" ? labels.theatre : s.mode === "podcast" ? labels.podcast : labels.studio}
             </p>
             <h3 className="t-h2 mt-1">{s.name}</h3>

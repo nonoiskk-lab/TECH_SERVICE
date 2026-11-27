@@ -1,6 +1,6 @@
 # THIRD SPACE: Image and Logo Asset Plan (design system v6.1, orange and white)
 
-Date: 2026-11-27. Status: PLAN ONLY. No new image has been added to the product by this document.
+Date: 2026-11-27. Status: plan, plus a first batch of ORIGINAL vector assets already built (section 10). Real photos and the final logo are still the owner's.
 
 ## 0. Rules (read first)
 
@@ -173,3 +173,21 @@ Delivery spec: RAW or JPG at 4000 px long edge, sRGB, no watermarks, file name `
 - Generated people or fake venue photos presented as real.
 - Movie posters or film stills without a licence (theatre screen photos use a neutral or owned frame).
 - Publishing any guest face, voice or recording without consent.
+
+## 10. Built so far (2026-11-27, preview only)
+
+All of these are original vector work made from the existing doorway mark. They are placeholders until the owner supplies the final logo and real photos.
+
+| Plan item | Built | Where |
+|---|---|---|
+| L2, L5, L6, L4 | Mark in 4 colourways: orange (primary), white (deep-orange band), ink on orange (bright band), one-colour ink | `public/brand/logo-mark*.svg`, `LogoMark variant` prop in `site-header.tsx` |
+| L7 | Favicon, orange | `src/app/icon.svg` |
+| L8 | Apple touch icon 180x180 | `src/app/apple-icon.png` |
+| L9 | PWA icons: 192, 512 (any), 512 maskable with safe zone; manifest now white background, orange theme | `public/icon-*.png`, `src/app/manifest.ts`, `scripts/make-icons.mjs` |
+| L10 | Share image 1200x630 (home and every page without its own) | `src/app/opengraph-image.tsx` |
+| L13 | Mode badges (theatre, podcast, studio) | `src/components/mode-badge.tsx`, used on the home Service Cards |
+| Service Card covers | Illustration cover (16:9) per mode, from the existing scenes | `src/components/mode-services.tsx` |
+| 404 | "Door ajar" illustration | `src/components/state-art.tsx`, `src/app/not-found.tsx` |
+| Empty / error art | `EmptyArt`, `ErrorArt` ready, not yet placed on screens | `src/components/state-art.tsx` |
+
+Tests: `e2e/assets.spec.ts` (icons, share image, manifest, head links, covers and badges, no overflow, 404 art). Still open: L1/L3 final wordmark files (need the owner's logo), L11 email/WhatsApp header (providers not connected), per-route share images, every real photo in section 2.

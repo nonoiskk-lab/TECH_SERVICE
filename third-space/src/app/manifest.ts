@@ -7,12 +7,13 @@ export default function manifest(): MetadataRoute.Manifest {
     description: "Your Voice. Your Space. Your Story. Dhanbad's Private Experience & Creator Destination.",
     start_url: "/",
     display: "standalone",
-    background_color: "#11100F",
-    theme_color: "#11100F",
+    background_color: "#FFFFFF",
+    theme_color: "#FF7A1A",
     icons: [
       { src: "/brand/logo-mark.svg", sizes: "any", type: "image/svg+xml", purpose: "any" },
       { src: "/icon-192.png", sizes: "192x192", type: "image/png" },
-      { src: "/icon-512.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
+      { src: "/icon-512.png", sizes: "512x512", type: "image/png", purpose: "any" },
+      { src: "/icon-512-maskable.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
     ],
   };
 }

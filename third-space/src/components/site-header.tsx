@@ -4,13 +4,21 @@ import type { Locale } from "@/config/site";
 import { LocaleToggle } from "./client-bits";
 
 /** Logo mark: a doorway in a gold circle (the "third place" between home and work). */
-export function LogoMark({ className = "h-9 w-9" }: { className?: string }) {
+const MARKS = {
+  primary: { circle: "#FF7A1A", door: "#1C1410", inner: "#FFFFFF", knob: "#FF7A1A" },
+  white: { circle: "#FFFFFF", door: "#A63500", inner: "#FFEEDD", knob: "#A63500" }, // on the deep-orange band
+  ink: { circle: "#1C1410", door: "#FFFFFF", inner: "#1C1410", knob: "#FFFFFF" }, // one colour
+  onOrange: { circle: "#1C1410", door: "#FF7A1A", inner: "#FFFFFF", knob: "#1C1410" }, // on the bright-orange band
+} as const;
+
+export function LogoMark({ className = "h-9 w-9", variant = "primary" }: { className?: string; variant?: keyof typeof MARKS }) {
+  const m = MARKS[variant];
   return (
     <svg viewBox="0 0 64 64" className={className} aria-hidden="true">
-      <circle cx="32" cy="32" r="30" fill="#FF7A1A" />
-      <path d="M20 50V30a12 12 0 0 1 24 0v20z" fill="#1C1410" />
-      <path d="M26 50V32a6 6 0 0 1 12 0v18z" fill="#FFFFFF" />
-      <circle cx="35" cy="41" r="1.6" fill="#FF7A1A" />
+      <circle cx="32" cy="32" r="30" fill={m.circle} />
+      <path d="M20 50V30a12 12 0 0 1 24 0v20z" fill={m.door} />
+      <path d="M26 50V32a6 6 0 0 1 12 0v18z" fill={m.inner} />
+      <circle cx="35" cy="41" r="1.6" fill={m.knob} />
     </svg>
   );
 }
