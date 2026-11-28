@@ -72,7 +72,12 @@ export default async function Home() {
     <>
       {/* 1. Hero: heavy serif headline, value line, filled + outlined CTA pair, helper facts; framed illustration right. */}
       <section className="relative overflow-hidden bg-bg">
-        <Container className="grid items-center gap-12 pb-16 pt-12 sm:pt-16 lg:grid-cols-[1.05fr_1fr] lg:pb-24 lg:pt-20">
+        <span
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 bg-cover bg-right bg-no-repeat"
+          style={{ backgroundImage: "url('/backgrounds/hero-arch-texture.svg')" }}
+        />
+        <Container className="relative grid items-center gap-12 pb-16 pt-12 sm:pt-16 lg:grid-cols-[1.05fr_1fr] lg:pb-24 lg:pt-20">
           <div>
             <p className="flex flex-col items-start gap-3 sm:flex-row sm:flex-wrap sm:items-center" data-testid="launch">
               <span className="ts-eyebrow">{t.home.launch}</span>
@@ -196,24 +201,38 @@ export default async function Home() {
           </section>
         ))}
         <Container>
-          <Link href="/celebrations" className="ts-card ts-card-hover my-10 flex items-center gap-4 p-6" data-testid="pick-celebrate">
-            <span className="ts-icon">
+          <Link
+            href="/celebrations"
+            className="ts-card ts-card-hover relative my-10 flex items-center gap-4 overflow-hidden p-6"
+            data-testid="pick-celebrate"
+          >
+            <span
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-y-0 right-0 hidden w-[520px] bg-cover bg-right bg-no-repeat sm:block"
+              style={{ backgroundImage: "url('/backgrounds/celebration-accent.svg')" }}
+            />
+            <span className="ts-icon relative">
               <CakeIcon className="h-6 w-6" />
             </span>
-            <span className="flex-1">
+            <span className="relative flex-1">
               <span className="block text-2xl font-semibold" style={{ fontFamily: "var(--font-heading)" }}>
                 {h.celebrateTitle}
               </span>
               <span className="block text-muted">{h.celebrateText}</span>
             </span>
-            <span className="ts-btn ts-btn-ghost hidden sm:inline-flex">{t.common.learnMore}</span>
+            <span className="ts-btn ts-btn-ghost relative hidden sm:inline-flex">{t.common.learnMore}</span>
           </Link>
         </Container>
       </div>
 
       {/* 5. Dark feature band: eyebrow, centred heading, divider, two-column white cards with icon discs. */}
-      <section className="ts-band-dark ts-section" id="features">
-        <Container>
+      <section className="ts-band-dark ts-section relative overflow-hidden" id="features">
+        <span
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 bg-cover bg-right bg-no-repeat"
+          style={{ backgroundImage: "url('/backgrounds/band-arch-texture.svg')" }}
+        />
+        <Container className="relative">
           <div className="mx-auto mb-12 max-w-3xl text-center">
             <p className="ts-eyebrow justify-center !text-faint">{h.eyebrow}</p>
             <h2 className="mt-3 text-3xl leading-tight sm:text-[3.25rem]">{h.featTitle}</h2>
@@ -275,8 +294,13 @@ export default async function Home() {
 
       {/* 8. Gold statement band: one large serif sentence and a white CTA. */}
       <section className="ts-band-gold ts-section relative overflow-hidden" data-testid="statement-band">
+        <span
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 bg-cover bg-right bg-no-repeat"
+          style={{ backgroundImage: "url('/backgrounds/band-arch-texture.svg')" }}
+        />
         <Sparkle className="absolute right-[6%] top-8 h-16 w-16 text-ink/40" />
-        <Container>
+        <Container className="relative">
           <p className="max-w-4xl text-3xl leading-[1.25] sm:text-[3.25rem]" style={{ fontFamily: "var(--font-heading)", fontWeight: 600 }}>
             {h.bandFrom.replace("{price}", from)}. <span className="opacity-80">{h.bandLine}.</span>
           </p>
