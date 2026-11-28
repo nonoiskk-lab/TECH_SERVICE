@@ -1,8 +1,24 @@
 # THIRD SPACE: project status (V5.0)
 
-Updated 2026-11-23. Companion documents: PRODUCT_REQUIREMENTS, SYSTEM_ARCHITECTURE, DESIGN_SYSTEM, DATABASE_SCHEMA, BOOKING_ENGINE, API_DOCUMENTATION, RAZORPAY_INTEGRATION, SECURITY_AUDIT, TESTING_REPORT, DEPLOYMENT_GUIDE, ASSUMPTIONS_AND_DECISIONS, RELEASE_CHECKLIST. Earlier discovery work: `docs/v4/`.
+Updated 2026-11-28. Companion documents: PRODUCT_REQUIREMENTS, SYSTEM_ARCHITECTURE, DESIGN_SYSTEM, DATABASE_SCHEMA, BOOKING_ENGINE, API_DOCUMENTATION, RAZORPAY_INTEGRATION, SECURITY_AUDIT, TESTING_REPORT, DEPLOYMENT_GUIDE, ASSUMPTIONS_AND_DECISIONS, RELEASE_CHECKLIST. Earlier discovery work: `docs/v4/`.
 
-## Latest (2026-11-25): design system v6
+## Latest (2026-11-28): how complete is the site (honest estimate)
+
+| Part | Done | What is left |
+|---|:-:|---|
+| Booking software (engine, holds, no double-booking, accounts, plan hours, staff portal, admin) | about 90% | invoices, 8-role model, equipment and staff as bookable resources |
+| Design system v6.1 in code (orange and white, all screens, staff dashboard) | 100% in code | owner approval; production still has the old design |
+| Brand assets in code (logo colourways, icons, apple icon, share image, mode badges, covers, 404) | about 40% of the asset plan | final logo, real photos, per-page share images, email header, empty-state art placement |
+| Online payments (Razorpay) | code done, 0% proven | test keys and a test-mode run (owner: pending) |
+| Messages (email, WhatsApp, SMS) | queue only | provider accounts and keys |
+| Launch operations (staging DB, backups, monitoring, cron secret, domain, GSTIN) | about 20% | owner inputs and approvals (see below) |
+| **Overall** | **about 70% to a real public launch** | code is ahead of the business inputs; the blockers are mostly owner decisions, keys and real photos, not code |
+
+These percentages are the author's estimate from the evidence tables below, not a measured figure.
+
+Since the design update (preview only, nothing in production): original logo colourways, favicon, apple icon, PWA icons (maskable), 1200x630 share image, three mode badges, service-card covers and the 404 illustration (`docs/IMAGE_ASSET_PLAN.md` section 10; `docs/IMAGE_SIZE_SHEET.md` lists every image, place and size). Latest local run: **46 unit and 101 e2e tests pass, 0 failed**; typecheck, lint and build clean.
+
+## Design system v6 (2026-11-25)
 
 The owner's *Cinema Design System Audit & Build Plan* is built in code (`docs/DESIGN_SYSTEM.md`): Poppins, an **orange and white** theme (owner's later instruction; the plan's espresso and amber palette was replaced), mode colours, the component list, the customer screens (incl. QR ticket, plan hours used, tab bar) and the staff dashboard (three-lane calendar, daily checklist and report). 46 unit and 93 e2e tests pass; 20 pages pass axe; worst CLS 0.000 and LCP 1.23 s. **Preview only; production still runs the previous design until the owner approves.**
 
@@ -38,7 +54,7 @@ The application is built, tested and **deployed** at https://third-space-gamma.v
 
 ## Test totals (latest local run, fresh database)
 
-37 unit/database tests passed · 84 end-to-end passed, 0 failed (43 skipped by design; consecutive full runs) · 11 axe accessibility checks passed · 35 content checks passed · layout checked at six widths · LCP 0.76 to 1.3 s and worst CLS 0.010 on 14 pages under mobile throttling · typecheck, lint and production build pass. `npm audit`: 0 critical, 4 high (Prisma 6 CLI toolchain, build-time). Details and the list of what was **not** tested: TESTING_REPORT.
+46 unit/database tests passed · 101 end-to-end passed, 0 failed (52 skipped by design) on 2026-11-27 · 11 axe accessibility checks passed · 35 content checks passed · layout checked at six widths · LCP 0.76 to 1.3 s and worst CLS 0.010 on 14 pages under mobile throttling · typecheck, lint and production build pass. `npm audit`: 0 critical, 4 high (Prisma 6 CLI toolchain, build-time). Details and the list of what was **not** tested: TESTING_REPORT.
 
 ## Known issues and open risks
 
@@ -46,7 +62,7 @@ See SECURITY_AUDIT "Open findings" (O1 to O10) and RELEASE_CHECKLIST section B. 
 
 ## Incomplete features
 
-Invoices; 8-role model; guests paying with plan hours online; real messaging delivery; first-class equipment and staff resources; `timestamptz` and foreign keys for `resource`/`packageId`; design approval and real photography; Skedda-based specification (document missing).
+Invoices; 8-role model; guests paying with plan hours online; real messaging delivery; first-class equipment and staff resources; `timestamptz` and foreign keys for `resource`/`packageId`; design approval, final logo and real photography (see IMAGE_ASSET_PLAN section 6); Skedda-based specification (document missing).
 
 ## External inputs still required
 
