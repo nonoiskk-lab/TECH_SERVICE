@@ -1,0 +1,216 @@
+/*
+ * THIRD SPACE design tokens (v6.1): the single tokens file.
+ *
+ * Structure from the owner's "Third Space: Cinema Design System Audit & Build Plan" (2026-11-25): Poppins type scale, spacing,
+ * radius and effect styles, mode colours (theatre ember, podcast amber, studio teal), component list. The colour theme is
+ * ORANGE AND WHITE (owner's request, same day). Every text pair was checked with the WCAG 2.x formula (docs/DESIGN_SYSTEM.md).
+ *
+ * Layers: primitives (--p-*) -> semantic (--ts-*, and the shadcn-style aliases at the end) -> components (globals.css).
+ * The older --ts-* names are kept on purpose so existing components keep working.
+ */
+/*
+ * v6.1 (2026-11-25): ORANGE AND WHITE, by the owner's request. White pages, a warm-white surface step,
+ * one bright orange for fills (always with the dark ink on it: white on this orange is only 2.6:1),
+ * a deeper orange only for TEXT on white (5:1 or better), and one deep-orange band where text is white (6.7:1).
+ * The mode colours (ember, amber, teal) and the type, spacing, radius and effect tokens are unchanged from v6.
+ */
+:root, .theme-light {
+  color-scheme: light;
+
+  /* ---- Primitives ------------------------------------------------------------------------------------------ */
+  --p-ink: #1c1410;            /* body text, and text on orange, amber, ember, teal fills */
+  --p-white: #ffffff;
+  --p-warm-50: #fff8f2;        /* warm white: surface step */
+  --p-warm-100: #ffeedd;       /* warm white deeper: raised rows, inputs, lanes */
+  --p-warm-300: #f1d9c6;       /* decorative border */
+  --p-taupe-500: #9c7e65;      /* UI border (inputs, chips): 3.3:1 or better on every surface */
+  --p-taupe-700: #6a5646;      /* muted text */
+  --p-orange-400: #ff9240;     /* orange hover */
+  --p-orange-500: #ff7a1a;     /* orange (primary fill) */
+  --p-orange-600: #e2620b;     /* orange pressed (ink on it 5.2:1) */
+  --p-orange-800: #a84300;     /* orange as TEXT on white and warm white (5.3:1 or better) */
+  --p-orange-900: #a63500;     /* deep orange band, white text 6.7:1 */
+  --p-amber-500: #f2a33a;      /* podcast */
+  --p-amber-800: #8a5300;
+  --p-ember-500: #e4572e;      /* theatre */
+  --p-ember-700: #b5361a;
+  --p-teal-500: #3fb3a3;       /* studio */
+  --p-teal-700: #0b6e63;
+  --p-green-700: #1a6340;
+  --p-red-700: #932a24;
+
+  /* ---- Semantic ------------------------------------------------------------------------------------------- */
+  --ts-bg: var(--p-white);
+  --ts-bg-card: var(--p-white);
+  --ts-bg-raised: var(--p-warm-100);
+  --ts-line: var(--p-warm-300);
+  --ts-border-strong: var(--p-taupe-500);
+  --ts-text: var(--p-ink);
+  --ts-text-muted: var(--p-taupe-700);
+  --ts-text-faint: var(--p-taupe-700);
+  --ts-gold: var(--p-orange-500);            /* primary fill (name kept from v5) */
+  --ts-gold-strong: var(--p-orange-400);     /* hover */
+  --ts-gold-pressed: var(--p-orange-600);    /* pressed */
+  --ts-on-gold: var(--p-ink);
+  --ts-warm: var(--p-orange-800);            /* orange used as text */
+  --ts-warm-strong: var(--p-orange-800);
+  --ts-warm-ink: var(--p-ink);
+  --ts-espresso: var(--p-warm-100);
+  --ts-ivory: var(--p-warm-50);
+  --ts-ok: var(--p-green-700);
+  --ts-danger: var(--p-red-700);
+  --ts-status-ok: var(--p-green-700);        /* Status Badge text: 4.5:1 or better on every surface, tinted or not */
+  --ts-status-warn: var(--p-orange-800);
+  --ts-status-bad: var(--p-red-700);
+  --ts-ring: var(--p-orange-800);            /* focus ring: 5.2:1 on white */
+  --ts-mode-theatre: var(--p-ember-500);
+  --ts-mode-podcast: var(--p-amber-500);
+  --ts-mode-studio: var(--p-teal-500);
+  --ts-mode-theatre-text: var(--p-ember-700);
+  --ts-mode-podcast-text: var(--p-amber-800);
+  --ts-mode-studio-text: var(--p-teal-700);
+  --ts-on-mode: var(--p-ink);
+
+  /* ---- Effects ---------------------------------------------------------------------------------------------- */
+  --ts-glow-primary: 0 0 24px rgba(255, 122, 26, 0.35);
+  --ts-shadow-cover: 0 16px 40px rgba(120, 60, 10, 0.2);
+  --ts-shadow-card: 0 2px 12px rgba(120, 60, 10, 0.1);
+  --ts-shadow-nav: 0 1px 0 var(--p-warm-300);
+  --ts-glow: var(--ts-shadow-card);
+  --ts-glass-bg: rgba(255, 255, 255, 0.86);
+  --ts-glass-blur: blur(16px);
+
+  /* ---- Spacing --------------------------------------------------------------------------------------------- */
+  --space-xxs: 4px;
+  --space-xs: 8px;
+  --space-sm: 12px;
+  --space-md: 16px;
+  --space-lg: 20px;
+  --space-xl: 24px;
+  --space-2xl: 32px;
+  --space-3xl: 48px;
+  --ts-section-y: 64px;
+  --ts-section-y-lg: 96px;
+  --ts-maxw: 1200px;
+
+  /* ---- Radius ---------------------------------------------------------------------------------------------- */
+  --ts-radius-xs: 6px;
+  --ts-radius-sm: 8px;
+  --ts-radius-md: 12px;
+  --ts-radius-lg: 16px;
+  --ts-radius-xl: 24px;
+  --ts-radius-pill: 999px;
+  --ts-radius: var(--ts-radius-lg);          /* cards */
+  --ts-btn-radius: var(--ts-radius-pill);    /* set to var(--ts-radius-md) for rounded-square buttons */
+
+  /* ---- Sizes ----------------------------------------------------------------------------------------------- */
+  --ts-tap: 44px;
+  --ts-btn-h: 44px;
+  --ts-btn-h-lg: 56px;
+
+  /* ---- Type scale (Poppins): size / line-height, weight ---------------------------------------------------- */
+  --text-display: 32px;   --lh-display: 40px;   --fw-display: 700;
+  --text-h1: 24px;        --lh-h1: 32px;        --fw-h1: 600;
+  --text-h2: 20px;        --lh-h2: 28px;        --fw-h2: 600;
+  --text-h3: 16px;        --lh-h3: 24px;        --fw-h3: 600;
+  --text-body-l: 16px;    --lh-body-l: 24px;
+  --text-body-m: 14px;    --lh-body-m: 20px;
+  --text-body-s: 12px;    --lh-body-s: 16px;
+  --text-label-m: 14px;   --lh-label-m: 20px;   --fw-label: 500;
+  --text-label-btn: 14px; --lh-label-btn: 20px; --fw-label-btn: 600;
+  --text-caption: 12px;   --lh-caption: 16px;
+  --text-overline: 12px;  --lh-overline: 16px;
+  --text-price: 24px;     --lh-price: 32px;     --fw-price: 700;
+
+  --ts-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --ts-dur: 250ms;
+  background: var(--ts-bg);
+  color: var(--ts-text);
+}
+
+/* Larger screens: the web scales Display and H1 up (the file defines the 375 px app sizes). */
+@media (min-width: 1024px) {
+  :root {
+    --text-display: 48px; --lh-display: 56px;
+    --text-h1: 32px;      --lh-h1: 40px;
+    --text-h2: 24px;      --lh-h2: 32px;
+  }
+}
+
+/* ---- Bands: alternating sections ------------------------------------------------------------------------------ */
+/* Warm-white band: a step above the white page. */
+.ts-band-light {
+  --ts-bg: var(--p-warm-50);
+  --ts-bg-card: var(--p-white);
+  --ts-bg-raised: var(--p-warm-100);
+  background: var(--ts-bg);
+  color: var(--ts-text);
+}
+/* Deep-orange band (the old "dark" band): white text, white buttons, white cards keep the normal dark-on-white tokens. */
+.ts-band-dark, .ts-dark {
+  --ts-bg: var(--p-orange-900);
+  --ts-text: var(--p-white);
+  --ts-text-muted: #ffe0cc;
+  --ts-text-faint: #ffe0cc;
+  --ts-warm: var(--p-white);
+  --ts-warm-strong: var(--p-white);
+  --ts-line: rgba(255, 255, 255, 0.35);
+  --ts-border-strong: rgba(255, 255, 255, 0.7);
+  --ts-ring: var(--p-white);
+  --ts-bg-raised: rgba(255, 255, 255, 0.14);
+  background: var(--ts-bg);
+  color: var(--ts-text);
+}
+.ts-band-dark .ts-card, .ts-dark .ts-card {
+  --ts-bg-card: var(--p-white);
+  --ts-bg-raised: var(--p-warm-100);
+  --ts-line: var(--p-warm-300);
+  --ts-border-strong: var(--p-taupe-500);
+  --ts-text: var(--p-ink);
+  --ts-text-muted: var(--p-taupe-700);
+  --ts-text-faint: var(--p-taupe-700);
+  --ts-warm: var(--p-orange-800);
+  --ts-warm-strong: var(--p-orange-800);
+  --ts-ring: var(--p-orange-800);
+  color: var(--ts-text);
+}
+/* Orange statement band: ink text (7:1). */
+.ts-band-gold {
+  --ts-bg: var(--p-orange-500);
+  --ts-text: var(--p-ink);
+  --ts-text-muted: #3a1d08;
+  --ts-text-faint: #3a1d08;
+  --ts-warm: var(--p-ink);
+  --ts-line: rgba(28, 20, 16, 0.3);
+  background: var(--ts-bg);
+  color: var(--ts-text);
+}
+
+/*
+ * Semantic names (shadcn / Cal.com style) over the ts-* tokens, so new code can use
+ * --background, --foreground, --primary, --muted, --border, --radius, --ring and the shadow scale.
+ * Declared on every surface that re-themes the ts-* tokens, because a custom property that
+ * references another is resolved where it is declared.
+ */
+:root, .theme-light, .ts-band-light, .ts-band-dark, .ts-dark, .ts-band-gold {
+  --background: var(--ts-bg);
+  --foreground: var(--ts-text);
+  --card: var(--ts-bg-card);
+  --card-foreground: var(--ts-text);
+  --primary: var(--ts-gold);
+  --primary-foreground: var(--ts-on-gold);
+  --primary-hover: var(--ts-gold-strong);
+  --primary-pressed: var(--ts-gold-pressed);
+  --accent-text: var(--ts-warm);
+  --muted: var(--ts-bg-raised);
+  --muted-foreground: var(--ts-text-muted);
+  --border: var(--ts-line);
+  --input: var(--ts-border-strong);
+  --ring: var(--ts-ring);
+  --destructive: var(--ts-danger);
+  --success: var(--ts-ok);
+  --radius: var(--ts-radius);
+  --shadow-sm: var(--ts-glow);
+  --shadow-md: var(--ts-shadow-card);
+  --shadow-lg: var(--ts-shadow-cover);
+}

@@ -1,0 +1,68 @@
+name: third-space
+
+on:
+  push:
+    paths: ["third-space/**", ".github/workflows/third-space.yml"]
+  pull_request:
+    paths: ["third-space/**", ".github/workflows/third-space.yml"]
+
+defaults:
+  run:
+    working-directory: third-space
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: thirdspace
+          POSTGRES_PASSWORD: thirdspace
+          POSTGRES_DB: thirdspace_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U thirdspace"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      CI: "1"
+      DATABASE_URL: postgresql://thirdspace:thirdspace@localhost:5432/thirdspace_test
+      TEST_DATABASE_URL: postgresql://thirdspace:thirdspace@localhost:5432/thirdspace_test
+      ADMIN_PASSWORD: test-staff-password
+      AUTH_SECRET: test-auth-secret-at-least-16-chars
+      PAYMENTS_MODE: mock
+      OTP_MODE: mock
+      RATE_LIMIT_DISABLED: "1"
+      RAZORPAY_WEBHOOK_SECRET: test-webhook-secret
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: third-space/package-lock.json
+      - run: npm ci
+      - run: npx next typegen && npm run typecheck
+      - run: npm run lint
+      - run: npx prisma migrate deploy
+      - run: npm run test:unit
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - name: Start both Legal Gate states
+        run: |
+          THIRD_SPACE_LEGAL_GATE=closed npx next start -p 3100 &
+          THIRD_SPACE_LEGAL_GATE=open npx next start -p 3101 &
+          npx --yes wait-on@8.0.3 http://localhost:3100/api/public-config http://localhost:3101/api/public-config
+      - name: Content checks (placeholders, consistency, links, claims, Legal Gate)
+        run: |
+          node scripts/check-content.mjs http://localhost:3100
+          node scripts/check-content.mjs http://localhost:3101
+      - name: e2e at 390px, both gate states
+        run: npm run test:e2e
+        env:
+          CI: ""
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: third-space/playwright-report

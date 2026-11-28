@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="1600" height="900" role="presentation" aria-hidden="true">
+  <title>Hero arch texture</title>
+  <defs>
+    <!-- Warm wash confined to the right third; the left two-thirds stays pure white so the headline keeps full contrast. -->
+    <radialGradient id="warmWash" cx="0.84" cy="0.42" r="0.62">
+      <stop offset="0%" stop-color="#FFEEDD" stop-opacity="0.95" />
+      <stop offset="55%" stop-color="#FFF8F2" stop-opacity="0.55" />
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0" />
+    </radialGradient>
+
+    <!-- Fades every arch stroke out towards the left, so nothing crosses into the text column. -->
+    <linearGradient id="archFade" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0" />
+      <stop offset="42%" stop-color="#FFFFFF" stop-opacity="0" />
+      <stop offset="72%" stop-color="#FFFFFF" stop-opacity="0.85" />
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="1" />
+    </linearGradient>
+    <mask id="archMask">
+      <rect width="1600" height="900" fill="url(#archFade)" />
+    </mask>
+  </defs>
+
+  <rect width="1600" height="900" fill="#FFFFFF" />
+  <rect width="1600" height="900" fill="url(#warmWash)" />
+
+  <!-- The doorway motif from the brand: concentric arches opening off the right edge. Extremely low contrast by design. -->
+  <g mask="url(#archMask)" fill="none" stroke="#F1D9C6" stroke-linecap="round">
+    <path d="M1140 900 V470 a260 260 0 0 1 520 0 V900" stroke-width="2.5" opacity="0.9" />
+    <path d="M1250 900 V512 a150 150 0 0 1 300 0 V900" stroke-width="2.5" opacity="0.7" />
+    <path d="M1030 900 V424 a370 370 0 0 1 740 0 V900" stroke-width="2" opacity="0.5" />
+    <path d="M 920 900 V 378 a480 480 0 0 1 960 0 V900" stroke-width="2" opacity="0.3" />
+  </g>
+
+  <!-- One small amber accent, the single focal point the brief allows. -->
+  <circle cx="1400" cy="248" r="7" fill="#FF7A1A" opacity="0.55" />
+</svg>

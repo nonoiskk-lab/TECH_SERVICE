@@ -1,0 +1,113 @@
+{
+  "$meta": {
+    "name": "THIRD SPACE design tokens",
+    "version": "6.1.0",
+    "date": "2026-11-25",
+    "source": "src/styles/tokens.css. Structure from the owner's 'Third Space: Cinema Design System Audit & Build Plan'; colour theme orange and white by the owner's later instruction (2026-11-25).",
+    "credit": "Based on Cinema tickets booking app by Yuriy Apretov (CC BY 4.0)",
+    "status": "Implemented, preview only, not owner-approved"
+  },
+  "color": {
+    "theme": "orange and white (one theme for customer site and staff screens)",
+    "bg-main": "#FFFFFF",
+    "bg-surface": "#FFF8F2",
+    "bg-raised": "#FFEEDD",
+    "border": "#F1D9C6",
+    "border-strong": "#9C7E65",
+    "text-main": "#1C1410",
+    "text-muted": "#6A5646",
+    "primary": "#FF7A1A",
+    "primary-hover": "#FF9240",
+    "primary-pressed": "#E2620B",
+    "on-primary": "#1C1410",
+    "orange-text": "#A84300",
+    "deep-orange-band": "#A63500",
+    "on-deep-orange": "#FFFFFF",
+    "mode-theatre": "#E4572E",
+    "mode-podcast": "#F2A33A",
+    "mode-studio": "#3FB3A3",
+    "mode-theatre-text": "#B5361A",
+    "mode-podcast-text": "#8A5300",
+    "mode-studio-text": "#0B6E63",
+    "positive": "#1A6340",
+    "negative": "#932A24",
+    "ring": "#A84300"
+  },
+  "typography": {
+    "family": "Poppins (latin, devanagari)",
+    "styles": {
+      "display": "32/40 700 (48/56 from 1024px)",
+      "h1": "24/32 600 (32/40)",
+      "h2": "20/28 600 (24/32)",
+      "h3": "16/24 600",
+      "body-l": "16/24",
+      "body-m": "14/20",
+      "body-s": "12/16",
+      "label-m": "14/20 500",
+      "label-button": "14/20 600",
+      "caption": "12/16",
+      "overline": "12/16 uppercase",
+      "price-l": "24/32 700"
+    }
+  },
+  "space": {
+    "xxs": "4px",
+    "xs": "8px",
+    "sm": "12px",
+    "md": "16px",
+    "lg": "20px",
+    "xl": "24px",
+    "2xl": "32px",
+    "3xl": "48px"
+  },
+  "radius": {
+    "xs": "6px",
+    "sm": "8px",
+    "md": "12px",
+    "lg": "16px",
+    "xl": "24px",
+    "pill": "999px",
+    "card": "16px",
+    "button": "999px",
+    "input": "12px"
+  },
+  "size": {
+    "tap": "44px",
+    "button": "44px",
+    "button-lg": "56px",
+    "max-width": "1200px"
+  },
+  "effects": {
+    "glow-primary": "0 0 24px rgba(255,122,26,.35)",
+    "shadow-cover": "0 16px 40px rgba(120,60,10,.2)",
+    "shadow-card": "0 2px 12px rgba(120,60,10,.1)",
+    "glass": "rgba(255,255,255,.86) + blur(16px)"
+  },
+  "semantic": {
+    "background": "--ts-bg",
+    "foreground": "--ts-text",
+    "card": "--ts-bg-card",
+    "primary": "--ts-gold",
+    "primary-foreground": "--ts-on-gold",
+    "muted": "--ts-bg-raised",
+    "muted-foreground": "--ts-text-muted",
+    "border": "--ts-line",
+    "input": "--ts-border-strong",
+    "ring": "--ts-ring",
+    "destructive": "--ts-danger",
+    "success": "--ts-ok",
+    "radius": "--ts-radius"
+  },
+  "motion": {
+    "ease": "cubic-bezier(.2,.7,.2,1)",
+    "duration": "250ms"
+  },
+  "breakpoints": {
+    "xs": "360px",
+    "sm": "390px",
+    "md": "768px",
+    "lg": "1024px",
+    "xl": "1280px",
+    "xxl": "1440px"
+  }
+}

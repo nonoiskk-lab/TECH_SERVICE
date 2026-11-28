@@ -1,0 +1,87 @@
+/**
+ * Contracts for the slot engine. The public site and the admin panel talk to
+ * these interfaces only; ./engine.ts implements them on Postgres.
+ */
+
+export type SlotStatus = "available" | "held" | "booked" | "blocked" | "past";
+export type Resource = "room" | "studio";
+
+export type Slot = { start: string; end: string; status: SlotStatus };
+
+export type Hold = { id: string; packageId: string; start: string; end: string; expiresAt: string; durationMinutes: number };
+
+export type GuestDetails = { name: string; phone: string; email: string };
+
+export type AcceptanceInput = {
+  locale: string;
+  allParticipantsAdult: boolean;
+  guestsInformed: boolean;
+  venueRulesAccepted: boolean;
+  recordingConsent?: boolean;
+  promotionalConsent: boolean;
+  marketingConsent: boolean;
+};
+
+export type BookingDraft = {
+  packageId: string;
+  mode: string;
+  addOnIds: string[];
+  themeId?: string;
+  titleId?: string;
+  titleName?: string;
+  sessionInput: Record<string, string | number>;
+  durationMinutes: number;
+  guest: GuestDetails;
+  guestCount: number;
+  locale: string;
+  subtotal: number;
+  discount: number;
+  tax: number;
+  total: number;
+  specialRequests: string;
+  utm: Record<string, string>;
+  acceptance: AcceptanceInput;
+};
+
+export type PaymentOrder = { orderId: string; amount: number; provider: string; keyId?: string };
+
+export class SlotTakenError extends Error {
+  constructor() {
+    super("SLOT_TAKEN");
+  }
+}
+export class HoldExpiredError extends Error {
+  constructor() {
+    super("HOLD_EXPIRED");
+  }
+}
+
+export interface AvailabilityService {
+  slotsFor(date: string, packageId: string, durationMinutes: number, now?: Date): Promise<Slot[]>;
+}
+
+export interface HoldService {
+  create(packageId: string, start: string, durationMinutes: number, now?: Date): Promise<Hold>;
+  get(holdId: string, now?: Date): Promise<Hold | null>;
+  release(holdId: string): Promise<void>;
+}
+
+export interface PaymentService {
+  readonly provider: string;
+  createOrder(amount: number, receipt: string): Promise<PaymentOrder>;
+  /** Verify the gateway's success callback. */
+  verify(input: { orderId: string; paymentId?: string; signature?: string }): Promise<{ ok: boolean; paymentId?: string }>;
+  /** Ask the gateway to refund `amount` paise of a captured payment. `receipt` doubles as the idempotency key. */
+  refund(input: { paymentId: string; amount: number; receipt: string }): Promise<{ refundId: string; status: "pending" | "processed" | "failed" }>;
+  /** Payments the gateway holds for an order (reconciliation). Amounts in paise. */
+  listOrderPayments(orderId: string): Promise<GatewayPayment[]>;
+}
+
+export type GatewayPayment = { id: string; status: "created" | "authorized" | "captured" | "refunded" | "failed"; amount: number; currency: string };
+
+export interface OtpService {
+  readonly isMock: boolean;
+  send(phone: string): Promise<void>;
+  verify(phone: string, code: string): Promise<boolean>;
+  isVerified(phone: string): Promise<boolean>;
+}
